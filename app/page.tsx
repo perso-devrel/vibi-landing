@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 
 export default function Home() {
   return (
-    <main className="relative overflow-hidden">
-      <BackgroundOrbs />
+    <main className="relative">
       <Nav />
       <Hero />
       <Differentiator />
@@ -16,95 +15,120 @@ export default function Home() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Nav                                                          */
-/* ─────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────── */
+/* Nav                                                         */
+/* ────────────────────────────────────────────────────────── */
 
 function Nav() {
   return (
-    <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-      <a href="#top" className="flex items-center gap-2">
-        <Logo />
-        <span className="text-lg font-semibold tracking-tight">vibi</span>
-      </a>
-      <nav className="hidden items-center gap-8 text-sm text-zinc-400 md:flex">
-        <a href="#why" className="hover:text-white transition-colors">
-          왜 vibi
+    <header className="sticky top-0 z-50 border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]/85 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
+        <a href="#top" className="flex items-center gap-2">
+          <Wordmark />
         </a>
-        <a href="#features" className="hover:text-white transition-colors">
-          기능
-        </a>
-        <a href="#scenario" className="hover:text-white transition-colors">
-          사용 모습
-        </a>
-        <a href="#workflow" className="hover:text-white transition-colors">
-          워크플로우
-        </a>
-      </nav>
-      <a
-        href="#waitlist"
-        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white backdrop-blur transition hover:border-white/20 hover:bg-white/10"
-      >
-        사전 등록
-      </a>
+        <nav className="hidden items-center gap-8 text-[15px] font-medium text-[var(--color-ink)] md:flex">
+          <a href="#why" className="hover:opacity-60 transition-opacity">왜 vibi</a>
+          <a href="#features" className="hover:opacity-60 transition-opacity">기능</a>
+          <a href="#scenario" className="hover:opacity-60 transition-opacity">사용 모습</a>
+          <a href="#workflow" className="hover:opacity-60 transition-opacity">워크플로우</a>
+        </nav>
+        <div className="flex items-center gap-2">
+          <a
+            href="#waitlist"
+            className="hidden rounded-full px-4 py-2 text-[15px] font-medium text-[var(--color-ink)] hover:opacity-60 sm:inline-block"
+          >
+            로그인
+          </a>
+          <a href="#waitlist" className="btn-primary">사전 등록</a>
+        </div>
+      </div>
     </header>
   );
 }
 
-function Logo() {
+function Wordmark() {
   return (
-    <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-2)] text-[15px] font-bold text-black">
-      v
+    <span className="display-sm" style={{ letterSpacing: "-0.02em" }}>
+      vibi
     </span>
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Hero                                                         */
-/* ─────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────── */
+/* Hero                                                        */
+/* ────────────────────────────────────────────────────────── */
 
 function Hero() {
   return (
     <section
       id="top"
-      className="grain relative mx-auto max-w-6xl px-6 pb-24 pt-16 md:pb-36 md:pt-24"
+      className="relative overflow-hidden"
+      style={{ paddingTop: "96px", paddingBottom: "96px" }}
     >
-      <div className="relative z-10">
-        <Badge>iOS 사전 등록 진행 중</Badge>
-        <h1 className="mt-6 max-w-4xl text-balance text-5xl font-semibold leading-[1.05] tracking-tight md:text-7xl">
-          영상 속{" "}
-          <span className="gradient-text">보이스만 살리고</span>,
-          <br className="hidden md:block" /> 나머지는 갈아끼우세요.
+      {/* Atmospheric orbs — pure decoration, never as content */}
+      <div
+        aria-hidden
+        className="orb-mint pointer-events-none absolute -left-40 top-10 h-[520px] w-[520px] opacity-70 blur-[8px]"
+      />
+      <div
+        aria-hidden
+        className="orb-peach pointer-events-none absolute -right-32 top-40 h-[460px] w-[460px] opacity-70 blur-[8px]"
+      />
+      <div
+        aria-hidden
+        className="orb-lavender pointer-events-none absolute left-[30%] top-[60%] h-[420px] w-[420px] opacity-50 blur-[6px]"
+      />
+
+      <div className="relative z-10 mx-auto max-w-[1200px] px-6">
+        <BadgePill>iOS 사전 등록 진행 중</BadgePill>
+
+        <h1
+          className="display-mega mt-8 max-w-[18ch] text-balance"
+          style={{ color: "var(--color-ink)" }}
+        >
+          영상 속 보이스만 살리고,
+          <br className="hidden md:block" /> 나머지는 다시 입히다.
         </h1>
-        <p className="mt-6 max-w-2xl text-pretty text-lg text-zinc-400 md:text-xl">
-          기존 모바일 앱은 영상 사운드를 한 덩어리로 다룹니다.
-          <br className="hidden md:block" />{" "}
-          <span className="text-white">vibi</span> 는 보이스 / 배경 / 사람별로
-          분리해, 원하는 부분만 살리고 BGM·AI 보이스를 다시 얹습니다.
+
+        <p className="body-md mt-6 max-w-[58ch] text-pretty" style={{ color: "var(--color-body)" }}>
+          기존 모바일 앱은 영상 사운드를 한 덩어리로 다룹니다. vibi 는 보이스 / 배경 /
+          사람별로 분리해, 원하는 부분만 살리고 BGM·AI 보이스를 다시 얹습니다.
         </p>
 
         <Waitlist />
 
-        <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-zinc-500">
+        <div className="mt-12 flex flex-wrap items-baseline gap-x-8 gap-y-3 caption" style={{ color: "var(--color-muted)" }}>
           <Stat label="음원 분리 대기" value="30초" />
-          <Divider />
+          <Dot />
           <Stat label="다국어 더빙" value="10+ 언어" />
-          <Divider />
+          <Dot />
           <Stat label="작업 위치" value="모바일 한 손" />
         </div>
-      </div>
 
-      <PhonePreview />
+        <WaveformCard />
+      </div>
     </section>
   );
 }
 
-function Badge({ children }: { children: ReactNode }) {
+function BadgePill({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-300 backdrop-blur">
-      <span className="relative flex h-1.5 w-1.5">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-accent-2)] opacity-75"></span>
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--color-accent-2)]"></span>
+    <span
+      className="caption-uppercase inline-flex items-center gap-2 rounded-full px-3 py-1"
+      style={{
+        background: "var(--color-surface-strong)",
+        color: "var(--color-ink)",
+      }}
+    >
+      <span className="relative inline-flex h-1.5 w-1.5">
+        <span
+          className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+          style={{ background: "var(--color-gradient-sky)" }}
+        />
+        <span
+          className="relative inline-flex h-1.5 w-1.5 rounded-full"
+          style={{ background: "var(--color-ink)" }}
+        />
       </span>
       {children}
     </span>
@@ -113,15 +137,17 @@ function Badge({ children }: { children: ReactNode }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline gap-2">
-      <span className="text-white">{value}</span>
+    <span className="flex items-baseline gap-2">
+      <span className="title-sm" style={{ color: "var(--color-ink)" }}>
+        {value}
+      </span>
       <span>{label}</span>
-    </div>
+    </span>
   );
 }
 
-function Divider() {
-  return <span className="h-3 w-px bg-white/10" />;
+function Dot() {
+  return <span className="h-1 w-1 rounded-full" style={{ background: "var(--color-hairline-strong)" }} />;
 }
 
 function Waitlist() {
@@ -131,245 +157,285 @@ function Waitlist() {
       action="#"
       className="mt-10 flex max-w-md flex-col gap-2 sm:flex-row"
     >
-      <label htmlFor="email" className="sr-only">
-        이메일
-      </label>
+      <label htmlFor="email" className="sr-only">이메일</label>
       <input
         id="email"
         type="email"
         required
         placeholder="you@email.com"
-        className="flex-1 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm text-white placeholder:text-zinc-500 outline-none transition focus:border-white/30 focus:bg-white/10"
+        className="text-input flex-1"
+        style={{
+          background: "var(--color-surface-card)",
+          color: "var(--color-ink)",
+          border: "1px solid var(--color-hairline-strong)",
+          borderRadius: "8px",
+          padding: "12px 16px",
+          height: "44px",
+          fontSize: "16px",
+          outline: "none",
+        }}
       />
-      <button
-        type="submit"
-        className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
-      >
-        사전 등록
-      </button>
+      <button type="submit" className="btn-primary">사전 등록 →</button>
     </form>
   );
 }
 
-function PhonePreview() {
-  return (
-    <div className="pointer-events-none relative mx-auto mt-20 hidden max-w-3xl md:block">
-      <div className="ring-soft relative aspect-[16/10] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80">
-        <TrackVisualizer />
-      </div>
-    </div>
-  );
-}
-
-function TrackVisualizer() {
-  const tracks: { name: string; color: string; bars: number[] }[] = [
+function WaveformCard() {
+  // ElevenLabs `audio-waveform-card` analog — surface-card, rounded-xl, 1px hairline.
+  const tracks: { name: string; subtitle: string; bars: number[]; muted?: boolean }[] = [
     {
       name: "Voice",
-      color: "var(--color-accent)",
-      bars: [0.3, 0.6, 0.4, 0.8, 0.5, 0.7, 0.4, 0.9, 0.6, 0.5, 0.7, 0.4, 0.8, 0.5, 0.6, 0.7, 0.5, 0.8, 0.4, 0.6],
+      subtitle: "보이스 — 무손상",
+      bars: [0.3, 0.6, 0.4, 0.8, 0.5, 0.7, 0.4, 0.9, 0.6, 0.5, 0.7, 0.4, 0.8, 0.5, 0.6, 0.7, 0.5, 0.8, 0.4, 0.6, 0.7, 0.5],
     },
     {
       name: "Background",
-      color: "var(--color-accent-2)",
-      bars: [0.4, 0.3, 0.5, 0.4, 0.6, 0.3, 0.5, 0.4, 0.6, 0.5, 0.4, 0.6, 0.3, 0.5, 0.4, 0.6, 0.4, 0.5, 0.3, 0.4],
+      subtitle: "배경 — 음소거",
+      muted: true,
+      bars: [0.4, 0.3, 0.5, 0.4, 0.6, 0.3, 0.5, 0.4, 0.6, 0.5, 0.4, 0.6, 0.3, 0.5, 0.4, 0.6, 0.4, 0.5, 0.3, 0.4, 0.5, 0.4],
     },
     {
-      name: "BGM (added)",
-      color: "#f5d65a",
-      bars: [0.2, 0.5, 0.7, 0.6, 0.4, 0.5, 0.6, 0.4, 0.7, 0.5, 0.6, 0.5, 0.4, 0.6, 0.7, 0.5, 0.6, 0.4, 0.5, 0.6],
+      name: "BGM",
+      subtitle: "BGM — 새로 추가",
+      bars: [0.2, 0.5, 0.7, 0.6, 0.4, 0.5, 0.6, 0.4, 0.7, 0.5, 0.6, 0.5, 0.4, 0.6, 0.7, 0.5, 0.6, 0.4, 0.5, 0.6, 0.5, 0.4],
     },
   ];
 
   return (
-    <div className="absolute inset-0 flex flex-col gap-4 p-8">
-      <div className="flex items-center gap-3">
-        <span className="h-2 w-2 rounded-full bg-red-400/80" />
-        <span className="h-2 w-2 rounded-full bg-yellow-400/80" />
-        <span className="h-2 w-2 rounded-full bg-emerald-400/80" />
-        <span className="ml-3 text-xs text-zinc-500">vibi · 여행_vlog_03.mov</span>
-      </div>
-      <div className="mt-4 flex-1 space-y-3">
-        {tracks.map((t) => (
-          <div
-            key={t.name}
-            className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3"
-          >
-            <span className="w-32 shrink-0 text-xs font-medium text-zinc-300">
-              {t.name}
+    <figure
+      className="relative mt-20 overflow-hidden rounded-2xl bg-white"
+      style={{
+        border: "1px solid var(--color-hairline)",
+        boxShadow: "0 4px 24px rgba(12,10,9,0.04)",
+      }}
+    >
+      {/* faint atmospheric orb behind the card content */}
+      <div
+        aria-hidden
+        className="orb-sky pointer-events-none absolute -right-20 -top-20 h-[300px] w-[300px] opacity-50"
+      />
+      <div className="relative grid grid-cols-1 gap-0 md:grid-cols-[1fr_1.4fr]">
+        <div className="border-b md:border-b-0 md:border-r" style={{ borderColor: "var(--color-hairline)" }}>
+          <div className="p-8">
+            <span className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
+              여행_vlog_03.mov
             </span>
-            <div className="flex flex-1 items-center gap-[3px]">
-              {t.bars.map((h, i) => (
-                <span
-                  key={i}
-                  className="block w-1 rounded-full"
-                  style={{
-                    height: `${Math.round(h * 36)}px`,
-                    background: t.color,
-                    opacity: t.name === "Background" ? 0.25 : 0.85,
-                  }}
-                />
-              ))}
+            <h3 className="display-md mt-3" style={{ color: "var(--color-ink)" }}>
+              한 영상, 세 트랙.
+            </h3>
+            <p className="body-sm mt-3" style={{ color: "var(--color-body)" }}>
+              30초 만에 보이스·배경을 분리하고, BGM 트랙을 더해 다시 합칩니다. 보이스는
+              한 번도 압축되지 않습니다.
+            </p>
+            <div className="mt-6 flex items-center gap-3">
+              <PlayButton />
+              <span className="body-sm" style={{ color: "var(--color-muted)" }}>
+                미리듣기 · 0:42
+              </span>
             </div>
-            <span className="ml-2 shrink-0 text-[11px] text-zinc-500">
-              {t.name === "Background" ? "Muted" : "On"}
-            </span>
           </div>
-        ))}
+        </div>
+        <div className="p-8">
+          <ul className="divider-y">
+            {tracks.map((t) => (
+              <li key={t.name} className="flex items-center gap-5 py-4 first:pt-0 last:pb-0">
+                <span
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full"
+                  style={{ background: "var(--color-surface-strong)" }}
+                >
+                  <span className="caption-uppercase" style={{ color: "var(--color-ink)" }}>
+                    {t.name[0]}
+                  </span>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="title-sm" style={{ color: "var(--color-ink)" }}>{t.name}</p>
+                  <p className="body-sm" style={{ color: "var(--color-muted)" }}>{t.subtitle}</p>
+                </div>
+                <div className="flex items-end gap-[2px]" aria-hidden>
+                  {t.bars.map((h, i) => (
+                    <span
+                      key={i}
+                      className="block w-[2px] rounded-full"
+                      style={{
+                        height: `${Math.round(h * 30) + 4}px`,
+                        background: t.muted ? "var(--color-hairline-strong)" : "var(--color-ink)",
+                        opacity: t.muted ? 0.5 : 0.85,
+                      }}
+                    />
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </div>
+    </figure>
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Differentiator                                               */
-/* ─────────────────────────────────────────────────────────── */
+function PlayButton() {
+  return (
+    <button
+      type="button"
+      aria-label="미리듣기"
+      className="grid h-10 w-10 place-items-center rounded-full transition hover:scale-105"
+      style={{ background: "var(--color-ink)", color: "var(--color-on-primary)" }}
+    >
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+    </button>
+  );
+}
+
+/* ────────────────────────────────────────────────────────── */
+/* Differentiator                                              */
+/* ────────────────────────────────────────────────────────── */
 
 function Differentiator() {
   const rows = [
-    {
-      label: "사운드 단위",
-      legacy: "영상 1개 = 사운드 한 덩어리",
-      vibi: "영상 1개 = 보이스 / 배경 / 사람별",
-    },
-    {
-      label: "잡음 제거",
-      legacy: "다 같이 깎임 (보이스도 손상)",
-      vibi: "배경만 끄기 — 보이스 그대로",
-    },
-    {
-      label: "BGM 교체",
-      legacy: "기존 위에 덧씌움 (겹쳐 들림)",
-      vibi: "보이스만 살리고 BGM 갈아끼움",
-    },
-    {
-      label: "사람별 목소리 부각",
-      legacy: "불가능",
-      vibi: "두 명 인터뷰 중 한 명만 살리기",
-    },
-    {
-      label: "작업 위치",
-      legacy: "PC 전문 도구",
-      vibi: "모바일 — 촬영한 그 자리",
-    },
+    { label: "사운드 단위",        legacy: "영상 1개 = 사운드 한 덩어리",      vibi: "영상 1개 = 보이스 / 배경 / 사람별" },
+    { label: "잡음 제거",          legacy: "다 같이 깎임 (보이스도 손상)",    vibi: "배경만 끄기 — 보이스 그대로" },
+    { label: "BGM 교체",           legacy: "기존 위에 덧씌움 (겹쳐 들림)",    vibi: "보이스만 살리고 BGM 갈아끼움" },
+    { label: "사람별 목소리 부각", legacy: "불가능",                          vibi: "두 명 인터뷰 중 한 명만 살리기" },
+    { label: "작업 위치",          legacy: "PC 전문 도구",                    vibi: "모바일 — 촬영한 그 자리" },
   ];
 
   return (
-    <section
-      id="why"
-      className="relative mx-auto max-w-6xl px-6 py-24 md:py-32"
-    >
-      <SectionHeading
+    <Section id="why">
+      <SectionHead
         eyebrow="왜 vibi"
-        title={
-          <>
-            사운드를 <em className="not-italic gradient-text">분리해서</em>{" "}
-            부분 단위로 다루세요.
-          </>
-        }
+        title={<>사운드를 분리해서 <em className="not-italic" style={{ color: "var(--color-muted)" }}>부분 단위로</em> 다루세요.</>}
         body="기존 모바일 영상 앱은 사운드를 통째로만 만집니다. vibi 는 영상 한 편을 보이스, 배경, 사람별로 쪼개서 — 원하는 부분만 살리고, 끄고, 교체합니다."
       />
 
-      <div className="mt-14 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
-        <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500 md:px-6 md:text-sm">
+      <div
+        className="mt-14 overflow-hidden rounded-2xl bg-white"
+        style={{ border: "1px solid var(--color-hairline)" }}
+      >
+        <div
+          className="caption-uppercase grid grid-cols-[1.2fr_1fr_1fr] gap-6 px-6 py-4"
+          style={{
+            background: "var(--color-canvas-soft)",
+            color: "var(--color-muted)",
+            borderBottom: "1px solid var(--color-hairline)",
+          }}
+        >
           <span></span>
           <span>기존 모바일 앱</span>
-          <span className="text-white">vibi</span>
+          <span style={{ color: "var(--color-ink)" }}>vibi</span>
         </div>
-        {rows.map((r, i) => (
-          <div
-            key={r.label}
-            className={`grid grid-cols-[1fr_1fr_1fr] gap-4 px-4 py-4 text-sm md:px-6 md:text-base ${
-              i !== rows.length - 1 ? "border-b border-white/5" : ""
-            }`}
-          >
-            <span className="text-zinc-400">{r.label}</span>
-            <span className="text-zinc-500">{r.legacy}</span>
-            <span className="font-medium text-white">{r.vibi}</span>
-          </div>
-        ))}
+        <div className="divider-y">
+          {rows.map((r) => (
+            <div
+              key={r.label}
+              className="grid grid-cols-[1.2fr_1fr_1fr] items-center gap-6 px-6 py-5"
+            >
+              <span className="body-sm" style={{ color: "var(--color-muted)" }}>{r.label}</span>
+              <span className="body-md" style={{ color: "var(--color-body)" }}>{r.legacy}</span>
+              <span className="body-strong" style={{ color: "var(--color-ink)" }}>{r.vibi}</span>
+            </div>
+          ))}
+        </div>
       </div>
-    </section>
+    </Section>
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Features                                                     */
-/* ─────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────── */
+/* Features                                                    */
+/* ────────────────────────────────────────────────────────── */
 
 function Features() {
   const items: {
+    eyebrow: string;
     title: string;
     body: string;
-    tag: string;
+    orb: "mint" | "peach" | "lavender" | "sky";
     icon: ReactNode;
   }[] = [
     {
+      eyebrow: "메인 기능",
       title: "음원 분리",
       body: "영상 사운드를 보이스 / 배경 / 사람별로 30초 안에 쪼갭니다. 원하는 트랙만 끄거나 살리세요.",
-      tag: "메인 기능",
+      orb: "mint",
       icon: <IconStem />,
     },
     {
+      eyebrow: "보조",
       title: "자동 자막 + 다국어 번역",
       body: "발화를 자막으로, 그리고 여러 언어로 동시에 번역합니다. 폰트와 위치는 화면에서 바로 조정.",
-      tag: "보조",
+      orb: "peach",
       icon: <IconCaption />,
     },
     {
+      eyebrow: "보조",
       title: "자동 다국어 더빙",
       body: "영상 음성을 다른 언어 AI 보이스로 자연스럽게 합성. 한 영상에서 여러 언어 버전을 동시에 만들어보세요.",
-      tag: "보조",
+      orb: "lavender",
       icon: <IconGlobe />,
     },
     {
-      title: "AI 채팅으로 편집",
+      eyebrow: "AI",
+      title: "채팅으로 편집",
       body: "“30초 부분 음원분리해줘” 같은 자연어 명령으로 편집 도구를 호출합니다. 메뉴를 뒤지지 않아도 됩니다.",
-      tag: "AI",
+      orb: "sky",
       icon: <IconChat />,
     },
   ];
 
   return (
-    <section
-      id="features"
-      className="relative mx-auto max-w-6xl px-6 py-24 md:py-32"
-    >
-      <SectionHeading
+    <Section id="features">
+      <SectionHead
         eyebrow="기능"
         title="촬영부터 발행까지, 한 손에서."
         body="복잡한 PC 도구 없이 모바일에서 끝납니다. 음원 분리를 중심으로 자막, 더빙, AI 채팅 편집이 자연스럽게 이어집니다."
       />
 
-      <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2">
         {items.map((it) => (
           <article
             key={it.title}
-            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-7 transition hover:border-white/20 hover:bg-white/[0.04]"
+            className="group relative overflow-hidden rounded-2xl bg-white p-8 transition hover:-translate-y-0.5"
+            style={{
+              border: "1px solid var(--color-hairline)",
+              boxShadow: "0 4px 16px rgba(12,10,9,0.0)",
+            }}
           >
-            <div className="flex items-start justify-between">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-white/10 to-white/[0.02]">
-                {it.icon}
+            {/* atmospheric orb behind the icon */}
+            <div
+              aria-hidden
+              className={`orb-${it.orb} pointer-events-none absolute -right-12 -top-12 h-48 w-48 opacity-70`}
+            />
+            <div className="relative">
+              <div className="flex items-center justify-between">
+                <span className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
+                  {it.eyebrow}
+                </span>
+                <div
+                  className="grid h-10 w-10 place-items-center rounded-full"
+                  style={{ background: "var(--color-surface-strong)" }}
+                >
+                  {it.icon}
+                </div>
               </div>
-              <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400">
-                {it.tag}
-              </span>
+              <h3 className="display-md mt-8" style={{ color: "var(--color-ink)" }}>
+                {it.title}
+              </h3>
+              <p className="body-md mt-3 max-w-[44ch]" style={{ color: "var(--color-body)" }}>
+                {it.body}
+              </p>
             </div>
-            <h3 className="mt-6 text-xl font-semibold tracking-tight text-white">
-              {it.title}
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-              {it.body}
-            </p>
           </article>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Use case                                                     */
-/* ─────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────── */
+/* Use case                                                    */
+/* ────────────────────────────────────────────────────────── */
 
 function UseCase() {
   const before = [
@@ -388,25 +454,18 @@ function UseCase() {
   ];
 
   return (
-    <section
-      id="scenario"
-      className="relative mx-auto max-w-6xl px-6 py-24 md:py-32"
-    >
-      <SectionHeading
+    <Section id="scenario">
+      <SectionHead
         eyebrow="사용 모습"
         title="여행 vlog — 시장 소음 위에 보이스만 남기기."
         body="현장 분위기는 살리되 잡음은 빼고 싶을 때, vibi 는 5분이 채 걸리지 않습니다."
       />
 
-      <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <ScenarioCard
-          tone="muted"
-          title="Before — PC 워크플로우"
-          steps={before}
-        />
+      <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2">
+        <ScenarioCard tone="muted" title="Before — PC 워크플로우" steps={before} />
         <ScenarioCard tone="bright" title="After — vibi" steps={after} />
       </div>
-    </section>
+    </Section>
   );
 }
 
@@ -422,123 +481,117 @@ function ScenarioCard({
   const isBright = tone === "bright";
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border p-7 ${
-        isBright
-          ? "border-white/15 bg-gradient-to-b from-[rgba(124,92,255,0.12)] to-transparent"
-          : "border-white/10 bg-white/[0.02]"
-      }`}
+      className="relative overflow-hidden rounded-2xl p-8"
+      style={{
+        background: isBright ? "var(--color-surface-card)" : "var(--color-canvas-soft)",
+        border: "1px solid var(--color-hairline)",
+      }}
     >
-      <h3 className="text-sm font-medium uppercase tracking-widest text-zinc-400">
-        {title}
-      </h3>
-      <ol className="mt-6 space-y-4">
-        {steps.map((s, i) => (
-          <li key={i} className="flex items-start gap-4">
-            <span
-              className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-semibold ${
-                isBright
-                  ? "bg-white text-black"
-                  : "bg-white/10 text-zinc-300"
-              }`}
-            >
-              {i + 1}
-            </span>
-            <span
-              className={`text-sm leading-relaxed ${
-                isBright ? "text-white" : "text-zinc-400"
-              }`}
-            >
-              {s}
-            </span>
-          </li>
-        ))}
-      </ol>
+      {isBright ? (
+        <div
+          aria-hidden
+          className="orb-rose pointer-events-none absolute -right-16 -top-16 h-64 w-64 opacity-60"
+        />
+      ) : null}
+      <div className="relative">
+        <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
+          {title}
+        </p>
+        <ol className="mt-6 space-y-5">
+          {steps.map((s, i) => (
+            <li key={i} className="flex items-start gap-4">
+              <span
+                className="caption-uppercase mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full"
+                style={{
+                  background: isBright ? "var(--color-ink)" : "var(--color-surface-strong)",
+                  color: isBright ? "var(--color-on-primary)" : "var(--color-ink)",
+                }}
+              >
+                {i + 1}
+              </span>
+              <span
+                className="body-md"
+                style={{ color: isBright ? "var(--color-ink)" : "var(--color-body)" }}
+              >
+                {s}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Workflow                                                     */
-/* ─────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────── */
+/* Workflow                                                    */
+/* ────────────────────────────────────────────────────────── */
 
 function Workflow() {
   const rows = [
-    {
-      step: "영상 가져오기",
-      pc: "케이블 / iCloud / AirDrop · 5–15분",
-      vibi: "갤러리 직접 픽업 · 5초",
-    },
-    {
-      step: "보이스 추가",
-      pc: "PC 마이크 셋업 / 외부 마이크",
-      vibi: "폰 마이크 즉석 녹음",
-    },
-    {
-      step: "미리보기",
-      pc: "렌더 후 재생",
-      vibi: "타임라인에서 즉시 재생",
-    },
-    {
-      step: "발행",
-      pc: "익스포트 → 폰으로 보내기 → 채널 업로드",
-      vibi: "시스템 공유로 채널 한 번에",
-    },
+    { step: "영상 가져오기", pc: "케이블 / iCloud / AirDrop · 5–15분", vibi: "갤러리 직접 픽업 · 5초" },
+    { step: "보이스 추가",   pc: "PC 마이크 셋업 / 외부 마이크",         vibi: "폰 마이크 즉석 녹음" },
+    { step: "미리보기",      pc: "렌더 후 재생",                         vibi: "타임라인에서 즉시 재생" },
+    { step: "발행",          pc: "익스포트 → 폰으로 보내기 → 채널 업로드", vibi: "시스템 공유로 채널 한 번에" },
   ];
 
   return (
-    <section
-      id="workflow"
-      className="relative mx-auto max-w-6xl px-6 py-24 md:py-32"
-    >
-      <SectionHeading
+    <Section id="workflow">
+      <SectionHead
         eyebrow="워크플로우"
         title="PC 5분 작업이, vibi 에선 5초입니다."
         body="시간·장소 제약 0. 카페든 여행지든 지하철이든, 트렌드의 휘발성을 놓치지 않습니다."
       />
 
-      <div className="mt-14 grid grid-cols-1 gap-3 md:grid-cols-4">
-        {rows.map((r) => (
+      <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-4">
+        {rows.map((r, i) => (
           <article
             key={r.step}
-            className="rounded-2xl border border-white/10 bg-white/[0.02] p-6"
+            className="rounded-2xl bg-white p-7"
+            style={{ border: "1px solid var(--color-hairline)" }}
           >
-            <h4 className="text-sm font-semibold text-white">{r.step}</h4>
-            <div className="mt-4 space-y-3 text-sm">
+            <span className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
+              0{i + 1}
+            </span>
+            <h4 className="title-md mt-3" style={{ color: "var(--color-ink)" }}>{r.step}</h4>
+            <div className="mt-5 space-y-4 body-sm">
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-zinc-500">
-                  PC
-                </p>
-                <p className="mt-1 text-zinc-400">{r.pc}</p>
+                <p className="caption-uppercase" style={{ color: "var(--color-muted-soft)" }}>PC</p>
+                <p className="mt-1" style={{ color: "var(--color-body)" }}>{r.pc}</p>
               </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-[var(--color-accent-2)]">
-                  vibi
-                </p>
-                <p className="mt-1 text-white">{r.vibi}</p>
+              <div className="border-t pt-4" style={{ borderColor: "var(--color-hairline-soft)" }}>
+                <p className="caption-uppercase" style={{ color: "var(--color-ink)" }}>vibi</p>
+                <p className="mt-1 body-strong" style={{ color: "var(--color-ink)" }}>{r.vibi}</p>
               </div>
             </div>
           </article>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Closing CTA                                                  */
-/* ─────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────── */
+/* Closing CTA — `cta-band` per DESIGN.md                      */
+/* ────────────────────────────────────────────────────────── */
 
 function ClosingCta() {
   return (
-    <section className="relative mx-auto max-w-6xl px-6 pb-32">
-      <div className="ring-soft relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[rgba(124,92,255,0.18)] via-transparent to-[rgba(74,214,230,0.12)] px-8 py-16 text-center md:px-16 md:py-24">
-        <h2 className="mx-auto max-w-3xl text-balance text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+    <section
+      className="relative overflow-hidden"
+      style={{ paddingTop: "96px", paddingBottom: "96px", background: "var(--color-canvas)" }}
+    >
+      <div
+        aria-hidden
+        className="orb-lavender pointer-events-none absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 opacity-50"
+      />
+      <div className="relative mx-auto max-w-[1200px] px-6 text-center">
+        <h2 className="display-xl mx-auto max-w-[22ch] text-balance" style={{ color: "var(--color-ink)" }}>
           가장 먼저 써보고, 가장 먼저 트렌드를 잡으세요.
         </h2>
-        <p className="mx-auto mt-5 max-w-xl text-zinc-300">
+        <p className="body-md mx-auto mt-5 max-w-[44ch]" style={{ color: "var(--color-body)" }}>
           iOS 사전 등록자에게 출시 알림과 무료 크레딧을 먼저 드립니다.
         </p>
-
         <form
           className="mx-auto mt-10 flex max-w-md flex-col gap-2 sm:flex-row"
           action="#"
@@ -547,17 +600,21 @@ function ClosingCta() {
             type="email"
             required
             placeholder="you@email.com"
-            className="flex-1 rounded-full border border-white/10 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-zinc-400 outline-none transition focus:border-white/30 focus:bg-white/15"
+            className="flex-1"
+            style={{
+              background: "var(--color-surface-card)",
+              color: "var(--color-ink)",
+              border: "1px solid var(--color-hairline-strong)",
+              borderRadius: "8px",
+              padding: "12px 16px",
+              height: "44px",
+              fontSize: "16px",
+              outline: "none",
+            }}
           />
-          <button
-            type="submit"
-            className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
-          >
-            사전 등록
-          </button>
+          <button type="submit" className="btn-primary">사전 등록 →</button>
         </form>
-
-        <p className="mt-6 text-xs text-zinc-500">
+        <p className="caption mt-6" style={{ color: "var(--color-muted)" }}>
           App Store · 곧 출시 · Android 는 추후 지원
         </p>
       </div>
@@ -565,47 +622,115 @@ function ClosingCta() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Footer                                                       */
-/* ─────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────── */
+/* Footer                                                      */
+/* ────────────────────────────────────────────────────────── */
 
 function Footer() {
   return (
-    <footer className="relative border-t border-white/5">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 text-sm text-zinc-500 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2">
-          <Logo />
-          <span className="text-white">vibi</span>
-          <span className="text-zinc-600">·</span>
-          <span>모바일 영상 보이스 리믹싱</span>
+    <footer
+      className="border-t"
+      style={{
+        background: "var(--color-canvas)",
+        color: "var(--color-body)",
+        borderColor: "var(--color-hairline)",
+      }}
+    >
+      <div
+        className="mx-auto grid max-w-[1200px] grid-cols-2 gap-10 px-6 md:grid-cols-5"
+        style={{ paddingTop: "64px", paddingBottom: "64px" }}
+      >
+        <div className="col-span-2">
+          <Wordmark />
+          <p className="body-sm mt-4 max-w-[28ch]" style={{ color: "var(--color-body)" }}>
+            모바일 영상 보이스 리믹싱. 촬영한 그 자리에서.
+          </p>
         </div>
-        <div className="flex items-center gap-6">
-          <a href="#" className="hover:text-white transition-colors">
-            개인정보
-          </a>
-          <a href="#" className="hover:text-white transition-colors">
-            이용약관
-          </a>
-          <a
-            href="mailto:devrel.365@gmail.com"
-            className="hover:text-white transition-colors"
-          >
-            문의
-          </a>
-        </div>
+        <FooterCol
+          title="제품"
+          links={[
+            { label: "기능", href: "#features" },
+            { label: "사용 모습", href: "#scenario" },
+            { label: "워크플로우", href: "#workflow" },
+          ]}
+        />
+        <FooterCol
+          title="회사"
+          links={[
+            { label: "Perso AI", href: "https://perso.ai" },
+            { label: "문의", href: "mailto:devrel.365@gmail.com" },
+          ]}
+        />
+        <FooterCol
+          title="법률"
+          links={[
+            { label: "개인정보 처리방침", href: "#" },
+            { label: "이용약관", href: "#" },
+          ]}
+        />
       </div>
-      <div className="mx-auto max-w-6xl px-6 pb-10 text-xs text-zinc-600">
-        © {new Date().getFullYear()} vibi. Powered by Perso AI.
+      <div
+        className="border-t"
+        style={{ borderColor: "var(--color-hairline-soft)" }}
+      >
+        <div
+          className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-2 px-6 py-6 md:flex-row md:items-center"
+        >
+          <p className="caption" style={{ color: "var(--color-muted)" }}>
+            © {new Date().getFullYear()} vibi. Powered by Perso AI.
+          </p>
+          <p className="caption" style={{ color: "var(--color-muted)" }}>
+            Made for short-form creators.
+          </p>
+        </div>
       </div>
     </footer>
   );
 }
 
-/* ─────────────────────────────────────────────────────────── */
-/* Helpers                                                      */
-/* ─────────────────────────────────────────────────────────── */
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; href: string }[];
+}) {
+  return (
+    <div>
+      <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>{title}</p>
+      <ul className="mt-4 space-y-2">
+        {links.map((l) => (
+          <li key={l.label}>
+            <a
+              href={l.href}
+              className="body-sm hover:opacity-60"
+              style={{ color: "var(--color-body)" }}
+            >
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
-function SectionHeading({
+/* ────────────────────────────────────────────────────────── */
+/* Layout helpers                                              */
+/* ────────────────────────────────────────────────────────── */
+
+function Section({ id, children }: { id?: string; children: ReactNode }) {
+  return (
+    <section
+      id={id}
+      style={{ paddingTop: "96px", paddingBottom: "96px" }}
+    >
+      <div className="mx-auto max-w-[1200px] px-6">{children}</div>
+    </section>
+  );
+}
+
+function SectionHead({
   eyebrow,
   title,
   body,
@@ -615,15 +740,15 @@ function SectionHeading({
   body?: string;
 }) {
   return (
-    <div className="max-w-3xl">
-      <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--color-accent-2)]">
+    <div className="max-w-[40ch]">
+      <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
         {eyebrow}
-      </span>
-      <h2 className="mt-3 text-balance text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+      </p>
+      <h2 className="display-lg mt-3 text-balance" style={{ color: "var(--color-ink)" }}>
         {title}
       </h2>
       {body ? (
-        <p className="mt-5 text-pretty text-base leading-relaxed text-zinc-400 md:text-lg">
+        <p className="body-md mt-5 text-pretty" style={{ color: "var(--color-body)" }}>
           {body}
         </p>
       ) : null}
@@ -631,24 +756,13 @@ function SectionHeading({
   );
 }
 
-function BackgroundOrbs() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-    >
-      <div className="absolute -left-32 -top-32 h-[500px] w-[500px] rounded-full bg-[var(--color-accent)] opacity-[0.18] blur-[120px]" />
-      <div className="absolute right-[-20%] top-[10%] h-[600px] w-[600px] rounded-full bg-[var(--color-accent-2)] opacity-[0.12] blur-[140px]" />
-      <div className="absolute left-[20%] top-[60%] h-[500px] w-[500px] rounded-full bg-[#f5d65a] opacity-[0.06] blur-[160px]" />
-    </div>
-  );
-}
-
-/* ───────── Inline icons (no external deps) ───────── */
+/* ────────────────────────────────────────────────────────── */
+/* Inline icons                                                */
+/* ────────────────────────────────────────────────────────── */
 
 function IconStem() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" style={{ color: "var(--color-ink)" }}>
       <path d="M3 12h2" /><path d="M6 9v6" /><path d="M9 6v12" /><path d="M12 9v6" /><path d="M15 4v16" /><path d="M18 9v6" /><path d="M21 12h-2" />
     </svg>
   );
@@ -656,7 +770,7 @@ function IconStem() {
 
 function IconCaption() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--color-ink)" }}>
       <rect x="3" y="5" width="18" height="14" rx="3" />
       <path d="M7 14h3" /><path d="M14 14h3" /><path d="M7 11h2" /><path d="M12 11h5" />
     </svg>
@@ -665,7 +779,7 @@ function IconCaption() {
 
 function IconGlobe() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" style={{ color: "var(--color-ink)" }}>
       <circle cx="12" cy="12" r="9" />
       <path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18" /><path d="M12 3a14 14 0 0 0 0 18" />
     </svg>
@@ -674,7 +788,7 @@ function IconGlobe() {
 
 function IconChat() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--color-ink)" }}>
       <path d="M4 5h16v11H8l-4 4z" />
       <path d="M8 10h8" /><path d="M8 13h5" />
     </svg>

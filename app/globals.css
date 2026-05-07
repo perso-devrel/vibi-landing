@@ -1,74 +1,188 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont,
-    system-ui, "Segoe UI", Roboto, sans-serif;
-  --color-bg: #07070a;
-  --color-fg: #f5f5f7;
-  --color-muted: #a1a1aa;
-  --color-accent: #7c5cff;
-  --color-accent-2: #4ad6e6;
-  --color-line: rgba(255, 255, 255, 0.08);
+  /* ── Colors (ElevenLabs DESIGN.md) ──────────────────────── */
+  --color-canvas: #f5f5f5;
+  --color-canvas-soft: #fafafa;
+  --color-canvas-deep: #0c0a09;
+  --color-surface-card: #ffffff;
+  --color-surface-strong: #f0efed;
+  --color-surface-dark: #0c0a09;
+  --color-surface-dark-elevated: #1c1917;
+
+  --color-ink: #0c0a09;
+  --color-primary: #292524;
+  --color-primary-active: #0c0a09;
+  --color-body: #4e4e4e;
+  --color-body-strong: #292524;
+  --color-muted: #777169;
+  --color-muted-soft: #a8a29e;
+
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-on-dark-soft: #a8a29e;
+
+  --color-hairline: #e7e5e4;
+  --color-hairline-soft: #f0efed;
+  --color-hairline-strong: #d6d3d1;
+
+  --color-gradient-mint: #a7e5d3;
+  --color-gradient-peach: #f4c5a8;
+  --color-gradient-lavender: #c8b8e0;
+  --color-gradient-sky: #a8c8e8;
+  --color-gradient-rose: #e8b8c4;
+
+  /* ── Type stacks (concrete fonts injected via next/font CSS vars) ── */
+  --font-display: var(--font-display-latin), var(--font-display-kr),
+    "Times New Roman", serif;
+  --font-body: var(--font-body-latin), var(--font-body-kr), -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 @layer base {
   html {
-    color-scheme: dark;
+    color-scheme: light;
     scroll-behavior: smooth;
-  }
-
-  body {
-    background: var(--color-bg);
-    color: var(--color-fg);
-    font-family: var(--font-sans);
-    font-feature-settings: "ss01", "ss02";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.16px;
+  }
+
   ::selection {
-    background: var(--color-accent);
-    color: #fff;
+    background: var(--color-ink);
+    color: var(--color-on-dark);
+  }
+
+  /* Display (Waldenburg Light analogue: Fraunces 300 + Noto Serif KR 300) */
+  h1, h2, h3, .display {
+    font-family: var(--font-display);
+    font-weight: 300;
+    color: var(--color-ink);
   }
 }
 
 @layer utilities {
-  .grain {
-    position: relative;
+  .display-mega {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(40px, 6.5vw, 72px);
+    line-height: 1.05;
+    letter-spacing: -0.027em;
   }
-  .grain::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image: radial-gradient(
-        circle at 20% 30%,
-        rgba(124, 92, 255, 0.18),
-        transparent 40%
-      ),
-      radial-gradient(circle at 80% 0%, rgba(74, 214, 230, 0.14), transparent 50%);
-    z-index: 0;
+  .display-xl {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(34px, 4.5vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+  .display-lg {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(28px, 3.5vw, 40px);
+    line-height: 1.17;
+    letter-spacing: -0.01em;
+  }
+  .display-md {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(24px, 2.6vw, 32px);
+    line-height: 1.13;
+    letter-spacing: -0.01em;
+  }
+  .display-sm {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 24px;
+    line-height: 1.2;
   }
 
-  .text-balance {
-    text-wrap: balance;
+  .title-md { font-size: 20px; font-weight: 500; line-height: 1.35; }
+  .title-sm { font-size: 18px; font-weight: 500; line-height: 1.44; letter-spacing: 0.18px; }
+  .body-md  { font-size: 16px; font-weight: 400; line-height: 1.5;  letter-spacing: 0.16px; }
+  .body-strong { font-size: 16px; font-weight: 500; line-height: 1.5; letter-spacing: 0.16px; }
+  .body-sm  { font-size: 15px; font-weight: 400; line-height: 1.47; letter-spacing: 0.15px; }
+  .caption  { font-size: 14px; font-weight: 400; line-height: 1.5; }
+  .caption-uppercase {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.96px;
+    text-transform: uppercase;
   }
 
-  .gradient-text {
-    background: linear-gradient(
-      120deg,
-      var(--color-fg) 0%,
-      var(--color-accent-2) 45%,
-      var(--color-accent) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
 
-  .ring-soft {
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.06),
-      0 30px 80px -20px rgba(124, 92, 255, 0.25);
+  /* Atmospheric gradient orbs (mint / peach / lavender / sky / rose).
+     Pure decoration. Never used as button/text fills. */
+  .orb-mint     { background: radial-gradient(closest-side, var(--color-gradient-mint),     transparent 70%); }
+  .orb-peach    { background: radial-gradient(closest-side, var(--color-gradient-peach),    transparent 70%); }
+  .orb-lavender { background: radial-gradient(closest-side, var(--color-gradient-lavender), transparent 70%); }
+  .orb-sky      { background: radial-gradient(closest-side, var(--color-gradient-sky),      transparent 70%); }
+  .orb-rose     { background: radial-gradient(closest-side, var(--color-gradient-rose),     transparent 70%); }
+
+  .hairline       { border: 1px solid var(--color-hairline); }
+  .hairline-strong { border: 1px solid var(--color-hairline-strong); }
+  .divider-y > * + * { border-top: 1px solid var(--color-hairline); }
+
+  /* `button-primary` — near-black ink pill (DESIGN.md). The only CTA color. */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    border-radius: 9999px;
+    padding: 10px 20px;
+    height: 40px;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--color-primary-active); }
+  .btn-primary:active { background: var(--color-primary-active); }
+
+  /* `button-outline` — transparent pill with 1px ink border. */
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1;
+    border: 1px solid var(--color-hairline-strong);
+    border-radius: 9999px;
+    padding: 9px 19px;
+    height: 40px;
+    transition: border-color 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn-outline:hover { border-color: var(--color-ink); }
+
+  /* Form input focus state */
+  input.text-input:focus,
+  input[type="email"]:focus {
+    border-color: var(--color-ink) !important;
+    border-width: 1px !important;
+    box-shadow: inset 0 0 0 1px var(--color-ink);
   }
 }
