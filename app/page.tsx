@@ -98,7 +98,7 @@ function Hero() {
         <Waitlist />
 
         <div className="mt-12 flex flex-wrap items-baseline gap-x-8 gap-y-3 caption" style={{ color: "var(--color-muted)" }}>
-          <Stat label="음원 분리 대기" value="30초" />
+          <Stat label="원하는 부분만 분리" value="구간 선택" />
           <Dot />
           <Stat label="다국어 더빙" value="10+ 언어" />
           <Dot />
@@ -221,11 +221,12 @@ function WaveformCard() {
               여행_vlog_03.mov
             </span>
             <h3 className="display-md mt-3" style={{ color: "var(--color-ink)" }}>
-              한 영상, 세 트랙.
+              한 구간, 세 트랙.
             </h3>
             <p className="body-sm mt-3" style={{ color: "var(--color-body)" }}>
-              30초 만에 보이스·배경을 분리하고, BGM 트랙을 더해 다시 합칩니다. 보이스는
-              한 번도 압축되지 않습니다.
+              타임라인에서 원하는 구간을 골라 보이스·배경을 분리하고, BGM 트랙을 더해 다시
+              합칩니다. 영상 전체가 아니라 필요한 부분만, 보이스는 한 번도 압축되지
+              않습니다.
             </p>
             <div className="mt-6 flex items-center gap-3">
               <PlayButton />
@@ -356,8 +357,8 @@ function Features() {
   }[] = [
     {
       eyebrow: "메인 기능",
-      title: "음원 분리",
-      body: "영상 사운드를 보이스 / 배경 / 사람별로 30초 안에 쪼갭니다. 원하는 트랙만 끄거나 살리세요.",
+      title: "구간 선택 음원 분리",
+      body: "타임라인에서 원하는 구간을 잡고, 그 부분의 보이스 / 배경 / 사람별 사운드를 분리합니다. 영상 전체가 아니라 필요한 만큼만, 부분 단위로.",
       orb: "mint",
       icon: <IconStem />,
     },
@@ -378,7 +379,7 @@ function Features() {
     {
       eyebrow: "AI",
       title: "채팅으로 편집",
-      body: "“30초 부분 음원분리해줘” 같은 자연어 명령으로 편집 도구를 호출합니다. 메뉴를 뒤지지 않아도 됩니다.",
+      body: "“선택한 구간 보이스만 살려줘” 같은 자연어 명령으로 편집 도구를 호출합니다. 메뉴를 뒤지지 않아도 됩니다.",
       orb: "sky",
       icon: <IconChat />,
     },
@@ -447,7 +448,7 @@ function UseCase() {
   ];
   const after = [
     "갤러리에서 영상 픽업",
-    "음원 분리 → 30초 대기 → 보이스 / 배경 분리",
+    "타임라인에서 원하는 구간 선택 → 음원 분리",
     "배경 끄기 — 보이스만 무손상으로 살림",
     "BGM 픽업 → 타임라인에 추가 → 볼륨 조절",
     "익스포트 → 시스템 공유로 채널 직발행",
