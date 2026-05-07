@@ -34,12 +34,18 @@ function Nav() {
         </nav>
         <div className="flex items-center gap-2">
           <a
-            href="#waitlist"
+            href="#features"
             className="hidden rounded-full px-4 py-2 text-[15px] font-medium text-[var(--color-ink)] hover:opacity-60 sm:inline-block"
           >
-            로그인
+            둘러보기
           </a>
-          <a href="#waitlist" className="btn-primary">사전 등록</a>
+          <a
+            href="https://apps.apple.com/app/vibi"
+            className="btn-primary"
+          >
+            <AppleGlyph />
+            App Store
+          </a>
         </div>
       </div>
     </header>
@@ -80,7 +86,7 @@ function Hero() {
       />
 
       <div className="relative z-10 mx-auto max-w-[1200px] px-6">
-        <BadgePill>iOS 사전 등록 진행 중</BadgePill>
+        <BadgePill>iOS · App Store 출시</BadgePill>
 
         <h1
           className="display-mega mt-8 max-w-[18ch] text-balance"
@@ -95,7 +101,7 @@ function Hero() {
           사람별로 분리해, 원하는 부분만 살리고 BGM·AI 보이스를 다시 얹습니다.
         </p>
 
-        <Waitlist />
+        <HeroCta />
 
         <div className="mt-12 flex flex-wrap items-baseline gap-x-8 gap-y-3 caption" style={{ color: "var(--color-muted)" }}>
           <Stat label="원하는 부분만 분리" value="구간 선택" />
@@ -150,33 +156,38 @@ function Dot() {
   return <span className="h-1 w-1 rounded-full" style={{ background: "var(--color-hairline-strong)" }} />;
 }
 
-function Waitlist() {
+function HeroCta() {
   return (
-    <form
-      id="waitlist"
-      action="#"
-      className="mt-10 flex max-w-md flex-col gap-2 sm:flex-row"
+    <div className="mt-10 flex flex-wrap items-center gap-3">
+      <a
+        href="https://apps.apple.com/app/vibi"
+        className="btn-primary"
+        style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+      >
+        <AppleGlyph />
+        App Store 에서 받기
+      </a>
+      <a href="#features" className="btn-outline" style={{ height: "48px", padding: "0 22px" }}>
+        기능 둘러보기
+      </a>
+      <span className="caption ml-1" style={{ color: "var(--color-muted)" }}>
+        iOS 17+ · 무료 다운로드
+      </span>
+    </div>
+  );
+}
+
+function AppleGlyph() {
+  return (
+    <svg
+      viewBox="0 0 17 20"
+      aria-hidden
+      className="h-[18px] w-[15px]"
+      style={{ marginRight: "2px" }}
+      fill="currentColor"
     >
-      <label htmlFor="email" className="sr-only">이메일</label>
-      <input
-        id="email"
-        type="email"
-        required
-        placeholder="you@email.com"
-        className="text-input flex-1"
-        style={{
-          background: "var(--color-surface-card)",
-          color: "var(--color-ink)",
-          border: "1px solid var(--color-hairline-strong)",
-          borderRadius: "8px",
-          padding: "12px 16px",
-          height: "44px",
-          fontSize: "16px",
-          outline: "none",
-        }}
-      />
-      <button type="submit" className="btn-primary">사전 등록 →</button>
-    </form>
+      <path d="M13.94 10.62c-.02-2.16 1.77-3.2 1.85-3.25-1-1.47-2.58-1.67-3.13-1.69-1.34-.13-2.6.78-3.27.78-.68 0-1.72-.76-2.83-.74-1.46.02-2.81.84-3.55 2.13-1.51 2.62-.39 6.5 1.09 8.62.72 1.04 1.58 2.21 2.69 2.17 1.08-.04 1.49-.7 2.79-.7 1.31 0 1.68.7 2.83.68 1.17-.02 1.91-1.06 2.62-2.1.83-1.21 1.17-2.39 1.19-2.45-.03-.01-2.27-.87-2.28-3.45zM11.79 4.27c.59-.72.99-1.71.88-2.7-.85.04-1.89.57-2.5 1.28-.55.63-1.04 1.65-.91 2.62.95.07 1.93-.48 2.53-1.2z" />
+    </svg>
   );
 }
 
@@ -588,35 +599,30 @@ function ClosingCta() {
       />
       <div className="relative mx-auto max-w-[1200px] px-6 text-center">
         <h2 className="display-xl mx-auto max-w-[22ch] text-balance" style={{ color: "var(--color-ink)" }}>
-          가장 먼저 써보고, 가장 먼저 트렌드를 잡으세요.
+          오늘 촬영한 영상에, 보이스를 다시 입혀보세요.
         </h2>
         <p className="body-md mx-auto mt-5 max-w-[44ch]" style={{ color: "var(--color-body)" }}>
-          iOS 사전 등록자에게 출시 알림과 무료 크레딧을 먼저 드립니다.
+          App Store 에서 받고, 첫 영상은 무료 크레딧으로 — 5분 안에 끝납니다.
         </p>
-        <form
-          className="mx-auto mt-10 flex max-w-md flex-col gap-2 sm:flex-row"
-          action="#"
-        >
-          <input
-            type="email"
-            required
-            placeholder="you@email.com"
-            className="flex-1"
-            style={{
-              background: "var(--color-surface-card)",
-              color: "var(--color-ink)",
-              border: "1px solid var(--color-hairline-strong)",
-              borderRadius: "8px",
-              padding: "12px 16px",
-              height: "44px",
-              fontSize: "16px",
-              outline: "none",
-            }}
-          />
-          <button type="submit" className="btn-primary">사전 등록 →</button>
-        </form>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="https://apps.apple.com/app/vibi"
+            className="btn-primary"
+            style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+          >
+            <AppleGlyph />
+            App Store 에서 받기
+          </a>
+          <a
+            href="#features"
+            className="btn-outline"
+            style={{ height: "48px", padding: "0 22px" }}
+          >
+            기능 다시 보기
+          </a>
+        </div>
         <p className="caption mt-6" style={{ color: "var(--color-muted)" }}>
-          App Store · 곧 출시 · Android 는 추후 지원
+          iOS 17+ · 무료 다운로드 · Android 는 추후 지원
         </p>
       </div>
     </section>
