@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont,
+    system-ui, "Segoe UI", Roboto, sans-serif;
+  --color-bg: #07070a;
+  --color-fg: #f5f5f7;
+  --color-muted: #a1a1aa;
+  --color-accent: #7c5cff;
+  --color-accent-2: #4ad6e6;
+  --color-line: rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "ss02";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: #fff;
+  }
+}
+
+@layer utilities {
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(
+        circle at 20% 30%,
+        rgba(124, 92, 255, 0.18),
+        transparent 40%
+      ),
+      radial-gradient(circle at 80% 0%, rgba(74, 214, 230, 0.14), transparent 50%);
+    z-index: 0;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-text {
+    background: linear-gradient(
+      120deg,
+      var(--color-fg) 0%,
+      var(--color-accent-2) 45%,
+      var(--color-accent) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .ring-soft {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 30px 80px -20px rgba(124, 92, 255, 0.25);
+  }
+}
