@@ -21,7 +21,7 @@ export const ko: Dict = {
   hero: {
     badge: "iOS · App Store 출시",
     titleLines: ["영상 속 보이스만 살리고,", "나머지는 다시 입히다."],
-    body: "기존 모바일 앱은 영상 사운드를 한 덩어리로 다룹니다. vibi 는 보이스 / 배경 / 사람별로 분리해, 원하는 부분만 살리고 BGM·AI 보이스를 다시 얹습니다.",
+    body: "기존 모바일 앱은 영상 사운드를 한 덩어리로 다룹니다. vibi 는 보이스 / 배경 / 사람별로 분리해, 원하는 부분만 살리고 BGM을 다시 얹습니다.",
     ctaPrimary: "App Store 에서 받기",
     ctaSecondary: "기능 둘러보기",
     ctaCaption: "iOS 17+ · 무료 다운로드",
@@ -79,7 +79,7 @@ export const ko: Dict = {
       {
         eyebrow: "보조",
         title: "자동 다국어 더빙",
-        body: "영상 음성을 다른 언어 AI 보이스로 자연스럽게 합성. 한 영상에서 여러 언어 버전을 동시에 만들어보세요.",
+        body: "원본 음원의 특징을 살려 다른 언어로 자연스럽게 합성. 한 영상에서 여러 언어 버전을 동시에 만들어보세요.",
       },
       {
         eyebrow: "AI",
