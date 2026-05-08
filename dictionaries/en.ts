@@ -21,7 +21,7 @@ export const en: Dict = {
   hero: {
     badge: "Now on the App Store · iOS",
     titleLines: ["Keep just the voice.", "Re-dress everything else."],
-    body: "Other mobile apps treat your audio as one block. vibi splits it into voice, background, and per-speaker stems — keep what you want, layer BGM and AI voices over the rest.",
+    body: "Other mobile apps treat your audio as one block. vibi splits it into voice, background, and per-speaker stems — keep what you want, layer BGM over the rest.",
     ctaPrimary: "Download on the App Store",
     ctaSecondary: "Explore features",
     ctaCaption: "iOS 17+ · Free download",
@@ -79,7 +79,7 @@ export const en: Dict = {
       {
         eyebrow: "Companion",
         title: "AI multi-language dubbing",
-        body: "Re-synthesize the voice in another language with natural-sounding AI. Produce multiple language versions of one clip in parallel.",
+        body: "Preserve the original voice's character while re-synthesizing it naturally in another language. Produce multiple language versions of one clip in parallel.",
       },
       {
         eyebrow: "AI",
