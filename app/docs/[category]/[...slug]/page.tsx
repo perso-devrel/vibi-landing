@@ -5,6 +5,7 @@ import type { AnchorHTMLAttributes } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import rehypeSlug from "rehype-slug";
 import {
   allDocParams,
   getCategory,
@@ -19,8 +20,8 @@ import { DocsNav } from "../../_components/docs-nav";
 type Params = { category: string; slug: string[] };
 
 const NAV_LINKS = [
-  { label: "All docs", href: "/docs" },
-  { label: "Landing", href: "/" },
+  { label: "Home", href: "/" },
+  { label: "GitHub", href: "https://github.com/perso-devrel/vibi", external: true },
 ];
 
 export function generateStaticParams(): Params[] {
@@ -89,7 +90,7 @@ export default async function DocPage({
         <div className="prose-doc mt-10">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeHighlight]}
+            rehypePlugins={[rehypeSlug, rehypeHighlight]}
             components={{
               a: (props) => renderDocAnchor(props, category, slug),
             }}

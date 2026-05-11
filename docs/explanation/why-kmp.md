@@ -95,7 +95,7 @@ Cinterop workaround attempts hit walls every time — see the "K/N AVFoundation 
 
 ### 4. Configuration cache incompatibility
 
-`vibi-mobile/gradle.properties` has `org.gradle.configuration-cache=true` by default, but some KMP tasks are not compatible with the cache, and certain commands require `--no-configuration-cache`. Details in [`../how-to/faq.md#gradle-configuration-cache`](../how-to/faq.md).
+`vibi-mobile/gradle.properties` has `org.gradle.configuration-cache=true` by default, but some KMP tasks are not compatible with the cache, and certain commands require `--no-configuration-cache`. Details in [`../how-to/troubleshooting.md#gradle-configuration-cache-problems-found`](../how-to/troubleshooting.md#gradle-configuration-cache-problems-found).
 
 ---
 

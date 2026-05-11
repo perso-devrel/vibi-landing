@@ -1,6 +1,6 @@
 # Getting started
 
-The goal of this doc is to take you from a fresh checkout of vibi to **BFF + mobile app talking to each other and showing the first screen** in under 30 minutes. If you get stuck, jump to [`../how-to/faq.md`](../how-to/faq.md).
+The goal of this doc is to take you from a fresh checkout of vibi to **BFF + mobile app talking to each other and showing the first screen** in under 30 minutes. If you get stuck, jump to [`../how-to/troubleshooting.md`](../how-to/troubleshooting.md).
 
 > This doc assumes macOS. Windows differences are noted inline per step.
 
@@ -70,7 +70,7 @@ Open in a browser to verify:
 - <http://localhost:8080/swagger> — API spec UI
 - <http://localhost:8080/api/v2/languages> — The first live endpoint that actually calls Perso. If healthy, it returns a language list JSON. A 401/402 means the key or spaceSeq is wrong.
 
-> 🚧 If blocked: `PERSO_API_KEY must be set` / `SEPARATION_SIGNING_SECRET must be at least 32 chars` → [`../how-to/faq.md`](../how-to/faq.md).
+> 🚧 If blocked: `PERSO_API_KEY must be set` / `SEPARATION_SIGNING_SECRET must be at least 32 chars` → [`../how-to/troubleshooting.md`](../how-to/troubleshooting.md).
 
 ## 3. Mobile build — Android (emulator)
 
@@ -92,7 +92,7 @@ EOF
 ./gradlew :shared:build :cmp:assembleDebug --no-configuration-cache
 ```
 
-`--no-configuration-cache` is required because some KMP tasks are not compatible with the configuration cache. For the detailed reason see [`../how-to/faq.md#gradle-configuration-cache`](../how-to/faq.md).
+`--no-configuration-cache` is required because some KMP tasks are not compatible with the configuration cache. For the detailed reason see [`../how-to/troubleshooting.md#gradle-configuration-cache-problems-found`](../how-to/troubleshooting.md#gradle-configuration-cache-problems-found).
 
 The built APK lands at:
 

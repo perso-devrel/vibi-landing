@@ -21,6 +21,7 @@ Step-by-step guides you follow end to end.
 
 - [`getting-started.md`](./learning/getting-started.md) — Environment setup → spin up BFF → mobile build → first app screen
 - [`tutorial-auto-dub.md`](./learning/tutorial-auto-dub.md) — Build multilingual auto dubbing from a single video (end-to-end)
+- [`tutorial-stem-separation.md`](./learning/tutorial-stem-separation.md) — Separate per-speaker stems, remix the selection, and insert into the timeline
 
 ### [`reference/`](./reference/) — Look up
 Specs to search and consume when you need them.
@@ -34,7 +35,7 @@ Short docs for solving a specific problem quickly.
 
 - [`deploy-your-own-bff.md`](./how-to/deploy-your-own-bff.md) — Spin up your own BFF with your Perso key and connect from mobile
 - [`connect-real-device.md`](./how-to/connect-real-device.md) — When the emulator works but a physical device can't reach the BFF
-- [`faq.md`](./how-to/faq.md) — Common build/runtime blockers
+- [`troubleshooting.md`](./how-to/troubleshooting.md) — Common build/runtime blockers
 
 ### [`explanation/`](./explanation/) — Deep understanding
 The "why" and "how we decided" background.

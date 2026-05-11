@@ -144,7 +144,7 @@ Perso voice separation exposes per-speaker stems (`speaker_0..N`) + `voice_all` 
 // SeparationSpec
 {
   "mediaType": "VIDEO",          // "VIDEO" or "AUDIO"
-  "numberOfSpeakers": 2,         // 1..10 — Perso does not auto-detect
+  "numberOfSpeakers": 2,         // 1..10 — optional hint; Perso auto-detects when omitted
   "sourceLanguageCode": "auto",  // "auto", or an ISO code like "ko"
   "trimStartMs": 2000,           // optional trim — both bounds required together
   "trimEndMs": 8500

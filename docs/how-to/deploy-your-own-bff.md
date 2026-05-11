@@ -53,7 +53,7 @@ Live check:
 curl http://localhost:8080/api/v2/languages | jq .
 ```
 
-An HTTP 200 with a JSON array of supported languages means the Perso key is live. If you get 401 / 402 → [`faq.md#perso-402--payment-required`](./faq.md).
+An HTTP 200 with a JSON array of supported languages means the Perso key is live. If you get 401 / 402 → [`troubleshooting.md#perso-402--payment-required`](./troubleshooting.md#perso-402--payment-required).
 
 ## 4. External exposure options
 
@@ -134,10 +134,10 @@ If this is the first call from a physical device or a different computer, note t
 
 | Symptom | Where to go |
 |---|---|
-| Key validation fails on BFF boot | [`faq.md#perso_api_key-must-not-be-blank-on-boot`](./faq.md#perso_api_key-must-not-be-blank-on-boot) |
+| Key validation fails on BFF boot | [`troubleshooting.md#perso_api_key-must-not-be-blank-on-boot`](./troubleshooting.md#perso_api_key-must-not-be-blank-on-boot) |
 | connect timeout from mobile | [`connect-real-device.md`](./connect-real-device.md) |
 | iOS rejects cleartext http | [`connect-real-device.md#ios-ats`](./connect-real-device.md) |
-| Perso 402 | [`faq.md#perso-402--payment-required`](./faq.md#perso-402--payment-required) |
+| Perso 402 | [`troubleshooting.md#perso-402--payment-required`](./troubleshooting.md#perso-402--payment-required) |
 
 ## See also
 

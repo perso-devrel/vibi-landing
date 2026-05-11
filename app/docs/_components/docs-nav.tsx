@@ -7,7 +7,7 @@ export function DocsNav({ links }: { links: NavLink[] }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/docs" className="flex items-center gap-2">
           <Wordmark />
           <span
             className="caption-uppercase rounded-full px-2 py-0.5"

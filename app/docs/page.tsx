@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const NAV_LINKS = [
-  { label: "Landing", href: "/" },
+  { label: "Home", href: "/" },
   { label: "GitHub", href: "https://github.com/perso-devrel/vibi", external: true },
 ];
 

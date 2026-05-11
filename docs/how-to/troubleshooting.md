@@ -1,4 +1,4 @@
-# FAQ — common build / runtime pitfalls
+# Troubleshooting — common build / runtime pitfalls
 
 Each entry: **symptom → cause → fix**. Environment-specific differences are split out into tables.
 
