@@ -134,23 +134,13 @@ export const en: Dict = {
   footer: {
     tagline: "Mobile video voice remixing — right where you shoot.",
     productHeading: "Product",
-    companyHeading: "Company",
-    legalHeading: "Legal",
     productLinks: [
       { label: "Features", href: "#features" },
       { label: "How it works", href: "#scenario" },
       { label: "Workflow", href: "#workflow" },
       { label: "Docs", href: "/docs" },
     ],
-    companyLinks: [
-      { label: "Perso AI", href: "https://perso.ai" },
-      { label: "Contact", href: "mailto:devrel.365@gmail.com" },
-    ],
-    legalLinks: [
-      { label: "Privacy", href: "#" },
-      { label: "Terms", href: "#" },
-    ],
-    copyright: "© {year} vibi · Built by je0ng3 · Powered by Perso AI.",
+    copyright: "© {year} vibi · Built by je0ng3",
     githubLinks: [
       { label: "vibi", href: "https://github.com/perso-devrel/vibi" },
       { label: "vibi-bff", href: "https://github.com/perso-devrel/vibi-bff" },

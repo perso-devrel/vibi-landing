@@ -634,7 +634,7 @@ function Footer({ dict }: { dict: Dict }) {
 
   return (
     <footer
-      className="border-t"
+      className="relative overflow-hidden border-t"
       style={{
         background: "var(--color-canvas)",
         color: "var(--color-body)",
@@ -642,24 +642,55 @@ function Footer({ dict }: { dict: Dict }) {
       }}
     >
       <div
-        className="mx-auto grid max-w-[1200px] grid-cols-2 gap-10 px-6 md:grid-cols-5"
-        style={{ paddingTop: "64px", paddingBottom: "64px" }}
-      >
-        <div className="col-span-2">
-          <Wordmark />
-          <p
-            className="body-sm mt-4 max-w-[32ch]"
-            style={{ color: "var(--color-body)" }}
-          >
-            {footer.tagline}
-          </p>
-        </div>
-        <FooterCol title={footer.productHeading} links={footer.productLinks} />
-        <FooterCol title={footer.companyHeading} links={footer.companyLinks} />
-        <FooterCol title={footer.legalHeading} links={footer.legalLinks} />
-      </div>
+        aria-hidden
+        className="orb-mint pointer-events-none absolute -bottom-24 -left-32 h-[360px] w-[360px] opacity-40 blur-[8px]"
+      />
       <div
-        className="border-t"
+        aria-hidden
+        className="orb-sky pointer-events-none absolute -right-24 -top-20 h-[280px] w-[280px] opacity-40 blur-[8px]"
+      />
+
+      <div
+        className="relative mx-auto max-w-[1200px] px-6"
+        style={{ paddingTop: "80px", paddingBottom: "40px" }}
+      >
+        <div className="flex flex-col gap-12 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-[36ch]">
+            <Wordmark />
+            <p
+              className="body-md mt-4"
+              style={{ color: "var(--color-body)" }}
+            >
+              {footer.tagline}
+            </p>
+          </div>
+
+          <nav aria-label={footer.productHeading} className="md:text-right">
+            <p
+              className="caption-uppercase"
+              style={{ color: "var(--color-muted)" }}
+            >
+              {footer.productHeading}
+            </p>
+            <ul className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 md:justify-end">
+              {footer.productLinks.map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    className="body-sm transition-opacity hover:opacity-60"
+                    style={{ color: "var(--color-body-strong)" }}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <div
+        className="relative border-t"
         style={{ borderColor: "var(--color-hairline-soft)" }}
       >
         <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-3 px-6 py-6 md:flex-row md:items-center">
@@ -673,7 +704,7 @@ function Footer({ dict }: { dict: Dict }) {
                   href={g.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="caption inline-flex items-center gap-1.5 hover:opacity-60 transition-opacity"
+                  className="caption inline-flex items-center gap-1.5 transition-opacity hover:opacity-60"
                   style={{ color: "var(--color-muted)" }}
                 >
                   <GithubGlyph />
@@ -685,35 +716,6 @@ function Footer({ dict }: { dict: Dict }) {
         </div>
       </div>
     </footer>
-  );
-}
-
-function FooterCol({
-  title,
-  links,
-}: {
-  title: string;
-  links: { label: string; href: string }[];
-}) {
-  return (
-    <div>
-      <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
-        {title}
-      </p>
-      <ul className="mt-4 space-y-2">
-        {links.map((l) => (
-          <li key={l.label}>
-            <a
-              href={l.href}
-              className="body-sm hover:opacity-60"
-              style={{ color: "var(--color-body)" }}
-            >
-              {l.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }
 

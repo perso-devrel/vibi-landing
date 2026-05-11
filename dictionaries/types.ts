@@ -79,11 +79,7 @@ export type Dict = {
   footer: {
     tagline: string;
     productHeading: string;
-    companyHeading: string;
-    legalHeading: string;
     productLinks: LinkItem[];
-    companyLinks: LinkItem[];
-    legalLinks: LinkItem[];
     copyright: string; // template with {year}
     githubLinks: LinkItem[];
   };
