@@ -13,6 +13,7 @@ export const en: Dict = {
     features: "Features",
     scenario: "How it works",
     workflow: "Workflow",
+    docs: "Docs",
   },
 
   hero: {
@@ -139,6 +140,7 @@ export const en: Dict = {
       { label: "Features", href: "#features" },
       { label: "How it works", href: "#scenario" },
       { label: "Workflow", href: "#workflow" },
+      { label: "Docs", href: "/docs" },
     ],
     companyLinks: [
       { label: "Perso AI", href: "https://perso.ai" },
@@ -148,7 +150,10 @@ export const en: Dict = {
       { label: "Privacy", href: "#" },
       { label: "Terms", href: "#" },
     ],
-    copyright: "© {year} vibi. Powered by Perso AI.",
-    rightCaption: "Made for short-form creators.",
+    copyright: "© {year} vibi · Built by je0ng3 · Powered by Perso AI.",
+    githubLinks: [
+      { label: "vibi", href: "https://github.com/perso-devrel/vibi" },
+      { label: "vibi-bff", href: "https://github.com/perso-devrel/vibi-bff" },
+    ],
   },
 };

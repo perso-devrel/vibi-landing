@@ -10,6 +10,7 @@ export type Dict = {
     features: string;
     scenario: string;
     workflow: string;
+    docs: string;
   };
 
   hero: {
@@ -84,6 +85,6 @@ export type Dict = {
     companyLinks: LinkItem[];
     legalLinks: LinkItem[];
     copyright: string; // template with {year}
-    rightCaption: string;
+    githubLinks: LinkItem[];
   };
 };

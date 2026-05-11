@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 import { dict, type Dict } from "@/dictionaries";
+import { Wordmark } from "@/app/_components/wordmark";
+import { BadgePill } from "@/app/_components/badge-pill";
+import { GithubGlyph } from "@/app/_components/github-glyph";
 
 export default function Home() {
   return (
@@ -32,6 +35,7 @@ function Nav({ dict }: { dict: Dict }) {
           <a href="#features" className="hover:opacity-60 transition-opacity">{dict.nav.features}</a>
           <a href="#scenario" className="hover:opacity-60 transition-opacity">{dict.nav.scenario}</a>
           <a href="#workflow" className="hover:opacity-60 transition-opacity">{dict.nav.workflow}</a>
+          <a href="/docs" className="hover:opacity-60 transition-opacity">{dict.nav.docs}</a>
         </nav>
         <a href="https://apps.apple.com/app/vibi" className="btn-primary">
           <AppleGlyph />
@@ -39,14 +43,6 @@ function Nav({ dict }: { dict: Dict }) {
         </a>
       </div>
     </header>
-  );
-}
-
-function Wordmark() {
-  return (
-    <span className="display-sm" style={{ letterSpacing: "-0.02em" }}>
-      vibi
-    </span>
   );
 }
 
@@ -76,7 +72,7 @@ function Hero({ dict }: { dict: Dict }) {
       />
 
       <div className="relative z-10 mx-auto max-w-[1200px] px-6">
-        <BadgePill>{hero.badge}</BadgePill>
+        <BadgePill dot>{hero.badge}</BadgePill>
 
         <h1
           className="display-mega mt-8 max-w-[18ch] text-balance"
@@ -135,30 +131,6 @@ function HeroCta({ hero }: { hero: Dict["hero"] }) {
         {hero.ctaCaption}
       </span>
     </div>
-  );
-}
-
-function BadgePill({ children }: { children: ReactNode }) {
-  return (
-    <span
-      className="caption-uppercase inline-flex items-center gap-2 rounded-full px-3 py-1"
-      style={{
-        background: "var(--color-surface-strong)",
-        color: "var(--color-ink)",
-      }}
-    >
-      <span className="relative inline-flex h-1.5 w-1.5">
-        <span
-          className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-          style={{ background: "var(--color-gradient-sky)" }}
-        />
-        <span
-          className="relative inline-flex h-1.5 w-1.5 rounded-full"
-          style={{ background: "var(--color-ink)" }}
-        />
-      </span>
-      {children}
-    </span>
   );
 }
 
@@ -690,13 +662,26 @@ function Footer({ dict }: { dict: Dict }) {
         className="border-t"
         style={{ borderColor: "var(--color-hairline-soft)" }}
       >
-        <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-2 px-6 py-6 md:flex-row md:items-center">
+        <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-3 px-6 py-6 md:flex-row md:items-center">
           <p className="caption" style={{ color: "var(--color-muted)" }}>
             {copyright}
           </p>
-          <p className="caption" style={{ color: "var(--color-muted)" }}>
-            {footer.rightCaption}
-          </p>
+          <ul className="flex items-center gap-4">
+            {footer.githubLinks.map((g) => (
+              <li key={g.href}>
+                <a
+                  href={g.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="caption inline-flex items-center gap-1.5 hover:opacity-60 transition-opacity"
+                  style={{ color: "var(--color-muted)" }}
+                >
+                  <GithubGlyph />
+                  <span>{g.label}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </footer>
