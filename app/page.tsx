@@ -1,28 +1,10 @@
-import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import {
-  LOCALES,
-  getDictionary,
-  type Dict,
-  type Locale,
-} from "@/dictionaries";
+import { dict, type Dict } from "@/dictionaries";
 
-function isLocale(value: string): value is Locale {
-  return (LOCALES as readonly string[]).includes(value);
-}
-
-export default async function Home({
-  params,
-}: {
-  params: Promise<{ lang: string }>;
-}) {
-  const { lang } = await params;
-  if (!isLocale(lang)) notFound();
-  const dict = getDictionary(lang);
-
+export default function Home() {
   return (
     <main className="relative">
-      <Nav dict={dict} lang={lang} />
+      <Nav dict={dict} />
       <Hero dict={dict} />
       <Differentiator dict={dict} />
       <Features dict={dict} />
@@ -38,11 +20,11 @@ export default async function Home({
 /* Nav                                                         */
 /* ────────────────────────────────────────────────────────── */
 
-function Nav({ dict, lang }: { dict: Dict; lang: Locale }) {
+function Nav({ dict }: { dict: Dict }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
-        <a href={`/${lang}`} className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2">
           <Wordmark />
         </a>
         <nav className="hidden items-center gap-8 text-[15px] font-medium text-[var(--color-ink)] md:flex">
@@ -51,16 +33,10 @@ function Nav({ dict, lang }: { dict: Dict; lang: Locale }) {
           <a href="#scenario" className="hover:opacity-60 transition-opacity">{dict.nav.scenario}</a>
           <a href="#workflow" className="hover:opacity-60 transition-opacity">{dict.nav.workflow}</a>
         </nav>
-        <div className="flex items-center gap-2">
-          <LocaleToggle current={lang} hint={dict.toggleHint} />
-          <a
-            href="https://apps.apple.com/app/vibi"
-            className="btn-primary"
-          >
-            <AppleGlyph />
-            {dict.nav.appStore}
-          </a>
-        </div>
+        <a href="https://apps.apple.com/app/vibi" className="btn-primary">
+          <AppleGlyph />
+          {dict.nav.appStore}
+        </a>
       </div>
     </header>
   );
@@ -71,41 +47,6 @@ function Wordmark() {
     <span className="display-sm" style={{ letterSpacing: "-0.02em" }}>
       vibi
     </span>
-  );
-}
-
-function LocaleToggle({ current, hint }: { current: Locale; hint: string }) {
-  // Two-pill toggle: active locale is dark, inactive is a transparent link.
-  const order: Locale[] = ["ko", "en"];
-  return (
-    <div
-      role="group"
-      aria-label={hint}
-      className="hidden items-center rounded-full p-0.5 sm:inline-flex"
-      style={{
-        background: "var(--color-surface-strong)",
-        border: "1px solid var(--color-hairline)",
-      }}
-    >
-      {order.map((l) => {
-        const active = l === current;
-        const label = l === "ko" ? "KO" : "EN";
-        return (
-          <a
-            key={l}
-            href={`/${l}`}
-            aria-current={active ? "page" : undefined}
-            className="caption-uppercase grid h-7 w-9 place-items-center rounded-full transition"
-            style={{
-              background: active ? "var(--color-ink)" : "transparent",
-              color: active ? "var(--color-on-primary)" : "var(--color-body)",
-            }}
-          >
-            {label}
-          </a>
-        );
-      })}
-    </div>
   );
 }
 
@@ -243,7 +184,6 @@ function Dot() {
 
 function WaveformCard({ dict }: { dict: Dict }) {
   const { waveform } = dict;
-  // Cosmetic bar pattern — index → height. Same pattern across locales.
   const barPatterns: number[][] = [
     [0.3, 0.6, 0.4, 0.8, 0.5, 0.7, 0.4, 0.9, 0.6, 0.5, 0.7, 0.4, 0.8, 0.5, 0.6, 0.7, 0.5, 0.8, 0.4, 0.6, 0.7, 0.5],
     [0.4, 0.3, 0.5, 0.4, 0.6, 0.3, 0.5, 0.4, 0.6, 0.5, 0.4, 0.6, 0.3, 0.5, 0.4, 0.6, 0.4, 0.5, 0.3, 0.4, 0.5, 0.4],

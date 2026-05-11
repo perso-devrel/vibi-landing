@@ -1,13 +1,7 @@
-export const LOCALES = ["ko", "en"] as const;
-export type Locale = (typeof LOCALES)[number];
-export const DEFAULT_LOCALE: Locale = "ko";
-
 export type LinkItem = { label: string; href: string };
 
 export type Dict = {
   meta: { title: string; description: string };
-  localeLabel: string; // self-name (한국어 / English)
-  toggleHint: string; // a11y label for the LocaleToggle
 
   nav: {
     browse: string;

@@ -6,9 +6,6 @@ export const en: Dict = {
     description:
       "Pick a region, separate voice / background / per-speaker stems, then layer in BGM, AI dubs, and captions. Mobile video voice remixing — right where you shoot.",
   },
-  localeLabel: "English",
-  toggleHint: "한국어로 전환",
-
   nav: {
     browse: "Browse",
     appStore: "App Store",
