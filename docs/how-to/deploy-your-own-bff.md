@@ -98,6 +98,33 @@ BFF_BASE_URL=https://<random>.ngrok-free.app/
 
 > Side benefit: https means you can ignore iOS ATS workarounds (the `http://` in option A needs extra iOS-side configuration).
 
+### Option C — Cloud Run + GitHub Actions (production)
+
+The repo ships with everything needed to run the BFF on Google Cloud Run, fronted by a fixed HTTPS URL and redeployed on `main` push:
+
+- `Dockerfile` — multi-stage JDK21 → JRE21 + ffmpeg, `MaxRAMPercentage=75`.
+- `.dockerignore` / `.gcloudignore` — keep secrets and caches out of the build context.
+- `deploy/cloud-run.sh` — idempotent bootstrap (enables APIs, creates the runtime service account, loads `.env` into Secret Manager, runs the first `gcloud run deploy`).
+- `.github/workflows/deploy.yml` — main-branch push triggers a Workload Identity Federation login and `gcloud run deploy --source .`. No service account JSON stored in GitHub.
+
+Quickstart:
+
+```bash
+# 1. First-time bootstrap from your laptop (creates the SA + secrets + first Cloud Run revision)
+cd vibi-bff
+./deploy/cloud-run.sh
+
+# 2. One-time WIF setup so GitHub Actions can deploy without a JSON key
+# Follow deploy/GITHUB_ACTIONS_SETUP.md (workload-identity-pools create + provider + SA binding)
+
+# 3. Add the four secrets GitHub Actions needs
+#    GCP_PROJECT_ID / GCP_REGION / GCP_WIF_PROVIDER / GCP_SA_EMAIL
+```
+
+After that, `git push origin main` ships a new revision. The runtime credential is the Cloud Run **attached service account** — `GOOGLE_APPLICATION_CREDENTIALS` stays blank and `GeminiClient` falls back to Application Default Credentials via the metadata server. Memory-tier vs upload-size: scale `MAX_UPLOAD_FILE_SIZE_MB` down when running on `--memory 1Gi`, up on `4Gi+`.
+
+The full walkthrough — WIF bootstrap commands, the four GitHub secrets, the per-secret IAM role, and a table mapping four common errors (`invalid_target`, `unauthorized_client`, `iam.serviceAccounts.getAccessToken denied`, `run deploy: Permission denied`) to their root cause — lives in `vibi-bff/deploy/GITHUB_ACTIONS_SETUP.md`.
+
 ## 5. Wire up mobile
 
 ```properties
@@ -144,3 +171,4 @@ If this is the first call from a physical device or a different computer, note t
 - Background on the flow decisions: [`../explanation/why-bff.md`](../explanation/why-bff.md)
 - Full environment variable set: [`../reference/environment.md`](../reference/environment.md)
 - BFF README: `vibi-bff/README.md` (this doc takes the mobile / external-exposure angle; the README takes the BFF's own angle)
+- Cloud Run deploy details: `vibi-bff/deploy/GITHUB_ACTIONS_SETUP.md` (referenced from Option C above)

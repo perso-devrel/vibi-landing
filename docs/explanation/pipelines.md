@@ -156,7 +156,7 @@ Both flows follow the same skeleton:
 3. **BFF → local**: cache result + ffmpeg post-process + HMAC sign
 4. **client ← BFF**: poll jobId → signed URL → bytes
 
-This skeleton is reused as-is in vibi's other jobs (`/api/v2/subtitles`, `/api/v2/render`, `/api/v2/lipsync`) — the same `JobResponse` / `StatusResponse` shape, the same polling pattern, the same signing scheme.
+This skeleton is reused as-is in vibi's other jobs (`/api/v2/subtitles`, `/api/v2/render`) — the same `JobResponse` / `StatusResponse` shape, the same polling pattern, the same signing scheme.
 
 To add a new job, the fastest path is to fork an existing service/route pair.
 

@@ -14,9 +14,12 @@ The goal of this doc is to take you from a fresh checkout of vibi to **BFF + mob
 | **XcodeGen** | Regenerate the iOS project | `brew install xcodegen` |
 | **ffmpeg / ffprobe** | BFF render pipeline | `ffmpeg -version`, `ffprobe -version` |
 | **Perso AI key + spaceSeq** | BFF calls the external API | Issued at [perso.ai](https://perso.ai) |
+| **Google OAuth client IDs** | App sign-in is gated by Google | Cloud Console → APIs & Services → Credentials |
 | *(optional)* GCP service account | Gemini caption translation and chat | Project with Vertex AI enabled |
 
 Sign up for Perso → create a workspace → issue the API key and note the `spaceSeq`. You can look up `spaceSeq` via `GET /portal/api/v1/spaces`.
+
+For Google sign-in: in Google Cloud Console → APIs & Services → Credentials, create OAuth 2.0 Client IDs for **iOS**, **Android**, and **Web** under the same project. The BFF validates all three against `GOOGLE_OAUTH_CLIENT_IDS` (comma-separated). The iOS client ID is also referenced from the iOS app's `Auth.xcconfig` (step 4 below).
 
 ## 1. Clone the repos
 
@@ -42,9 +45,11 @@ Values you **must fill in** in `.env`:
 PERSO_API_KEY=<YOUR_PERSO_API_KEY>
 PERSO_SPACE_SEQ=<YOUR_PERSO_SPACE_SEQ>
 SEPARATION_SIGNING_SECRET=<random_string_32_chars_or_more>
+AUTH_JWT_SECRET=<random_string_32_chars_or_more>
+GOOGLE_OAUTH_CLIENT_IDS=<iOS, Android, Web client ids — comma-separated>
 ```
 
-`SEPARATION_SIGNING_SECRET` is required to be at least 32 characters. Generate one with:
+The two `*_SECRET` values must each be at least 32 characters. Generate them with:
 
 ```bash
 openssl rand -hex 32
@@ -117,33 +122,75 @@ cd vibi-mobile
 ./gradlew :shared:compileKotlinIosSimulatorArm64 --no-configuration-cache
 ```
 
-### 4-2. Run from Xcode
+### 4-2. Write `Auth.xcconfig`
+
+iOS doesn't share `local.properties` — the iOS-specific Google client id and the BFF URL are injected via an Xcode config file. Copy the template and fill it in:
 
 ```bash
-cd iosApp
+cd vibi-mobile/iosApp/Configs
+cp Auth.xcconfig.template Auth.xcconfig
+```
+
+The template:
+
+```
+GOOGLE_OAUTH_IOS_CLIENT_ID = REPLACE_BASE.apps.googleusercontent.com
+GOOGLE_OAUTH_IOS_REVERSED_CLIENT_ID = com.googleusercontent.apps.REPLACE_BASE
+
+URL_SLASH = /
+BFF_BASE_URL = http:$(URL_SLASH)$(URL_SLASH)localhost:8080/
+```
+
+- The two `GOOGLE_OAUTH_IOS_*` values share the same base id — copy it from your iOS OAuth client. `Info.plist` substitutes `$(GOOGLE_OAUTH_IOS_CLIENT_ID)` into `GIDClientID` and the reversed id into `CFBundleURLTypes` (used for the OAuth callback).
+- `BFF_BASE_URL` uses a `$(URL_SLASH)` indirection because xcconfig parsers treat `//` as a comment — without it, the slashes vanish.
+- Substitute `localhost` with your Mac's LAN IP when running on a physical iPhone.
+
+`Auth.xcconfig` is in `.gitignore` — never commit your real values.
+
+### 4-3. Run from Xcode
+
+```bash
+cd vibi-mobile/iosApp
 xcodegen generate     # project.yml → creates/refreshes iosApp.xcodeproj
 open iosApp.xcodeproj
 ```
 
 Pick a simulator in Xcode → Run. The `preBuildScripts` hook invokes `:shared:embedAndSignAppleFrameworkForXcode` automatically.
 
-On the iOS simulator, `BFF_BASE_URL=http://localhost:8080/` is the simplest setup. Make sure that's what you wrote in `local.properties` (easy to confuse with the Android emulator's `10.0.2.2`).
+On the iOS simulator, `BFF_BASE_URL=http://localhost:8080/` is the simplest setup. Make sure that's what you wrote in both `local.properties` (Android side) and `Auth.xcconfig` (iOS side) — easy to confuse with the Android emulator's `10.0.2.2`.
 
-## 5. First screen
+## 5. Sign in
 
-When the app launches you'll see InputScreen. Pick a short video (10–30s recommended) from the gallery and upload it:
+Navigation goes **Splash → Login → Input ↔ Timeline** (`vibi-mobile/cmp/.../navigation/VibiNavHost.kt`). On first launch:
+
+1. Splash runs `AuthRepository.restoreSession()`. With no token cached, it routes to `LoginScreen`.
+2. LoginScreen renders a "Sign in with Google" button.
+   - **iOS**: `GoogleSignIn` SDK presents the OS sheet; a Swift bridge (`GoogleSignInBridge.swift`) hands the ID token back to K/N.
+   - **Android**: Credential Manager presents the picker.
+3. The app exchanges the ID token at `POST /api/v2/auth/google` → BFF validates `aud` against `GOOGLE_OAUTH_CLIENT_IDS` and returns its own JWT. The JWT is stored in `AuthTokenStore` and attached as `Authorization: Bearer` on every subsequent call.
+4. On success, the app navigates to **InputScreen**.
+
+On subsequent launches the JWT is restored from local storage; Login is skipped unless `/api/v2/auth/me` returns 401 (token expired or rotated).
+
+> Common blocker: BFF returns 401 with `invalid_audience`. Cause: the iOS/Android client id you signed in with is not in `GOOGLE_OAUTH_CLIENT_IDS`. Fix on the BFF side — restart after editing `.env`.
+
+## 6. First screen
+
+InputScreen lists past drafts (per signed-in user — A and B don't see each other's projects) and offers a "new project" button. Pick a short video (10–30s recommended) from the gallery and upload it:
 
 1. Metadata (duration, resolution) is extracted locally — this step does not call the BFF.
 2. The app moves to the timeline screen.
 
 At this point the **first real call to the BFF** happens when you trigger one of captions, auto dubbing, or stem separation. Running auto captions once is the fastest finish — for the detailed flow see [`tutorial-auto-dub.md`](./tutorial-auto-dub.md).
 
+> Drafts are retained for 7 days (a small notice on InputScreen reminds you). Log out via the small text button at the bottom of InputScreen.
+
 ## Success checklist
 
 - [ ] BFF console prints `Responding at http://0.0.0.0:8080`
 - [ ] <http://localhost:8080/api/v2/languages> returns HTTP 200 with a JSON body
-- [ ] Android: `adb install` succeeds, and InputScreen opens in the emulator
-- [ ] iOS: InputScreen opens in the simulator
+- [ ] Android: `adb install` succeeds, Splash opens, Login lets you sign in with Google, InputScreen follows
+- [ ] iOS: same flow in the simulator (`Auth.xcconfig` filled in)
 - [ ] Upload a short video → reach the timeline screen
 
 If you got here, **your dev environment is set up**. Next:

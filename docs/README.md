@@ -19,9 +19,10 @@ These docs target both the **external developer meeting vibi for the first time*
 ### [`learning/`](./learning/) — Learn
 Step-by-step guides you follow end to end.
 
-- [`getting-started.md`](./learning/getting-started.md) — Environment setup → spin up BFF → mobile build → first app screen
+- [`getting-started.md`](./learning/getting-started.md) — Environment setup → spin up BFF → mobile build → sign in → first app screen
 - [`tutorial-auto-dub.md`](./learning/tutorial-auto-dub.md) — Build multilingual auto dubbing from a single video (end-to-end)
 - [`tutorial-stem-separation.md`](./learning/tutorial-stem-separation.md) — Separate per-speaker stems, remix the selection, and insert into the timeline
+- [`tutorial-chat-assistant.md`](./learning/tutorial-chat-assistant.md) — Edit by talking — natural-language requests → typed proposals → apply
 
 ### [`reference/`](./reference/) — Look up
 Specs to search and consume when you need them.

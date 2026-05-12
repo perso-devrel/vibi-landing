@@ -48,10 +48,10 @@ Boot succeeds even if these are missing, as long as subtitle translation and cha
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
-| `GCP_PROJECT_ID` | | — | Vertex AI project. |
-| `GCP_LOCATION` | | — | Vertex AI region (e.g. `us-central1`). |
-| `GOOGLE_APPLICATION_CREDENTIALS` | | — | Path to service account JSON. The default path used by `gcloud auth application-default login` works. |
-| `GEMINI_MODEL` | | — | Model ID (e.g. `gemini-2.5-flash`). |
+| `GEMINI_PROJECT_ID` | | — | Vertex AI project. Named `GEMINI_*` (not `GCP_*`) so the Cloud Run hosting project and the Vertex-AI-enabled project can differ. |
+| `GEMINI_LOCATION` | | `us-central1` | Vertex AI region. |
+| `GEMINI_MODEL` | | `gemini-2.5-flash` | Model ID. |
+| `GOOGLE_APPLICATION_CREDENTIALS` | | — | Path to a local service account JSON. Leave blank to fall back to Application Default Credentials — on Cloud Run that resolves to the attached SA via the metadata server; locally it resolves to the `gcloud auth application-default login` cache. |
 
 ### Authentication (Google OAuth + own JWT)
 
@@ -59,7 +59,26 @@ Boot succeeds even if these are missing, as long as subtitle translation and cha
 |---|:-:|---|---|
 | `GOOGLE_OAUTH_CLIENT_IDS` | ✅ | — | Comma-separated. iOS / Android / Web client ids all allowed. Passes only when the `tokeninfo` `aud` matches one of these. |
 | `AUTH_JWT_SECRET` | ✅ | — | HMAC-SHA256 signing key. **Enforced ≥ 32 chars.** |
-| `AUTH_JWT_EXPIRY_SECONDS` | | — | Issued access token lifetime (s). 60..7776000 (90 days). |
+| `AUTH_JWT_EXPIRY_SECONDS` | | `604800` (7d) | Issued access token lifetime (s). 60..7776000 (90 days). |
+
+### Perso storage host + SSRF whitelist
+
+| Key | Required | Default | Description |
+|---|:-:|---|---|
+| `PERSO_STORAGE_BASE_URL` | | `https://portal-media.perso.ai` | Audio-separation `/download` responses point at this CDN host (`/perso-storage/...` paths), not `PERSO_BASE_URL`. The auth header is **not** sent to this host. |
+| `PERSO_DOWNLOAD_ALLOWED_HOSTS` | | `portal-media.perso.ai` | Comma-separated SSRF whitelist. `PERSO_BASE_URL` and `PERSO_STORAGE_BASE_URL` hosts are added automatically. |
+
+### Runtime tunables (process-level)
+
+These bypass `AppConfig` and are read directly from the process environment — change them when running into Cloud Run cold-start timeouts or memory-tier limits. Unset values fall back to the defaults below.
+
+| Key | Default | Description |
+|---|---|---|
+| `MAX_UPLOAD_FILE_SIZE_MB` | `500` | Multipart upload ceiling. Tie to the Cloud Run `--memory` tier — `1Gi` → `200`, `4Gi` → `1000`. Applied to every `receiveMultipart(formFieldLimit=…)` call. |
+| `HTTP_CONNECT_TIMEOUT_MS` | `120000` (120s) | Ktor HTTP client `connectTimeoutMillis`. Extend for cold starts on the upstream. |
+| `HTTP_REQUEST_TIMEOUT_MS` | `600000` (600s) | `requestTimeoutMillis`. Large Perso uploads sit on this. |
+| `HTTP_SOCKET_TIMEOUT_MS` | `600000` (600s) | `socketTimeoutMillis`. Same situation as above. |
+| `RENDER_MAX_CONCURRENT` | CPU count | ffmpeg fan-out cap for the render pipeline. |
 
 ### Symptoms on missing values
 
@@ -70,7 +89,8 @@ Boot succeeds even if these are missing, as long as subtitle translation and cha
 | `SEPARATION_SIGNING_SECRET` (under 32 chars) | `SEPARATION_SIGNING_SECRET must be at least 32 chars (got N)` |
 | `AUTH_JWT_SECRET` (under 32 chars) | `AUTH_JWT_SECRET must be at least 32 chars (got N)` |
 | `GOOGLE_OAUTH_CLIENT_IDS` | `GOOGLE_OAUTH_CLIENT_IDS must not be empty (comma-separated)` |
-| Gemini variables missing | Boot succeeds. 5xx on first call to `/api/v2/subtitles` or `/api/v2/chat`. |
+| `GEMINI_PROJECT_ID` missing | Boot succeeds. 5xx on first call to `/api/v2/subtitles` or `/api/v2/chat`. |
+| `GOOGLE_APPLICATION_CREDENTIALS` missing **and** no ADC cache **and** not on Cloud Run | Boot succeeds. Gemini calls fail with `Could not load credentials`. |
 | `STORAGE_PATH` directory missing | Boot succeeds. `IOException` on first upload. Recommended to pre-create: `mkdir -p ./storage/{uploads,render,separation}`. |
 
 ---

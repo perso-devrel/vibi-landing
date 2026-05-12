@@ -30,14 +30,14 @@ The first-pass plan is the **smallest unit**. Large design spaces are not handle
 - Pull all environment dependencies into a single place: BFF `.env` / mobile `local.properties` / iOS `.xcconfig`.
 - Even temporary changes for demos or debugging (e.g. auth bypass) get a separate restore-before-commit policy note ([memory: project_demo_temp_changes](../../README.md) and similar transient notes).
 
-## Rule 3 — External API routing: Perso first, all calls only from BFF
+## Rule 3 — External API routing: Perso only, all calls only from BFF
 
-vibi's external voice API calls go to Perso first, falling back to ElevenLabs when not possible (quota / outage). Zero direct calls from mobile.
+vibi's external voice API calls go to Perso, and only to Perso. Zero direct calls from mobile. The dual-vendor (Perso + ElevenLabs fallback) design from earlier iterations was retired once the Perso surface stabilized — the BFF abstraction seam stays so a second vendor *could* be added later, but day-to-day operation runs single-vendor.
 
 **Why**:
 - Key isolation — details in [`../explanation/why-bff.md`](../explanation/why-bff.md).
 - Vendor abstraction — quota / outage / pricing changes are absorbed in the single BFF layer, *without rebuilding and redeploying mobile*.
-- vibi is Perso AI DevRel's showcase. The first-order intent is to show off Perso's strengths, so *Perso-first* is a business policy too.
+- vibi is Perso AI DevRel's showcase. The first-order intent is to show off Perso's strengths, so *Perso-only* is a business policy too.
 
 ## Rule 4 — iOS-first release order
 

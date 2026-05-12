@@ -32,7 +32,7 @@ Mobile calls only **vibi-bff's `/api/v2`**. External keys exist only in the BFF'
 
 1. **API key isolation** — the core motivation. Keys only in server env vars, zero in the mobile bundle.
 2. **Unified error model** — each external API has a different error shape; the BFF normalizes them to a single `ErrorResponse(error, detail?)`. The client only has to write one error-handling path. The mapping lives in [`../reference/error-contract.md`](../reference/error-contract.md).
-3. **Vendor abstraction** — if Perso goes down or hits a quota, fall back to ElevenLabs etc. Swap at the BFF layer *without rebuilding or redeploying mobile*.
+3. **Vendor abstraction** — if the upstream needs to change (different provider, dual-vendor failover), swap at the BFF layer *without rebuilding or redeploying mobile*. vibi currently runs a single-vendor Perso configuration, but the seam exists.
 4. **Signed downloads** — stem · mix · dub artifacts are not statically mounted but signed with HMAC tokens. Rotating `SEPARATION_SIGNING_SECRET` once invalidates every unexpired token.
 5. **Coalesced external calls** — auto captions call Perso STT + Gemini translation sequentially inside the BFF. Mobile only makes one `POST /api/v2/subtitles`.
 6. **Local ffmpeg pipeline** — multi-segment concat · sticker overlay · subtitle burn-in · dub mix are all done by the BFF directly with ffmpeg. Mobile does not need to embed ffmpeg-kit ([`pipelines.md`](./pipelines.md)).
@@ -63,9 +63,9 @@ These three are simplifications **in the context of vibi being a showcase app**.
 
 ## External API routing policy
 
-> Perso first, fall back to ElevenLabs when unavailable. All external calls go through the BFF only.
+> Perso is the single external voice engine. All external calls go through the BFF only.
 
-This policy exists because vibi is a showcase app for Perso AI DevRel — the primary intent is to demonstrate the strengths of the Perso API, and ElevenLabs is bridged in only when Perso is unavailable due to quota or outage. Both keys and switching logic live inside the BFF.
+This policy exists because vibi is a showcase app for Perso AI DevRel — the primary intent is to demonstrate the strengths of the Perso API. The earlier dual-vendor design (Perso + ElevenLabs fallback) was removed once the Perso surface stabilized; the BFF code path is simpler with one vendor, and the swap seam at the BFF layer is still available if a second vendor needs to be added later.
 
 ---
 

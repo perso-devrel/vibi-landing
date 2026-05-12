@@ -50,23 +50,50 @@ Proxies the subtitle/dubbing target languages supported by Perso as-is. Also use
 Natural-language editing assistant. The user message is sent to Gemini, which returns either plain text or a pre-registered function call (`proposal.steps`). On the mobile side, `ChatToolDispatcher` maps function names to `TimelineViewModel.onXxx`.
 
 **Request** — JSON `ChatRequestDto`:
-```json
+```jsonc
 {
   "messages": [...],
-  "projectContext": { "segments":[...], "subtitles":[...], "dubs":[...], "bgmClips":[...], "stems":[...], "playheadMs":1234, "selectionId":"..." },
+  "projectContext": {
+    "segments": [...], "subtitleClips": [...], "dubClips": [...], "bgmClips": [...], "stems": [...],
+    "separationDirectives": [...],   // already-separated ranges, with rangeStartMs/EndMs + numberOfSpeakers
+    "currentPlayheadMs": 1234,
+    "selectedClipId": "...", "selectedSegmentId": "...",
+    "videoDurationMs": 60000,
+    // Range selection — when the user has dragged a window in the timeline UI
+    "isRangeSelecting": true,
+    "pendingRangeStartMs": 5000,
+    "pendingRangeEndMs": 12000
+  },
   "locale": "ko"
 }
 ```
 
+`isRangeSelecting + pendingRange*` lets Gemini resolve deictic phrases like "이 구간 / this range" without guessing — the model is instructed to pass those values straight through as `startMs`/`endMs`. `separationDirectives` is what powers the overlap-avoidance policy (see below).
+
 **Response** — `ChatResponseDto` with two kinds:
-- `{"kind":"text","text":"..."}` — read / explanatory response
-- `{"kind":"proposal","steps":[{"name":"...","args":{...}}]}` — up to 5 edit proposals. Applied after user confirmation.
+- `{"kind":"text","text":"..."}` — read / explanatory response, or a follow-up question when refs can't be resolved.
+- `{"kind":"proposal","steps":[{"name":"...","args":{...}}]}` — up to 5 edit proposals. Applied after user confirmation in the mobile UI (`ChatToolDispatcher`).
 
-**Registered tools** (`vibi-bff/.../service/ChatToolDefs.kt`): `delete_segment_range`, `duplicate_segment_range`, `update_segment_volume`, `update_segment_speed`, `separate_audio_range`, `update_stem_volume`, `update_subtitle_text`, `generate_subtitles`, `generate_dub`, `move_bgm_clip`, `update_bgm_volume`, `generate_subtitles_for_bgm`, `generate_dub_for_bgm`.
+**Registered tools** (`vibi-bff/.../service/ChatToolDefs.kt`, 15 total):
 
-**`tool_code` fallback** — Gemini 2.5 Flash occasionally ignores `functionDeclarations` and replies with a `tool_code` markdown block containing `print(default_api.<name>(args))`. The server-side `recoverToolCallsFromText` regex restores those into `ToolCall`s so the client still sees a `proposal`. Python literal args only (str/int/float/bool/list).
+| Group | Tools |
+|---|---|
+| Segment edit (range) | `delete_segment_range`, `duplicate_segment_range`, `update_segment_volume`, `update_segment_speed` |
+| Audio separation | `separate_audio_range`, `update_stem_volume` |
+| Subtitle — two-stage | `transcribe_for_subtitles` → `apply_subtitles_with_script` *(preferred)* |
+| Subtitle — direct | `update_subtitle_text`, `generate_subtitles` *(deprecated — kept for "skip review" requests)* |
+| Dub | `generate_dub` |
+| BGM | `move_bgm_clip`, `update_bgm_volume`, `generate_subtitles_for_bgm`, `generate_dub_for_bgm` |
 
-**System instruction constraints**: respond in the user's language / never invent IDs / one tool kind per response (text or proposal) / confirmation gate on the mobile side.
+The full tool spec is in [`vibi-bff/src/main/resources/chat-tools.md`](https://github.com/perso-devrel/vibi-bff/blob/main/src/main/resources/chat-tools.md) — that file is loaded verbatim as `systemInstruction`, so it is the single source of truth for tool args, the cost-disclosure rule (slow tools get `(예상 ~N분)` in rationale), and the policy below.
+
+**Edit-invalidation policy** — When the user requests structural segment edits (`delete_segment_range`, `duplicate_segment_range`, `update_segment_speed`) AND the project already has separation / subtitles / dubs / BGM placements, the model must append an explicit warning to the proposal rationale: *"⚠ 이 편집을 적용하면 기존 음성분리/자막/더빙/음원 배치가 초기화됩니다. 진행할까요?"*. `update_segment_volume` is exempt (mix change, not structural).
+
+**Separation overlap policy** — `separate_audio_range` cannot be applied to a range that overlaps an existing `separationDirectives[]` entry (the mobile side rejects it). On overlap the model must respond with `kind=text` and present three priced options: (A) replace existing, (B) split off the non-overlapping portion, (C) shorter multi-piece separation — cost-optimized in the order **B > C > A**.
+
+**Tool-code fallback** — Gemini 2.5 Flash occasionally ignores `functionDeclarations` and replies with a `tool_code` markdown block instead. `GeminiClient.recoverToolCallsFromText` reconstructs the `ToolCall`s so the client still sees a `proposal`. Two formats are recognized: `print(default_api.<name>(kwargs))` with Python literal args (str/int/float/bool/list), and YAML-style pseudo-tool-code with a separate `rationale` field.
+
+**System instruction constraints**: respond in the user's last-turn language (`locale` is fallback only) / never auto-translate subtitle text / never invent IDs or timestamps not in `projectContext` / one `kind` per response / required args must never be guessed (ask instead).
 
 ---
 
@@ -79,8 +106,8 @@ Perso STT → Gemini translation → signed SRT URL.
 **Request** — multipart:
 | Field | Description |
 |---|---|
-| `file` *(optional)* | Source video/audio. Can be omitted when using `editedRenderJobId`. |
-| `spec` | JSON `SubtitleSpec` (form-item, not a file) |
+| `file` *(optional)* | Source video/audio. Omit when reusing a prior render via `spec.editedRenderJobId`. |
+| `spec` | JSON `SubtitleSpec` (form-item, not a file). Optional `editedRenderJobId` reuses an existing `/api/v2/render` output as the source — avoids re-uploading large edited videos. |
 
 **Response** — `SubtitleJobResponse { "jobId": "sub-..." }`.
 
@@ -102,15 +129,15 @@ Regenerates subtitles in other languages using a user-edited SRT as the source (
 
 ## Auto dubbing
 
-Perso dubbing job (a single `submitTranslate` — Perso handles translation and voice synthesis as a black box). Lip-sync is a separate `/api/v2/lipsync/*` (omitted in this document).
+Perso dubbing job (a single `submitTranslate` — Perso handles translation and voice synthesis as a black box).
 
 ### `POST /api/v2/autodub`
 
 **Request** — multipart:
 | Field | Description |
 |---|---|
-| `file` *(optional)* | Source video/audio. |
-| `spec` | JSON `AutoDubSpec` — `targetLanguageCodes`, voice options, trimming, etc. |
+| `file` *(optional)* | Source video/audio. Omit when reusing a prior render via `spec.editedRenderJobId`. |
+| `spec` | JSON `AutoDubSpec` — `targetLanguageCodes`, voice options, trimming, optional `editedRenderJobId`. |
 
 **Response** — `AutoDubJobResponse { "jobId": "dub-..." }`.
 
@@ -137,8 +164,8 @@ Perso voice separation exposes per-speaker stems (`speaker_0..N`) + `voice_all` 
 **Request** — multipart:
 | Field | Description |
 |---|---|
-| `file` *(optional)* | mp4 or mp3 (≤ 500MB). Can be omitted when using `editedRenderJobId`. |
-| `spec` | JSON `SeparationSpec` |
+| `file` *(optional)* | mp4 or mp3 (≤ `MAX_UPLOAD_FILE_SIZE_MB`, default 500). Omit when reusing a prior render via `spec.editedRenderJobId`. |
+| `spec` | JSON `SeparationSpec` (optional `editedRenderJobId` for render-output reuse) |
 
 ```jsonc
 // SeparationSpec
@@ -232,6 +259,7 @@ For multi-variant export, uploads video/audios once and caches them. The returne
 // Legacy single-video
 {
   "videoDurationMs": 60000,
+  "outputKind": "video",   // "video" (default, mp4) | "audio" (m4a AAC 192k, video stages skipped)
   "dubClips":  [ { "audioFileKey": "audio_0", "startMs": 1000, "durationMs": 4000, "volume": 1.0 } ],
   "imageClips":[ { "imageFileKey": "image_0", "startMs": 2000, "endMs": 5000,
                    "xPct": 50, "yPct": 30, "widthPct": 25, "heightPct": 25 } ]
@@ -252,6 +280,8 @@ For multi-variant export, uploads video/audios once and caches them. The returne
 ```
 
 Output resolution: `segments[0].width`/`height` in multi-segment mode, ffprobe extraction in legacy mode.
+
+`outputKind="audio"` skips video concat / subtitle burn-in / sticker overlay and emits audio-only m4a — used as the source for downstream `/subtitles` or `/separate` calls via `editedRenderJobId`. Cuts those job latencies by 5–10x compared to re-rendering video and stripping audio.
 
 **Response** — `RenderJobResponse { "jobId": "rnd-..." }`.
 
