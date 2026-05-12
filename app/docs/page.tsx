@@ -12,7 +12,6 @@ export const metadata: Metadata = {
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "GitHub", href: "https://github.com/perso-devrel/vibi", external: true },
 ];
 
 export default function DocsIndex() {

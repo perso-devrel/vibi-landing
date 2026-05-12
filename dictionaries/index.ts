@@ -1,2 +1,2 @@
 export { en as dict } from "./en";
-export type { Dict } from "./types";
+export type { Dict, LinkItem } from "./types";
