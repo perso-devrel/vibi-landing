@@ -2,9 +2,9 @@ import type { Dict } from "./types";
 
 export const en: Dict = {
   meta: {
-    title: "vibi — Split the voice in your video, then re-dress it",
+    title: "vibi — Keep the video. Erase just the noise.",
     description:
-      "Pick a region, separate voice / background / per-speaker stems, then layer in BGM, AI dubs, and captions. Mobile video voice remixing — right where you shoot.",
+      "Mobile AI that removes only the sounds you don't want. Pick a region, split the audio into voice, background, and per-speaker stems, then mute the wind, the passerby, the wrong voice — the footage you can't reshoot stays.",
   },
   nav: {
     browse: "Browse",
@@ -18,25 +18,25 @@ export const en: Dict = {
 
   hero: {
     badge: "Now on the App Store · iOS",
-    titleLines: ["Keep just the voice.", "Re-dress everything else."],
-    body: "Other mobile apps treat your audio as one block. vibi splits it into voice, background, and per-speaker stems — keep what you want, layer BGM over the rest.",
+    titleLines: ["Keep the video.", "Erase just the noise."],
+    body: "Wind, crowd, a passerby's voice, a curse word — vibi splits any region of your clip into voice, background, and per-speaker stems. Mute only what's bothering you. The footage you can't reshoot stays intact.",
     ctaPrimary: "Download on the App Store",
-    ctaSecondary: "Explore features",
+    ctaSecondary: "See how it works",
     ctaCaption: "iOS 17+ · Free download",
     stats: [
-      { value: "By region", label: "Stem only what you select" },
-      { value: "10+ languages", label: "AI dubbing" },
-      { value: "Mobile only", label: "Right where you shoot" },
+      { value: "By region", label: "Mute just the part that bothers you" },
+      { value: "Per speaker", label: "Isolate one voice from two" },
+      { value: "On mobile", label: "Right where you shoot" },
     ],
   },
 
   waveform: {
-    filename: "travel_vlog_03.mov",
-    title: "One clip. Three stems.",
-    body: "Pick a region on the timeline, split voice and background, layer in BGM. Just the part you need — voice is never compressed.",
+    filename: "interview_03.mov",
+    title: "One clip. Mute just what bothers you.",
+    body: "Pick a region, separate voice and background, mute the noise. The voice is never compressed — the footage you can't reshoot is preserved.",
     preview: "Preview · 0:42",
     tracks: [
-      { name: "Voice", subtitle: "Voice — intact" },
+      { name: "Voice", subtitle: "Voice — kept" },
       { name: "Background", subtitle: "Background — muted" },
       { name: "BGM", subtitle: "BGM — newly added" },
     ],
@@ -44,95 +44,90 @@ export const en: Dict = {
 
   why: {
     eyebrow: "Why vibi",
-    titleIntro: "Stop treating sound as one block. Work it ",
-    titleEm: "stem by stem",
+    titleIntro: "Stop crushing the whole track. Erase ",
+    titleEm: "just what bothers you",
     titleOutro: ".",
-    body: "Other mobile editors only touch sound as a single track. vibi splits each clip into voice, background, and per-speaker stems — keep, mute, or swap exactly what you choose.",
+    body: "Other mobile editors treat sound as one block — kill the noise, kill the voice with it. vibi splits each clip into voice, background, and per-speaker stems so you can mute only the parts you don't want.",
     legacyHeader: "Other mobile apps",
     vibiHeader: "vibi",
     rows: [
       { label: "Sound unit", legacy: "1 clip = 1 mixed track", vibi: "1 clip = voice / background / per-speaker" },
       { label: "Noise removal", legacy: "Crushes everything (voice too)", vibi: "Mute background only — voice intact" },
-      { label: "BGM swap", legacy: "Layered on top — clashes", vibi: "Keep voice, replace BGM" },
-      { label: "Isolate a speaker", legacy: "Not possible", vibi: "Pick one of two in an interview" },
+      { label: "Cut one speaker", legacy: "Not possible", vibi: "Pick one of two in an interview" },
+      { label: "If audio is ruined", legacy: "Re-shoot or trash the clip", vibi: "Keep the footage, erase just the audio" },
       { label: "Where you work", legacy: "PC pro tools", vibi: "Mobile — right where you shoot" },
     ],
   },
 
   features: {
     eyebrow: "Features",
-    title: "From shooting to publishing, in one hand.",
-    body: "No complex PC tools — it all happens on mobile. Stem separation is the spine; captions, dubbing, and AI-chat edits flow from there.",
+    title: "The footage you can't reshoot, finally salvageable.",
+    body: "Region selection plus stem separation is the spine. BGM tools, captions, dubbing, and AI chat sit on top — the same separation engine all the way through.",
     items: [
       {
         eyebrow: "Main",
-        title: "Region-based stem separation",
-        body: "Drag a region on the timeline and split that part's voice, background, and per-speaker audio. Not the whole video — only what you need, stem by stem.",
+        title: "Region + per-stem separation",
+        body: "Drag a region on the timeline. AI splits that part into voice, background, and per-speaker stems — then mute the wind, dim the passerby's volume, or slow the wrong voice down. Not the whole clip, only what you picked.",
       },
       {
-        eyebrow: "Companion",
-        title: "Auto captions + translation",
-        body: "Turn speech into captions, translated into multiple languages at once. Adjust font and position right on screen.",
-      },
-      {
-        eyebrow: "Companion",
-        title: "AI multi-language dubbing",
-        body: "Preserve the original voice's character while re-synthesizing it naturally in another language. Produce multiple language versions of one clip in parallel.",
+        eyebrow: "Main",
+        title: "Drop in BGM, or record on the spot",
+        body: "Layer a BGM file or record straight from the phone mic. Adjust each BGM clip's volume, speed, duplicate, delete. The BGM itself can run through the same separation — keep only its clean part, fill the gap the noise left behind.",
       },
       {
         eyebrow: "AI",
         title: "Edit by chat",
-        body: "“Keep only the voice in the selected region” — natural-language commands trigger editing tools. No more digging through menus.",
+        body: "“Mute the background between 0:30 and 0:42” — natural-language commands trigger the editing tools directly. No menu digging when the moment is already past.",
       },
     ],
   },
 
   scenario: {
     eyebrow: "How it works",
-    title: "Travel vlog — keep the voice over market noise.",
-    body: "When you want the room tone, just not the noise — vibi takes under five minutes.",
+    title: "Interview clip — one voice clean, the other gone.",
+    body: "The moment was too good to reshoot but a passerby ruined the audio. With vibi, salvaging it takes under five minutes.",
     beforeTitle: "Before — PC workflow",
     afterTitle: "After — vibi",
     before: [
-      "Get to the hotel, open the laptop",
+      "Get back to the desk, open the laptop",
       "Move the clip to PC (5–15 min)",
-      "Strip noise in a pro editor",
-      "Search an external BGM library → download → import",
-      "Send back to phone, then publish",
+      "Search “how to remove a voice from a video”",
+      "Try app after app, tutorial after tutorial — still stuck",
+      "Give up; re-shoot or trash the clip",
     ],
     after: [
       "Pick the clip from your camera roll",
-      "Drag a region on the timeline → separate stems",
-      "Mute background — voice stays intact",
-      "Pick a BGM → drop on timeline → adjust volume",
-      "Export → publish via system share sheet",
+      "Drag the region where the passerby cut in",
+      "Separate stems — voice, background, per-speaker",
+      "Mute the speaker you don't want — yours stays",
+      "Drop a BGM if needed → export → share",
     ],
   },
 
   workflow: {
     eyebrow: "Workflow",
-    title: "Five-minute PC work becomes five-second vibi work.",
-    body: "No constraints on time or place. Cafe, road, subway — never miss a fleeting trend.",
+    title: "Five-minute PC work becomes five seconds on vibi.",
+    body: "Time and place don't matter. Cafe, road, subway — the moment doesn't get away.",
     pcLabel: "PC",
     vibiLabel: "vibi",
     rows: [
       { step: "Bring in the clip", pc: "Cable / iCloud / AirDrop · 5–15 min", vibi: "Pick from gallery directly · 5 sec" },
-      { step: "Add voice", pc: "Set up PC mic / external mic", vibi: "Record on phone, instantly" },
+      { step: "Erase a noise", pc: "EQ + multiband + manual cuts — and voice often dies with it", vibi: "Drag the region, then tap mute on the stem you don't want" },
       { step: "Preview", pc: "Render, then play", vibi: "Play directly on the timeline" },
       { step: "Publish", pc: "Export → send to phone → upload", vibi: "System share sheet to channel — one tap" },
     ],
   },
 
   cta: {
-    title: "Re-dress the voice on the clip you shot today.",
-    body: "Download on the App Store. Your first clip is on us — done in five.",
+    title: "The clip you almost trashed today — salvage it.",
+    body: "Download on the App Store. Your first save is on us — done in five.",
     primary: "Download on the App Store",
     secondary: "See features again",
     caption: "iOS 17+ · Free download · Android coming later",
   },
 
   footer: {
-    tagline: "Mobile video voice remixing — right where you shoot.",
+    tagline: "Keep the video. Erase just the noise — on mobile.",
     productHeading: "Product",
     productLinks: [
       { label: "Features", href: "#features" },

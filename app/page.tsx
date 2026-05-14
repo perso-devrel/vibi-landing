@@ -350,8 +350,8 @@ function Differentiator({ dict }: { dict: Dict }) {
 
 function Features({ dict }: { dict: Dict }) {
   const { features } = dict;
-  const orbs = ["mint", "peach", "lavender", "sky"] as const;
-  const icons = [<IconStem />, <IconCaption />, <IconGlobe />, <IconChat />];
+  const orbs = ["mint", "peach", "lavender"] as const;
+  const icons = [<IconStem />, <IconBgm />, <IconChat />];
 
   return (
     <Section id="features">
@@ -361,7 +361,7 @@ function Features({ dict }: { dict: Dict }) {
         body={features.body}
       />
 
-      <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-3">
         {features.items.map((it, idx) => (
           <article
             key={it.title}
@@ -822,7 +822,7 @@ function IconStem() {
   );
 }
 
-function IconCaption() {
+function IconBgm() {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -834,28 +834,9 @@ function IconCaption() {
       strokeLinejoin="round"
       style={{ color: "var(--color-ink)" }}
     >
-      <rect x="3" y="5" width="18" height="14" rx="3" />
-      <path d="M7 14h3" /><path d="M14 14h3" />
-      <path d="M7 11h2" /><path d="M12 11h5" />
-    </svg>
-  );
-}
-
-function IconGlobe() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      style={{ color: "var(--color-ink)" }}
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M3 12h18" />
-      <path d="M12 3a14 14 0 0 1 0 18" />
-      <path d="M12 3a14 14 0 0 0 0 18" />
+      <path d="M9 18V6l11-2v12" />
+      <circle cx="6" cy="18" r="2.5" />
+      <circle cx="17" cy="16" r="2.5" />
     </svg>
   );
 }

@@ -63,9 +63,10 @@ function DocsHero() {
           className="body-md mt-5 max-w-[58ch] text-pretty"
           style={{ color: "var(--color-body)" }}
         >
-          vibi splits the audio in your video — voice, background, and
-          per-speaker stems — so you can keep one, swap another, and layer BGM
-          over the rest. All on mobile.
+          vibi splits the audio in any region of your clip — voice,
+          background, and per-speaker stems — so you can mute just the
+          wind, the passerby, or the wrong voice. The footage you can't
+          reshoot stays intact. All on mobile.
         </p>
         <p
           className="body-md mt-4 max-w-[58ch] text-pretty"
