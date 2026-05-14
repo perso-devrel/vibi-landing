@@ -49,8 +49,8 @@ A Perso dubbing job takes 0.5–2x the video length. If you wait synchronously, 
 **Why a single Perso translate call**
 vibi-bff does not do its own STT or speech synthesis — for dubbing, everything (translation + speech synthesis) is bundled into a single `submitTranslate` call to Perso as a black box. Because the translator and the voice model live inside the same vendor, voice consistency is preserved and the external call count is 1. (Gemini is only used for translation in the auto *captions* flow and for the chat router.)
 
-**Why 5s polling**
-The default for `PERSO_POLL_INTERVAL_MS`. Too short hits Perso-side rate limits; too long accumulates user-perceived latency. 5s is the sweet spot for vibi's video length range (10–60s) — usually only 1–2 more polls finish the job.
+**Why 15s polling**
+The default for `PERSO_POLL_INTERVAL_MS`. Too short hits Perso-side rate limits; too long accumulates user-perceived latency. 15s sits comfortably for vibi's video length range (10–60s) where dubbing takes ~30s–2min — usually 2–4 polls finish the job and Perso-side rate limits stay clear.
 
 **Why extract audio separately from mp4**
 For VIDEO projects, Perso returns `dubbingVideo` (mp4) directly, so the BFF does no muxing of its own. But mobile sometimes wants to preview audio only, so an audio-only endpoint for the same job is needed — the BFF uses `ffmpeg -vn` to drop just the audio track as mp3 alongside it. AUDIO projects skip this step and use Perso's `translatedAudio` as-is.
@@ -133,10 +133,10 @@ When the mix job starts, the BFF atomically discards that jobId's stems. Calling
 - Disk savings — stems take up the video length's worth of mp3/wav each
 - Simpler user flow — one separation = one mix result. If multiple mix variants from the same separation are needed, redo the separation itself.
 
-A separation that stays `READY` for a long time without a mix is cleaned up by a reaper after `SEPARATION_ABANDON_TTL_MS` (default 30 minutes).
+A separation that stays `READY` for a long time without a mix is cleaned up by a reaper after `SEPARATION_ABANDON_TTL_MS` (default 7 days — sized to match the mobile-side "resume later" window so an unfinished session still has live stem tokens when the user comes back).
 
 **Why HMAC-signed URLs instead of static mounts for stems · mixes**
-User voice and background stems are often sensitive data. With a static mount, anyone with the URL can fetch them. HMAC signing + short TTL (`SEPARATION_URL_TTL_SEC` default 30 minutes) blocks accidental exposure. Rotating `SEPARATION_SIGNING_SECRET` once invalidates every unexpired token.
+User voice and background stems are often sensitive data. With a static mount, anyone with the URL can fetch them. HMAC signing + a TTL bound to the abandon window (`SEPARATION_URL_TTL_SEC` default 7 days, never longer than `SEPARATION_ABANDON_TTL_MS`) blocks accidental exposure. Rotating `SEPARATION_SIGNING_SECRET` once invalidates every unexpired token.
 
 ### Code references
 
@@ -154,11 +154,32 @@ Both flows follow the same skeleton:
 1. **client → BFF**: multipart upload + spec → immediate `jobId` response
 2. **BFF → external API**: upload → start job → poll → download
 3. **BFF → local**: cache result + ffmpeg post-process + HMAC sign
-4. **client ← BFF**: poll jobId → signed URL → bytes
+4. **client ← BFF**: poll jobId → signed URL → bytes (or **302 redirect to GCS V4 signed URL**, see below)
 
 This skeleton is reused as-is in vibi's other jobs (`/api/v2/subtitles`, `/api/v2/render`) — the same `JobResponse` / `StatusResponse` shape, the same polling pattern, the same signing scheme.
 
 To add a new job, the fastest path is to fork an existing service/route pair.
+
+### Download responder — file streaming vs. GCS redirect
+
+The download endpoints (`/render/.../download`, `/separate/.../stem`, `/separate/mix/.../download`, `/autodub/.../{audio,video}`, `/subtitles/.../srt`) all funnel through a single `respondDownload` helper. It picks one of two paths at request time:
+
+- **`GCS_BUCKET` set** (production Cloud Run) — the file is uploaded to GCS idempotently, and the BFF returns `302 Location: <V4 signed URL>` with a short TTL (`GCS_SIGNED_URL_TTL_SEC`, default 15 min). The Cloud Run instance stops as soon as the redirect is written, so its CPU/memory and outbound egress aren't tied up by the byte stream. Cloud Run's per-instance concurrency cap (set to 4 for the BFF) is freed back to handle the next request.
+- **`GCS_BUCKET` blank** (local dev) — the same route falls back to `respondFile` streaming. No GCS dependency, no signing roundtrip.
+
+The HMAC signing layer on top of this is unchanged — the BFF still verifies its own token before the redirect/stream, so the upstream auth model didn't move. What moved is *who sends the bytes to the client*: BFF in dev, GCS in production.
+
+### Render quality profile
+
+The `/api/v2/render` config carries an optional `quality` enum (`low` / `medium` / `high`, default `medium`) that maps to an `(x264 CRF, preset, audio bitrate)` triple:
+
+| Profile | CRF | preset | audio |
+|---|---|---|---|
+| `high` | 20 | medium | 192k |
+| `medium` | 23 | fast | 192k |
+| `low` | 28 | fast | 128k |
+
+CRF is the dominant lever — one CRF point is roughly one perceptual step, while one preset step is under 0.5 dB SSIM. Tying preset to profile keeps the two knobs on a single axis so the client doesn't have to think about them independently.
 
 ---
 

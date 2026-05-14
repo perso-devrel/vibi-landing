@@ -105,7 +105,7 @@ The repo ships with everything needed to run the BFF on Google Cloud Run, fronte
 - `Dockerfile` — multi-stage JDK21 → JRE21 + ffmpeg, `MaxRAMPercentage=75`.
 - `.dockerignore` / `.gcloudignore` — keep secrets and caches out of the build context.
 - `deploy/cloud-run.sh` — idempotent bootstrap (enables APIs, creates the runtime service account, loads `.env` into Secret Manager, runs the first `gcloud run deploy`).
-- `.github/workflows/deploy.yml` — main-branch push triggers a Workload Identity Federation login and `gcloud run deploy --source .`. No service account JSON stored in GitHub.
+- `.github/workflows/deploy.yml` — main-branch push triggers a Workload Identity Federation login and `gcloud run deploy --source .`. No service account JSON stored in GitHub. The runtime SA, env vars, secrets, and resource spec are declared inline so each deploy re-wires them; the GitHub UI is the single source of truth for env updates.
 
 Quickstart:
 
@@ -117,13 +117,31 @@ cd vibi-bff
 # 2. One-time WIF setup so GitHub Actions can deploy without a JSON key
 # Follow deploy/GITHUB_ACTIONS_SETUP.md (workload-identity-pools create + provider + SA binding)
 
-# 3. Add the four secrets GitHub Actions needs
-#    GCP_PROJECT_ID / GCP_REGION / GCP_WIF_PROVIDER / GCP_SA_EMAIL
+# 3. Configure GitHub Settings → Secrets and variables → Actions
 ```
 
-After that, `git push origin main` ships a new revision. The runtime credential is the Cloud Run **attached service account** — `GOOGLE_APPLICATION_CREDENTIALS` stays blank and `GeminiClient` falls back to Application Default Credentials via the metadata server. Memory-tier vs upload-size: scale `MAX_UPLOAD_FILE_SIZE_MB` down when running on `--memory 1Gi`, up on `4Gi+`.
+What goes where (Settings → Secrets and variables → Actions):
 
-The full walkthrough — WIF bootstrap commands, the four GitHub secrets, the per-secret IAM role, and a table mapping four common errors (`invalid_target`, `unauthorized_client`, `iam.serviceAccounts.getAccessToken denied`, `run deploy: Permission denied`) to their root cause — lives in `vibi-bff/deploy/GITHUB_ACTIONS_SETUP.md`.
+| Type | Key | Source / purpose |
+|---|---|---|
+| **Secret** | `GCP_WIF_PROVIDER` | Output of step 2 — the WIF provider resource path. |
+| **Secret** | `GCP_SA_EMAIL` | Deploy-time SA (allowed to `gcloud run deploy`). |
+| **Secret** | `GCP_PROJECT_ID` | Cloud Run hosting project. |
+| **Secret** | `GCP_RUNTIME_SA_EMAIL` | Runtime SA attached to the Cloud Run service (this is the identity `GeminiClient` ADC resolves to). |
+| **Secret** | `GOOGLE_OAUTH_CLIENT_IDS` | Comma-separated iOS / Android / Web client ids. |
+| **Variable** | `CORS_ALLOWED_ORIGINS` | Plain comma list — visible in workflow logs intentionally. |
+| **Variable** | `BFF_BASE_URL` | Optional. Set when you own a custom domain (`https://api.example.com`); leave blank to self-reference the Cloud Run-issued URL. |
+| **Variable** | `GCS_BUCKET` | Optional. When set, big render / separation outputs 302-redirect to a V4 signed URL — decouples Cloud Run egress and instance time from the byte stream. |
+| **Secret Manager** | `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `AUTH_JWT_SECRET`, `SEPARATION_SIGNING_SECRET` | Created by `deploy/cloud-run.sh` from your `.env`. The workflow mounts them via `--set-secrets`. |
+
+After that, `git push origin main` ships a new revision. Two things worth flagging on first read of `deploy.yml`:
+
+- **`^@^` delimiter** — `--set-env-vars` uses `^@^` as the entry separator instead of the default `,`, because `GOOGLE_OAUTH_CLIENT_IDS` itself contains commas. Switching the delimiter to `@` lets the comma-bearing value stay inline.
+- **Cross-project `GEMINI_PROJECT_ID`** — the project Vertex AI is enabled in can differ from the Cloud Run hosting project. The workflow's `env:` block keeps `GEMINI_PROJECT_ID` separate from `GCP_PROJECT_ID` for exactly this case.
+
+The runtime credential is the Cloud Run **attached service account** (`GCP_RUNTIME_SA_EMAIL`) — `GOOGLE_APPLICATION_CREDENTIALS` stays blank and `GeminiClient` falls back to Application Default Credentials via the metadata server. Memory-tier vs upload-size: scale `MAX_UPLOAD_FILE_SIZE_MB` down when running on `--memory 1Gi`, up on `4Gi+`.
+
+The full walkthrough — WIF bootstrap commands, IAM roles per secret, the GCS bucket + `roles/iam.serviceAccountTokenCreator` self-binding required for signed-URL issuance, and a table mapping five common errors (`invalid_target`, `unauthorized_client`, `iam.serviceAccounts.getAccessToken denied`, `run deploy: Permission denied`, 500 only on `/download` after a successful deploy) to their root cause — lives in `vibi-bff/deploy/GITHUB_ACTIONS_SETUP.md`.
 
 ## 5. Wire up mobile
 

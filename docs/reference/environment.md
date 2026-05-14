@@ -13,6 +13,8 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 
 `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `SEPARATION_SIGNING_SECRET`, `AUTH_JWT_SECRET`, `GOOGLE_OAUTH_CLIENT_IDS` are fail-fast at boot — the server exits immediately on missing or malformed values.
 
+> **Local dev vs Cloud Run.** `.env` is for local `./gradlew run` (and the one-shot `deploy/cloud-run.sh` bootstrap). The single source of runtime env for production Cloud Run is `.github/workflows/deploy.yml` — Secret Manager for sensitive values (`PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `AUTH_JWT_SECRET`, `SEPARATION_SIGNING_SECRET`), GitHub Secrets for the deploy-time identities (`GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`, `GCP_PROJECT_ID`, `GCP_RUNTIME_SA_EMAIL`, `GOOGLE_OAUTH_CLIENT_IDS`), and GitHub Variables for plain config (`CORS_ALLOWED_ORIGINS`, `BFF_BASE_URL`). Update those in repo Settings → Secrets and variables → Actions, then push or "Run workflow". Comma-containing values are quoted via the `^@^` delimiter (see `deploy.yml`).
+
 ### Perso AI
 
 | Key | Required | Default | Description |
@@ -20,7 +22,7 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 | `PERSO_API_KEY` | ✅ | — | Perso-issued API key. Used for audio separation / STT / auto dubbing. |
 | `PERSO_SPACE_SEQ` | ✅ | — | Perso workspace ID. Look up via `GET /portal/api/v1/spaces`. **Must be greater than 0.** |
 | `PERSO_BASE_URL` | | `https://api.perso.ai` | Upstream base URL. Change only when fronted by your own gateway. |
-| `PERSO_POLL_INTERVAL_MS` | | `5000` | Progress poll interval (ms). **Must be ≥ 1000.** |
+| `PERSO_POLL_INTERVAL_MS` | | `15000` | Progress poll interval (ms). **Must be ≥ 1000.** |
 | `PERSO_MAX_POLL_MINUTES` | | `30` | Audio separation job poll timeout (minutes). **1..120.** |
 
 ### Server
@@ -31,16 +33,18 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 | `BFF_BASE_URL` | | `http://localhost:8080` | Public URL used to sign download links. Change to ngrok / LAN address when exposing externally. |
 | `STORAGE_PATH` | | `./storage` | Root for upload / render / separation artifacts. Use a location with sufficient disk space. |
 | `CORS_ALLOWED_ORIGINS` | | *(blank = any)* | Comma-separated whitelist. For Android-only deployments, set to a sentinel like `android-only.invalid` to block browsers. |
+| `GCS_BUCKET` | | *(blank)* | GCS bucket name. When set, large render / separation outputs are uploaded and the `/download` endpoint **302-redirects** to a V4 signed URL — Cloud Run instance and egress are decoupled from the byte stream. Blank falls back to `respondFile` streaming (the dev path). |
+| `GCS_SIGNED_URL_TTL_SEC` | | `900` (15m) | V4 signed URL lifetime (s). 60..86400. Only consulted when `GCS_BUCKET` is set. |
 
 ### Separation / signing
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
 | `SEPARATION_SIGNING_SECRET` | ✅ | — | HMAC key for stem / mix download URLs. **Enforced ≥ 32 chars.** Generate with `openssl rand -hex 32`. Rotation invalidates all unexpired tokens at once. |
-| `SEPARATION_ABANDON_TTL_MS` | | `1800000` | Time (ms) before READY-but-uncollected separation results are cleaned up. Must be ≥ 60_000. |
-| `SEPARATION_MIX_TTL_MS` | | `600000` | Mix artifact retention time (ms). |
-| `SEPARATION_URL_TTL_SEC` | | `1800` | Stem download token lifetime (s). 60..86400. |
-| `SEPARATION_MIX_URL_TTL_SEC` | | `600` | Mix download token lifetime (s). |
+| `SEPARATION_ABANDON_TTL_MS` | | `604800000` (7d) | Time (ms) before READY-but-uncollected separation results are cleaned up. Must be ≥ 60_000. Matches the "resume separation later" window the mobile client assumes. |
+| `SEPARATION_MIX_TTL_MS` | | `600000` (10m) | Mix artifact retention time (ms). Must be ≥ 60_000. |
+| `SEPARATION_URL_TTL_SEC` | | `604800` (7d) | Stem download token lifetime (s). 60..604800. Must not exceed `SEPARATION_ABANDON_TTL_MS` — a live token for a reaped job has no server-side mapping. |
+| `SEPARATION_MIX_URL_TTL_SEC` | | `600` (10m) | Mix download token lifetime (s). 60..604800. |
 
 ### Vertex AI Gemini (subtitle translation + chat)
 

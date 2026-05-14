@@ -56,17 +56,19 @@ Once the tool shape stabilized, six operational policies formed one by one out o
 
 The narratives for the six and *why they don't form by being taught* are in [`operating-rules.md`](./operating-rules.md).
 
-## 4. Where we got stuck — five KMP/iOS pitfalls
+## 4. Where we got stuck — seven KMP/iOS pitfalls
 
-On the iOS side there are five patterns we hit more than once and ended up patternizing:
+On the iOS side there are seven patterns we hit more than once and ended up patternizing:
 
 1. NSURL absolute path handling — `URLWithString(absolutePath)` doesn't return nil
 2. AVAsset lazy loading — calling `duration` / `tracks` immediately returns 0/empty
 3. Missing audio setters in K/N AVFoundation cinterop — work around via Swift bridge or BFF mux
 4. NSData → ByteArray copy — using `allocArrayOf(bytes)` as the dest causes silent corruption
-5. AVMutableComposition missing `preferredTransform` — video rotation breaks
+5. Streaming AVPlayer is silent under K/N — download then `AVAudioPlayer` instead
+6. Path-only URLs leak into the iOS player — prepend the BFF base URL there too
+7. AVMutableComposition missing `preferredTransform` — video rotation breaks
 
-Each pitfall's narrative is in [`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md). Only after these five sat in one place did the policy "*read that section first before starting new K/N code*" start paying off.
+Each pitfall's narrative is in [`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md). Only after these seven sat in one place did the policy "*read that section first before starting new K/N code*" start paying off.
 
 A similar collection exists on the BFF side (`vibi-bff/CLAUDE.md` "Known BFF bug patterns" — 4 items): the multipart 50MB limit, Perso 5xx backoff, STT/voice separation must use dedicated endpoints, and inconsistent Perso path prefixes.
 
@@ -110,7 +112,7 @@ Writing only the wins would be inaccurate, so the misses are here too.
 
 - **A skill that could have been merged, kept separate** — at one point there was a separate `koin-di` skill. It was a one-line policy, so it got absorbed into the `kmp-dev.md` agent description soon after. *When to merge versus when to split* wasn't a clear criterion early on.
 - **Taking on too large a plan in one go** — the "simple v1" policy was made after that. Untangling the half-correct half of a too-large plan cost more than the plan itself.
-- **Late formation of the known-bug policy** — among the five pitfalls, the first two were each hit twice. The decision "let's patternize this" came only *on the third pitfall*. Had the policy existed from the start, the duplicated debugging time would have been saved.
+- **Late formation of the known-bug policy** — among the seven pitfalls, the first two were each hit twice. The decision "let's patternize this" came only *on the third pitfall*. Had the policy existed from the start, the duplicated debugging time would have been saved.
 
 ## 7. If you're starting from the same spot
 

@@ -6,6 +6,7 @@ Specification for every endpoint the vibi mobile client calls. The **Swagger UI*
 - Auth: some endpoints require `Authorization: Bearer <jwt>` (BFF-issued JWT). Issuance: `POST /api/v2/auth/google`.
 - multipart upload form-field limits are noted separately (must be called out when over 50MB — see `vibi-bff/CLAUDE.md` "Known BFF bug patterns").
 - Full response model definitions: `vibi-bff/src/main/kotlin/com/vibi/bff/model/BffModels.kt`.
+- **Download endpoints (`/render/.../download`, `/separate/.../stem`, `/separate/mix/.../download`, `/autodub/.../{audio,video}`, `/subtitles/.../srt`) 302-redirect to a V4 signed GCS URL when `GCS_BUCKET` is set** — Cloud Run instance and egress are decoupled from the byte stream. When `GCS_BUCKET` is blank (the local-dev path) the same routes fall back to `respondFile` streaming. Clients must follow redirects.
 
 Table of contents:
 

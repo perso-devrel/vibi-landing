@@ -70,7 +70,7 @@ The moment you encounter the same pitfall twice, *append it as a pattern* to `vi
 **Why**: The goal isn't to reduce debug time — it's to **not debug again**. The debug cost of a pitfall you've already solved is large, but moved into a single pattern line, the next person (= future you or a teammate) skips the debugging entirely.
 
 **Application**:
-- Seven patterns are already stacked. iOS 5 ([`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md)) + BFF 4 (multipart 50MB limit, Perso 5xx backoff, retiring the `submitTranslate` bypass, the Perso path prefix `/video-translator` vs `/file`).
+- Eleven patterns are already stacked. iOS 7 ([`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md)) + BFF 4 (multipart 50MB limit, Perso 5xx backoff, retiring the `submitTranslate` bypass, the Perso path prefix `/video-translator` vs `/file`).
 - Stack them *in the same place* (no scattering). When working on a new K/N, only one place needs reading.
 
 ## The meta — these are not produced by being taught
@@ -86,5 +86,5 @@ What this means:
 ## Related reading
 
 - [`how-we-built-vibi-with-claude.md`](./how-we-built-vibi-with-claude.md) — the timeline of *when* these rules were formed
-- [`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md) — the five pitfalls covered by the Known-bug logging policy
+- [`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md) — the seven pitfalls covered by the Known-bug logging policy
 - [`../explanation/why-bff.md`](../explanation/why-bff.md) — product-docs-side background for the external API routing rule

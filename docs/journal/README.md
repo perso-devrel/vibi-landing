@@ -18,7 +18,9 @@ This is intended as a technical retrospective, not self-congratulation — it in
 | [`claude-toolbox/agents.md`](./claude-toolbox/agents.md) | Why I split into the two sub-agents `bff-dev` and `kmp-dev` |
 | [`claude-toolbox/commands.md`](./claude-toolbox/commands.md) | The operating flow of `/plan`, `/sync-api`, `/review`, `/ship` |
 | [`claude-toolbox/skills.md`](./claude-toolbox/skills.md) | How I drew the boundaries between skills |
-| [`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md) | Five KMP/iOS pitfalls I encountered twice or more |
+| [`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md) | Seven KMP/iOS pitfalls I encountered twice or more |
+| [`cloud-run-deploy-journey.md`](./cloud-run-deploy-journey.md) | Eight pitfalls between `./gradlew run` and a Cloud Run deploy on `git push` |
+| [`egress-redirect-to-gcs.md`](./egress-redirect-to-gcs.md) | Moving the download data plane off Cloud Run and onto V4 signed GCS URLs |
 | [`operating-rules.md`](./operating-rules.md) | Operating rules that settled in from working with an AI agent |
 
 ## Relationship to product docs

@@ -1,6 +1,8 @@
-# Troubleshooting — common build / runtime pitfalls
+# Common build / runtime blockers
 
-Each entry: **symptom → cause → fix**. Environment-specific differences are split out into tables.
+A first-stop lookup for the boot, build, and call-path errors most likely to hit you in the first hour with vibi. Each entry follows **symptom → cause → fix**, with environment-specific differences split into tables.
+
+For deeper, twice-encountered design-level pitfalls (KMP/iOS, BFF multipart, Perso path prefixes), see the [`journal`](../journal/) — this page is the surface-error checklist, the journal is the narrative.
 
 Contents:
 
@@ -176,7 +178,7 @@ Both must print output.
 
 **Symptom**: `GET /api/v2/separate/{jobId}/stem/{stemId}?token=…` initially returns 200, but turns to 403 after a while.
 
-**Cause**: The stem URL's HMAC token expired. Lifetime is `SEPARATION_URL_TTL_SEC` (default 1800s).
+**Cause**: The stem URL's HMAC token expired. Lifetime is `SEPARATION_URL_TTL_SEC` (default 7d, bound to `SEPARATION_ABANDON_TTL_MS`).
 
 **Fix**: Call `GET /api/v2/separate/{jobId}` again to receive fresh signed URLs and use those.
 
