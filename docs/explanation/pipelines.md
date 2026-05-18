@@ -1,69 +1,10 @@
-# Pipelines — Auto Dubbing and Stem Separation
+# Pipelines — Stem Separation and Multi-variant Render
 
-vibi's two core jobs — **auto dubbing** and **stem separation** — are not simple single calls. Two external APIs (Perso, Gemini), polling, ffmpeg post-processing, and signed downloads line up in sequence. This article unfolds that sequence and explains *why this order* and *why the BFF took those steps*.
+vibi's two core jobs — **stem separation** and **multi-variant video render** — are not simple single calls. An external API (Perso), polling, ffmpeg post-processing, and signed downloads line up in sequence. This article unfolds that sequence and explains *why this order* and *why the BFF took those steps*.
 
 Premise: assumes the BFF-as-one-layer decision in [`why-bff.md`](./why-bff.md) is accepted.
 
----
-
-## Auto Dubbing
-
-### Flow at a glance
-
-```mermaid
-sequenceDiagram
-    participant M as Mobile
-    participant B as vibi-bff
-    participant P as Perso AI
-
-    M->>B: POST /api/v2/autodub<br/>multipart(file, AutoDubSpec)
-    B-->>M: 202 { jobId }
-
-    Note over B,P: AutoDubService.runPipeline() (background coroutine)
-    B->>P: uploadMedia (register + binary upload)
-    B->>P: POST translate (sourceLang, targetLangs, numberOfSpeakers)
-    loop until COMPLETED (default 5s interval)
-        B->>P: GET progress
-    end
-    B->>P: GET download-info (manifest)
-    B->>P: GET download-links (target=dubbingVideo or translatedAudio)
-    B->>P: streamDownload (mp4 or mp3)
-    Note over B: For VIDEO projects, extract the<br/>audio track from mp4 → mp3 (ffmpeg -vn)
-    B->>B: Sign URL with HMAC
-
-    loop until READY
-        M->>B: GET /api/v2/autodub/{jobId}
-        B-->>M: PROCESSING (progress%)
-    end
-    M->>B: GET /api/v2/autodub/{jobId}
-    B-->>M: READY { dubbedAudioUrl, dubbedVideoUrl }<br/>(signed URLs)
-    M->>B: GET <signed url>
-    B-->>M: mp3/mp4 stream
-```
-
-### Why each step
-
-**Why immediate response + polling**
-A Perso dubbing job takes 0.5–2x the video length. If you wait synchronously, mobile has to hold the connection open the entire time, which is fragile under backgrounding, cellular switching, and iOS background suspend. Cutting the job so that the client gets `jobId` immediately and polls later is safe no matter when it returns.
-
-**Why a single Perso translate call**
-vibi-bff does not do its own STT or speech synthesis — for dubbing, everything (translation + speech synthesis) is bundled into a single `submitTranslate` call to Perso as a black box. Because the translator and the voice model live inside the same vendor, voice consistency is preserved and the external call count is 1. (Gemini is only used for translation in the auto *captions* flow and for the chat router.)
-
-**Why 15s polling**
-The default for `PERSO_POLL_INTERVAL_MS`. Too short hits Perso-side rate limits; too long accumulates user-perceived latency. 15s sits comfortably for vibi's video length range (10–60s) where dubbing takes ~30s–2min — usually 2–4 polls finish the job and Perso-side rate limits stay clear.
-
-**Why extract audio separately from mp4**
-For VIDEO projects, Perso returns `dubbingVideo` (mp4) directly, so the BFF does no muxing of its own. But mobile sometimes wants to preview audio only, so an audio-only endpoint for the same job is needed — the BFF uses `ffmpeg -vn` to drop just the audio track as mp3 alongside it. AUDIO projects skip this step and use Perso's `translatedAudio` as-is.
-
-**Why the BFF re-caches the result**
-Perso's download links are ephemeral, and some require Perso auth headers on relative paths (`/perso-storage/...`). The BFF fetches once, stores locally, and re-signs with its own HMAC token before handing it to mobile. When mobile's URL expires it just calls the same `getStatus` to get a fresh URL — mobile never directly depends on the external API's token lifetime.
-
-### Code references
-
-- Route: `vibi-bff/src/main/kotlin/com/vibi/bff/routes/AutoDubRoutes.kt`
-- Service: `vibi-bff/.../service/AutoDubService.kt`
-- Perso wrapper: `vibi-bff/.../service/PersoClient.kt`
-- Client: `vibi-mobile/shared/.../api/BffApi.kt#submitAutoDubJob` · `getAutoDubStatus`
+> Auto dubbing / auto subtitles / lipsync used to be part of this article. Both flows were removed from the BFF surface in commit `52f8d7c` (`sticker/자막/더빙 surface 절단`). The flow that replaced them in practice — exporting N localized variants from a single edit — is documented under **Multi-variant Render** below.
 
 ---
 
@@ -147,27 +88,92 @@ User voice and background stems are often sensitive data. With a static mount, a
 
 ---
 
+---
+
+## Multi-variant Render
+
+A single edit is often rendered N times — once per language the user wants the subtitle / dub variant for. Naively that's N multipart uploads of the source video; vibi optimizes it down to one.
+
+### Flow at a glance
+
+```mermaid
+sequenceDiagram
+    participant M as Mobile
+    participant B as vibi-bff
+    participant F as ffmpeg (local)
+
+    M->>B: POST /api/v2/render/inputs<br/>multipart(video)
+    B-->>M: 200 { inputId, expiresAt }
+
+    par For each variant (parallel)
+        M->>B: POST /api/v2/render<br/>config + inputId (+ audio/bgm parts)
+        B-->>M: 202 { jobId }
+        Note over B,F: RenderService.runPipeline (queued, RENDER_MAX_CONCURRENT)
+        B->>F: normalize each segment (scale/pad + silent AAC)
+        B->>F: concat demuxer (-c copy)
+        B->>F: final mix (-c:v copy + atrim+amix BGM + amix dubs)
+        B->>B: write output to STORAGE_PATH/render/{jobId}/
+    end
+
+    loop until COMPLETED (each jobId independently)
+        M->>B: GET /api/v2/render/{jobId}/status
+        B-->>M: PROCESSING (progress%)
+    end
+    M->>B: GET /api/v2/render/{jobId}/download
+    alt GCS_BUCKET set
+        B-->>M: 302 → <V4 signed GCS URL>
+    else local
+        B-->>M: mp4 byte stream
+    end
+```
+
+### Why each step
+
+**Why the input cache (`/render/inputs`)**
+A 30s edited video can easily be 30–50MB. Re-uploading it N times to render N localized variants wastes both client bandwidth and BFF receive time, especially on cellular. The input cache uses `sha256(video)[:16]` as the slot key, so retries are idempotent and a re-uploaded identical file resolves to the same slot.
+
+The mobile use-case (`SaveAllVariantsUseCase`) decides whether to pre-upload based on a variant count: 2+ render variants → upload first, 1 variant → just multipart the bytes into `/render` directly. The throughput win only materializes at multi-variant.
+
+**Why parallel renders capped by `RENDER_MAX_CONCURRENT`**
+With the input cached, the BFF can fan out renders without back-pressure on uploads. Each variant differs only in dubs / BGM / subtitle burn-in choice, so wall-clock scales with the slowest variant rather than the sum. The cap (`RENDER_MAX_CONCURRENT`, default `CPU/2`) prevents ffmpeg processes from saturating the host — important on Cloud Run where vCPU is allocated.
+
+**Why `-c:v copy` in the final mix pass**
+The per-segment normalize step already produces output-resolution H.264. The final mix pass only changes audio (BGM `atrim`+`amix`, dub `adelay`+`amix`, optional audio_override). Re-encoding video here would burn 95% of the CPU for nothing — `-c:v copy` keeps it at ~5%. Commit `6bcb392` records the perf delta.
+
+**Why BGM `atrim` lives on the BFF**
+The mobile `BgmTrimSheet` lets a user drag handles to pick a sub-range of a long BGM track (e.g. 10s out of a 3-min song). vibi could re-encode the BGM file mobile-side before upload, but that pushes the cost onto the device and duplicates ffmpeg logic. Instead the trim window (`sourceTrimStartMs`/`sourceTrimEndMs`) rides along in the render config and the BFF applies `atrim`+`asetpts` at mix time — single source of truth, no duplicated ffmpeg.
+
+**Why download stays a separate hop**
+`POST /render` returning the rendered bytes inline would make polling state-dependent ("did I already drain the body?") and reject reconnect-on-flaky-cellular. Splitting into `submit → poll → download` keeps each request independent and resumable. The download itself either streams from BFF (`respondFile`) or 302s to GCS — see the next section.
+
+### Code references
+
+- Route: `vibi-bff/src/main/kotlin/com/vibi/bff/routes/RenderRoutes.kt`
+- Service: `RenderService.kt`, `RenderInputCacheService.kt`, `FfmpegRunner.kt`
+- Mobile orchestrator: `vibi-mobile/shared/.../usecase/save/SaveAllVariantsUseCase.kt`
+- Client: `BffApi.kt#uploadRenderInputs` · `submitRenderJob` · `getRenderStatus`
+
+---
+
 ## Shared pattern
 
 Both flows follow the same skeleton:
 
 1. **client → BFF**: multipart upload + spec → immediate `jobId` response
-2. **BFF → external API**: upload → start job → poll → download
-3. **BFF → local**: cache result + ffmpeg post-process + HMAC sign
+2. **BFF → external API or local ffmpeg**: prepare → start job → poll → produce artifact
+3. **BFF → local**: cache result + HMAC sign (or skip signing for the publicly-readable render output)
 4. **client ← BFF**: poll jobId → signed URL → bytes (or **302 redirect to GCS V4 signed URL**, see below)
 
-This skeleton is reused as-is in vibi's other jobs (`/api/v2/subtitles`, `/api/v2/render`) — the same `JobResponse` / `StatusResponse` shape, the same polling pattern, the same signing scheme.
-
-To add a new job, the fastest path is to fork an existing service/route pair.
+The same `JobResponse` / `StatusResponse` shape, the same polling pattern, the same `respondDownload` helper sit underneath both routes. To add a new job, the fastest path is to fork an existing service/route pair.
 
 ### Download responder — file streaming vs. GCS redirect
 
-The download endpoints (`/render/.../download`, `/separate/.../stem`, `/separate/mix/.../download`, `/autodub/.../{audio,video}`, `/subtitles/.../srt`) all funnel through a single `respondDownload` helper. It picks one of two paths at request time:
+The download endpoints (`/render/{id}/download`, `/separate/{id}/stem/{stemId}`, `/separate/mix/{id}/download`) all funnel through a single `respondDownload` helper. It picks one of two paths at request time:
 
 - **`GCS_BUCKET` set** (production Cloud Run) — the file is uploaded to GCS idempotently, and the BFF returns `302 Location: <V4 signed URL>` with a short TTL (`GCS_SIGNED_URL_TTL_SEC`, default 15 min). The Cloud Run instance stops as soon as the redirect is written, so its CPU/memory and outbound egress aren't tied up by the byte stream. Cloud Run's per-instance concurrency cap (set to 4 for the BFF) is freed back to handle the next request.
 - **`GCS_BUCKET` blank** (local dev) — the same route falls back to `respondFile` streaming. No GCS dependency, no signing roundtrip.
 
-The HMAC signing layer on top of this is unchanged — the BFF still verifies its own token before the redirect/stream, so the upstream auth model didn't move. What moved is *who sends the bytes to the client*: BFF in dev, GCS in production.
+The HMAC signing layer on top of this is unchanged — the BFF still verifies its own token (where applicable — separation stems / mixes) before the redirect/stream, so the upstream auth model didn't move. What moved is *who sends the bytes to the client*: BFF in dev, GCS in production.
 
 ### Render quality profile
 
@@ -179,13 +185,14 @@ The `/api/v2/render` config carries an optional `quality` enum (`low` / `medium`
 | `medium` | 23 | fast | 192k |
 | `low` | 28 | fast | 128k |
 
-CRF is the dominant lever — one CRF point is roughly one perceptual step, while one preset step is under 0.5 dB SSIM. Tying preset to profile keeps the two knobs on a single axis so the client doesn't have to think about them independently.
+CRF is the dominant lever — one CRF point is roughly one perceptual step, while one preset step is under 0.5 dB SSIM. Tying preset to profile keeps the two knobs on a single axis so the client doesn't have to think about them independently. Since the final mix pass uses `-c:v copy`, the CRF only kicks in during the per-segment normalize step.
 
 ---
 
 ## See also
 
-- Walk through the client-side of the flow once: [`../learning/tutorial-auto-dub.md`](../learning/tutorial-auto-dub.md)
+- Walk through the client-side of separation: [`../learning/tutorial-stem-separation.md`](../learning/tutorial-stem-separation.md)
+- Walk through the client-side of multi-variant render: [`../learning/tutorial-export-variants.md`](../learning/tutorial-export-variants.md)
 - Exact per-route spec: [`../reference/bff-api.md`](../reference/bff-api.md)
 - The larger picture of the BFF layer: [`why-bff.md`](./why-bff.md)
 - Code-grounded facts: [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md) § 3

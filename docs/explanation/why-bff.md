@@ -34,8 +34,8 @@ Mobile calls only **vibi-bff's `/api/v2`**. External keys exist only in the BFF'
 2. **Unified error model** — each external API has a different error shape; the BFF normalizes them to a single `ErrorResponse(error, detail?)`. The client only has to write one error-handling path. The mapping lives in [`../reference/error-contract.md`](../reference/error-contract.md).
 3. **Vendor abstraction** — if the upstream needs to change (different provider, dual-vendor failover), swap at the BFF layer *without rebuilding or redeploying mobile*. vibi currently runs a single-vendor Perso configuration, but the seam exists.
 4. **Signed downloads** — stem · mix · dub artifacts are not statically mounted but signed with HMAC tokens. Rotating `SEPARATION_SIGNING_SECRET` once invalidates every unexpired token.
-5. **Coalesced external calls** — auto captions call Perso STT + Gemini translation sequentially inside the BFF. Mobile only makes one `POST /api/v2/subtitles`.
-6. **Local ffmpeg pipeline** — multi-segment concat · sticker overlay · subtitle burn-in · dub mix are all done by the BFF directly with ffmpeg. Mobile does not need to embed ffmpeg-kit ([`pipelines.md`](./pipelines.md)).
+5. **Coalesced external calls** — when a single mobile action would otherwise fan out to multiple Perso endpoints (e.g. submit + poll + download + storage-host hop), the BFF executes that sequence inline and exposes a single typed job to mobile.
+6. **Local ffmpeg pipeline** — multi-segment concat · BGM `atrim`+`amix` sub-range mixing · multi-variant render with shared input cache are all done by the BFF directly with ffmpeg. Mobile does not need to embed ffmpeg-kit ([`pipelines.md`](./pipelines.md)).
 
 ### Tradeoffs
 
@@ -71,7 +71,7 @@ This policy exists because vibi is a showcase app for Perso AI DevRel — the pr
 
 ## See also
 
-- Walk through a flow: [`../learning/tutorial-auto-dub.md`](../learning/tutorial-auto-dub.md)
+- Walk through a flow: [`../learning/tutorial-stem-separation.md`](../learning/tutorial-stem-separation.md) · [`../learning/tutorial-export-variants.md`](../learning/tutorial-export-variants.md)
 - Fork with your own keys: [`../how-to/deploy-your-own-bff.md`](../how-to/deploy-your-own-bff.md)
 - ffmpeg-side pipeline decisions: [`pipelines.md`](./pipelines.md)
 - Mobile-side KMP decision: [`why-kmp.md`](./why-kmp.md)

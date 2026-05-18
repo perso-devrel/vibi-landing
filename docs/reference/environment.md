@@ -11,7 +11,7 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 
 ## BFF — `vibi-bff/.env`
 
-`PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `SEPARATION_SIGNING_SECRET`, `AUTH_JWT_SECRET`, `GOOGLE_OAUTH_CLIENT_IDS` are fail-fast at boot — the server exits immediately on missing or malformed values.
+`PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `SEPARATION_SIGNING_SECRET`, `AUTH_JWT_SECRET`, `GOOGLE_OAUTH_CLIENT_IDS`, `DATABASE_URL`, `DB_USER`, `DB_PASSWORD` are fail-fast at boot — the server exits immediately on missing or malformed values.
 
 > **Local dev vs Cloud Run.** `.env` is for local `./gradlew run` (and the one-shot `deploy/cloud-run.sh` bootstrap). The single source of runtime env for production Cloud Run is `.github/workflows/deploy.yml` — Secret Manager for sensitive values (`PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `AUTH_JWT_SECRET`, `SEPARATION_SIGNING_SECRET`), GitHub Secrets for the deploy-time identities (`GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`, `GCP_PROJECT_ID`, `GCP_RUNTIME_SA_EMAIL`, `GOOGLE_OAUTH_CLIENT_IDS`), and GitHub Variables for plain config (`CORS_ALLOWED_ORIGINS`, `BFF_BASE_URL`). Update those in repo Settings → Secrets and variables → Actions, then push or "Run workflow". Comma-containing values are quoted via the `^@^` delimiter (see `deploy.yml`).
 
@@ -19,7 +19,7 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
-| `PERSO_API_KEY` | ✅ | — | Perso-issued API key. Used for audio separation / STT / auto dubbing. |
+| `PERSO_API_KEY` | ✅ | — | Perso-issued API key. Used for audio separation. (Past surfaces — STT / auto-dubbing / lipsync — were removed from the BFF in commit `52f8d7c`.) |
 | `PERSO_SPACE_SEQ` | ✅ | — | Perso workspace ID. Look up via `GET /portal/api/v1/spaces`. **Must be greater than 0.** |
 | `PERSO_BASE_URL` | | `https://api.perso.ai` | Upstream base URL. Change only when fronted by your own gateway. |
 | `PERSO_POLL_INTERVAL_MS` | | `15000` | Progress poll interval (ms). **Must be ≥ 1000.** |
@@ -46,9 +46,9 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 | `SEPARATION_URL_TTL_SEC` | | `604800` (7d) | Stem download token lifetime (s). 60..604800. Must not exceed `SEPARATION_ABANDON_TTL_MS` — a live token for a reaped job has no server-side mapping. |
 | `SEPARATION_MIX_URL_TTL_SEC` | | `600` (10m) | Mix download token lifetime (s). 60..604800. |
 
-### Vertex AI Gemini (subtitle translation + chat)
+### Vertex AI Gemini (chat assistant)
 
-Boot succeeds even if these are missing, as long as subtitle translation and chat are not used — they are validated on first call.
+Boot succeeds even if these are missing, as long as chat is not used — they are validated on first call.
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
@@ -57,13 +57,25 @@ Boot succeeds even if these are missing, as long as subtitle translation and cha
 | `GEMINI_MODEL` | | `gemini-2.5-flash` | Model ID. |
 | `GOOGLE_APPLICATION_CREDENTIALS` | | — | Path to a local service account JSON. Leave blank to fall back to Application Default Credentials — on Cloud Run that resolves to the attached SA via the metadata server; locally it resolves to the `gcloud auth application-default login` cache. |
 
-### Authentication (Google OAuth + own JWT)
+### Authentication (Google + Apple Sign In + own JWT)
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
 | `GOOGLE_OAUTH_CLIENT_IDS` | ✅ | — | Comma-separated. iOS / Android / Web client ids all allowed. Passes only when the `tokeninfo` `aud` matches one of these. |
-| `AUTH_JWT_SECRET` | ✅ | — | HMAC-SHA256 signing key. **Enforced ≥ 32 chars.** |
+| `APPLE_OAUTH_CLIENT_IDS` | | *(blank = disabled)* | Comma-separated Apple Sign In client ids (typically iOS bundle id like `com.vibi.ios`). Blank → `POST /api/v2/auth/apple` returns `503`. |
+| `AUTH_JWT_SECRET` | ✅ | — | HMAC-SHA256 signing key. **Enforced ≥ 32 chars.** Rotation invalidates every unexpired JWT at once. |
 | `AUTH_JWT_EXPIRY_SECONDS` | | `604800` (7d) | Issued access token lifetime (s). 60..7776000 (90 days). |
+
+### Postgres (user upsert)
+
+The BFF persists `(provider, providerSub)` tuples into a Postgres `users` table on every sign-in. Neon free tier is sufficient.
+
+| Key | Required | Default | Description |
+|---|:-:|---|---|
+| `DATABASE_URL` | ✅ | — | JDBC URL. Format: `jdbc:postgresql://<host>/<db>?sslmode=require`. H2 also accepted for local tests. |
+| `DB_USER` | ✅ | — | DB role. |
+| `DB_PASSWORD` | ✅ | — | DB password. |
+| `DB_MAX_POOL` | | `5` | HikariCP pool size (1..50). Neon free tier 100 connection cap. |
 
 ### Perso storage host + SSRF whitelist
 
@@ -93,7 +105,9 @@ These bypass `AppConfig` and are read directly from the process environment — 
 | `SEPARATION_SIGNING_SECRET` (under 32 chars) | `SEPARATION_SIGNING_SECRET must be at least 32 chars (got N)` |
 | `AUTH_JWT_SECRET` (under 32 chars) | `AUTH_JWT_SECRET must be at least 32 chars (got N)` |
 | `GOOGLE_OAUTH_CLIENT_IDS` | `GOOGLE_OAUTH_CLIENT_IDS must not be empty (comma-separated)` |
-| `GEMINI_PROJECT_ID` missing | Boot succeeds. 5xx on first call to `/api/v2/subtitles` or `/api/v2/chat`. |
+| `DATABASE_URL` | `DATABASE_URL must not be blank` |
+| `DB_USER` / `DB_PASSWORD` | Hikari fails to initialize the pool at startup. |
+| `GEMINI_PROJECT_ID` missing | Boot succeeds. 5xx on first call to `/api/v2/chat`. |
 | `GOOGLE_APPLICATION_CREDENTIALS` missing **and** no ADC cache **and** not on Cloud Run | Boot succeeds. Gemini calls fail with `Could not load credentials`. |
 | `STORAGE_PATH` directory missing | Boot succeeds. `IOException` on first upload. Recommended to pre-create: `mkdir -p ./storage/{uploads,render,separation}`. |
 

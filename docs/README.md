@@ -1,6 +1,6 @@
 # vibi docs
 
-One video, auto captions, multilingual dubbing, and stem separation in a single pass — vibi solves that flow with a single mobile codebase (Android + iOS), and confines external voice API calls to one BFF layer. This is its open-source showcase.
+"Keep the video. Erase just the noise." vibi splits a video's audio into per-speaker stems so you can mute the parts you don't want — driven from a single mobile codebase (Android + iOS), with all external voice API calls confined to one BFF layer. This is its open-source showcase.
 
 These docs target both the **external developer meeting vibi for the first time** and the **contributor joining the codebase**. The writing classification follows the four types from [technical-writing.dev](https://technical-writing.dev/overview.html) — each directory maps to exactly one type.
 
@@ -20,9 +20,9 @@ These docs target both the **external developer meeting vibi for the first time*
 Step-by-step guides you follow end to end.
 
 - [`getting-started.md`](./learning/getting-started.md) — Environment setup → spin up BFF → mobile build → sign in → first app screen
-- [`tutorial-auto-dub.md`](./learning/tutorial-auto-dub.md) — Build multilingual auto dubbing from a single video (end-to-end)
 - [`tutorial-stem-separation.md`](./learning/tutorial-stem-separation.md) — Separate per-speaker stems, remix the selection, and insert into the timeline
-- [`tutorial-chat-assistant.md`](./learning/tutorial-chat-assistant.md) — Edit by talking — natural-language requests → typed proposals → apply
+- [`tutorial-export-variants.md`](./learning/tutorial-export-variants.md) — Render multiple localized variants from a single edit with a shared input cache
+- [`tutorial-chat-assistant.md`](./learning/tutorial-chat-assistant.md) — Edit by talking — natural-language requests → typed proposals → auto-apply
 
 ### [`reference/`](./reference/) — Look up
 Specs to search and consume when you need them.
@@ -43,7 +43,7 @@ The "why" and "how we decided" background.
 
 - [`why-bff.md`](./explanation/why-bff.md) — Why the mobile app does not call external APIs directly
 - [`why-kmp.md`](./explanation/why-kmp.md) — Why KMP/CMP over Flutter / RN
-- [`pipelines.md`](./explanation/pipelines.md) — Design of the auto dubbing and stem separation pipelines
+- [`pipelines.md`](./explanation/pipelines.md) — Design of the stem-separation and multi-variant render pipelines
 
 ### [`journal/`](./journal/) — How it was built
 Not how to use vibi, but the meta and retrospective on *how vibi was built*.

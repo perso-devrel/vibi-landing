@@ -13,9 +13,11 @@ The goal of this doc is to take you from a fresh checkout of vibi to **BFF + mob
 | **Android Studio (or Android SDK)** | Android build | `$ANDROID_HOME` set |
 | **XcodeGen** | Regenerate the iOS project | `brew install xcodegen` |
 | **ffmpeg / ffprobe** | BFF render pipeline | `ffmpeg -version`, `ffprobe -version` |
-| **Perso AI key + spaceSeq** | BFF calls the external API | Issued at [perso.ai](https://perso.ai) |
+| **Perso AI key + spaceSeq** | BFF calls the external API for audio separation | Issued at [perso.ai](https://perso.ai) |
+| **Postgres** (Neon free tier OK) | BFF user upsert + JWT issuance | `DATABASE_URL`, `DB_USER`, `DB_PASSWORD` |
 | **Google OAuth client IDs** | App sign-in is gated by Google | Cloud Console → APIs & Services → Credentials |
-| *(optional)* GCP service account | Gemini caption translation and chat | Project with Vertex AI enabled |
+| *(optional)* Apple Sign In client id | iOS Sign in with Apple | iOS bundle id (e.g. `com.vibi.ios`) |
+| *(optional)* GCP service account | Gemini chat | Project with Vertex AI enabled |
 
 Sign up for Perso → create a workspace → issue the API key and note the `spaceSeq`. You can look up `spaceSeq` via `GET /portal/api/v1/spaces`.
 
@@ -47,6 +49,9 @@ PERSO_SPACE_SEQ=<YOUR_PERSO_SPACE_SEQ>
 SEPARATION_SIGNING_SECRET=<random_string_32_chars_or_more>
 AUTH_JWT_SECRET=<random_string_32_chars_or_more>
 GOOGLE_OAUTH_CLIENT_IDS=<iOS, Android, Web client ids — comma-separated>
+DATABASE_URL=jdbc:postgresql://<host>/<db>?sslmode=require
+DB_USER=<role>
+DB_PASSWORD=<password>
 ```
 
 The two `*_SECRET` values must each be at least 32 characters. Generate them with:
@@ -181,7 +186,7 @@ InputScreen lists past drafts (per signed-in user — A and B don't see each oth
 1. Metadata (duration, resolution) is extracted locally — this step does not call the BFF.
 2. The app moves to the timeline screen.
 
-At this point the **first real call to the BFF** happens when you trigger one of captions, auto dubbing, or stem separation. Running auto captions once is the fastest finish — for the detailed flow see [`tutorial-auto-dub.md`](./tutorial-auto-dub.md).
+At this point the **first real call to the BFF** happens when you trigger stem separation or save an export. Dragging a range and tapping **"이 구간 음원분리"** is the fastest way to see a real Perso job complete — for the detailed flow see [`tutorial-stem-separation.md`](./tutorial-stem-separation.md).
 
 > Drafts are retained for 7 days (a small notice on InputScreen reminds you). Log out via the small text button at the bottom of InputScreen.
 
@@ -195,6 +200,7 @@ At this point the **first real call to the BFF** happens when you trigger one of
 
 If you got here, **your dev environment is set up**. Next:
 
-- Want to follow the real auto dubbing flow → [`tutorial-auto-dub.md`](./tutorial-auto-dub.md)
+- Walk through stem separation end-to-end → [`tutorial-stem-separation.md`](./tutorial-stem-separation.md)
+- Export your edit as multiple variants → [`tutorial-export-variants.md`](./tutorial-export-variants.md)
 - Want to expose a BFF you spun up with your own Perso key to other devices → [`../how-to/deploy-your-own-bff.md`](../how-to/deploy-your-own-bff.md)
 - What external API calls the BFF intercepts, and why → [`../explanation/why-bff.md`](../explanation/why-bff.md)

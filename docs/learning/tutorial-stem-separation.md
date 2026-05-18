@@ -6,7 +6,7 @@ This tutorial walks the flow of splitting a video's audio into per-speaker stems
 - You'll see exactly how the BFF stitches Perso's stems and signs the downloads
 - You'll be able to reconstruct the same job pattern (upload → separate → poll → pick stems → mix → insert) in your own code
 
-Prerequisite: [`getting-started.md`](./getting-started.md) is done, BFF and the mobile app are alive, and you're signed in. Reading [`tutorial-auto-dub.md`](./tutorial-auto-dub.md) first is helpful — the job-then-poll skeleton is shared.
+Prerequisite: [`getting-started.md`](./getting-started.md) is done, BFF and the mobile app are alive, and you're signed in.
 
 ---
 
@@ -25,30 +25,23 @@ This step finishes **without calling the BFF** — identical to the auto-dubbing
 
 The app then auto-navigates to TimelineScreen.
 
-## 2. Pick a range in the 음원 (AudioSources) step
+## 2. Pick a range in the EditAudio step
 
-The timeline opens at the **음원** step by default. There is no separate "Separate" sheet anymore — separation is a primary action of this step.
+The timeline opens at the **편집·음원** step (`TimelineStep.EditAudio`) by default. There is no separate "Separate" sheet anymore — separation is a primary action of this step.
 
 1. Drag on the timeline bar to select a range (`isRangeSelecting=true`). The selection band shows on the bar; the panel below reads `구간 5s ~ 12s · 재생 3s`.
 2. Tap **"이 구간 음원분리"**.
 
-That tap triggers (`vibi-mobile/shared/.../ui/timeline/TimelineViewModel.kt`):
+That tap calls `TimelineViewModel.onStartSeparation(...)`, which dispatches `StartAudioSeparationUseCase` directly with the segment's source URI and the chosen range:
 
 ```
-EnsureLatestRenderUseCase                ← render the edited audio first if dirty
-  → BffApi.submitRenderJob(outputKind=audio)   ← m4a AAC 192k, video stages skipped
-  → poll until COMPLETED → editedRenderJobId
-
-StartSeparationUseCase
-  → SeparationRepository (commonMain interface)
-     └─ Android: AndroidSeparationRepository ─┐
-     └─ iOS:    IosSeparationRepository      ─┴─→ MediaJobUploader
-                                                  → BffApi.submitSeparationJob(file=null,
-                                                      SeparationSpec.editedRenderJobId=…,
-                                                      trimStartMs, trimEndMs)
+StartAudioSeparationUseCase
+  → AudioSeparationRepository.startSeparation(...)
+     → MediaJobUploader (platform actual: Android / iOS)
+        → BffApi.startSeparation(file=<segment bytes>, SeparationSpec(trimStartMs, trimEndMs, ...))
 ```
 
-The render uses `outputKind="audio"` — separation only needs audio, so the BFF skips the video concat / subtitle burn / overlay stages and produces just an m4a. This cuts the prep latency 5–10× compared to re-rendering video. The render output is shared across all downstream audio-only jobs (separation, captions in STT mode) via `editedRenderJobId`.
+The mobile client used to pre-render an audio-only m4a via `/render` and pass `editedRenderJobId` to `/separate`. That preamble was dropped in commit `3d94e95 refactor(separation): /render 선행 호출 제거` — the segment's original source URI is now uploaded directly. The BFF still accepts `spec.editedRenderJobId` (see `MediaSourceResolver`) and renders with `outputKind="audio"` are still possible, but the default mobile flow no longer takes that path.
 
 **numberOfSpeakers is no longer prompted** — Perso auto-detects, and the field is dead on the BFF side. The old "Long-press a segment → Sheet → Speakers: 2 → Separate" flow is gone.
 
@@ -61,12 +54,11 @@ The render uses `outputKind="audio"` — separation only needs audio, so the BFF
 The BFF console prints lines like:
 
 ```
-[POST] /api/v2/render   outputKind=audio
-[POST] /api/v2/separate (file omitted, editedRenderJobId=rnd-...)
+[POST] /api/v2/separate
 [separate] job sep-... created
 ```
 
-The route lives at `vibi-bff/src/main/kotlin/com/vibi/bff/routes/SeparationRoutes.kt`. With `spec.editedRenderJobId` set, the multipart `file` field is omitted and the BFF resolves the input from its render cache. Then:
+The route lives at `vibi-bff/src/main/kotlin/com/vibi/bff/routes/SeparationRoutes.kt`. `MediaSourceResolver` resolves the source from either the multipart `file` field (the default mobile path) or — if the client supplied `spec.editedRenderJobId` — a previously-rendered output. Then:
 
 1. If `trimStartMs` / `trimEndMs` are set, ffmpeg **stream-copies just that window** before uploading to Perso. Trim validation (`partial_trim_range`, `trim_range_invalid`, `trim_range_too_short`, `trim_end_exceeds_duration`) runs here — see [`../reference/bff-api.md#audio-separation--remix`](../reference/bff-api.md#audio-separation--remix).
 2. `SeparationService.start(jobId, spec)` is invoked.

@@ -162,13 +162,14 @@ For iOS, Clean Build Folder in Xcode and then Run.
 
 ## 6. Verify
 
-Launch the app → upload a video → run auto-captions once.
+Launch the app → upload a video → drag a range and tap **"이 구간 음원분리"**.
 
 You should see lines like this in the BFF console:
 
 ```
-[POST] /api/v2/subtitles
-[GET]  /api/v2/subtitles/sub-...
+[POST] /api/v2/separate
+[GET]  /api/v2/separate/sep-...
+[GET]  /api/v2/separate/sep-.../stem/voice_all
 ```
 
 If this is the first call from a physical device or a different computer, note that per-user Perso workspace usage counts against the BFF's `PERSO_API_KEY` quota.
