@@ -120,8 +120,8 @@ sequenceDiagram
         B-->>M: PROCESSING (progress%)
     end
     M->>B: GET /api/v2/render/{jobId}/download
-    alt GCS_BUCKET set
-        B-->>M: 302 → <V4 signed GCS URL>
+    alt R2_BUCKET set
+        B-->>M: 302 → <SigV4 presigned R2 URL>
     else local
         B-->>M: mp4 byte stream
     end
@@ -144,7 +144,7 @@ The per-segment normalize step already produces output-resolution H.264. The fin
 The mobile `BgmTrimSheet` lets a user drag handles to pick a sub-range of a long BGM track (e.g. 10s out of a 3-min song). vibi could re-encode the BGM file mobile-side before upload, but that pushes the cost onto the device and duplicates ffmpeg logic. Instead the trim window (`sourceTrimStartMs`/`sourceTrimEndMs`) rides along in the render config and the BFF applies `atrim`+`asetpts` at mix time — single source of truth, no duplicated ffmpeg.
 
 **Why download stays a separate hop**
-`POST /render` returning the rendered bytes inline would make polling state-dependent ("did I already drain the body?") and reject reconnect-on-flaky-cellular. Splitting into `submit → poll → download` keeps each request independent and resumable. The download itself either streams from BFF (`respondFile`) or 302s to GCS — see the next section.
+`POST /render` returning the rendered bytes inline would make polling state-dependent ("did I already drain the body?") and reject reconnect-on-flaky-cellular. Splitting into `submit → poll → download` keeps each request independent and resumable. The download itself either streams from BFF (`respondFile`) or 302s to R2 — see the next section.
 
 ### Code references
 
@@ -162,18 +162,20 @@ Both flows follow the same skeleton:
 1. **client → BFF**: multipart upload + spec → immediate `jobId` response
 2. **BFF → external API or local ffmpeg**: prepare → start job → poll → produce artifact
 3. **BFF → local**: cache result + HMAC sign (or skip signing for the publicly-readable render output)
-4. **client ← BFF**: poll jobId → signed URL → bytes (or **302 redirect to GCS V4 signed URL**, see below)
+4. **client ← BFF**: poll jobId → signed URL → bytes (or **302 redirect to R2 SigV4 presigned URL**, see below)
 
 The same `JobResponse` / `StatusResponse` shape, the same polling pattern, the same `respondDownload` helper sit underneath both routes. To add a new job, the fastest path is to fork an existing service/route pair.
 
-### Download responder — file streaming vs. GCS redirect
+### Download responder — file streaming vs. R2 redirect
 
 The download endpoints (`/render/{id}/download`, `/separate/{id}/stem/{stemId}`, `/separate/mix/{id}/download`) all funnel through a single `respondDownload` helper. It picks one of two paths at request time:
 
-- **`GCS_BUCKET` set** (production Cloud Run) — the file is uploaded to GCS idempotently, and the BFF returns `302 Location: <V4 signed URL>` with a short TTL (`GCS_SIGNED_URL_TTL_SEC`, default 15 min). The Cloud Run instance stops as soon as the redirect is written, so its CPU/memory and outbound egress aren't tied up by the byte stream. Cloud Run's per-instance concurrency cap (set to 4 for the BFF) is freed back to handle the next request.
-- **`GCS_BUCKET` blank** (local dev) — the same route falls back to `respondFile` streaming. No GCS dependency, no signing roundtrip.
+- **`R2_BUCKET` set** (production Cloud Run) — the file is uploaded to Cloudflare R2 idempotently, and the BFF returns `302 Location: <SigV4 presigned URL>` with a short TTL (`SIGNED_URL_TTL_SEC`, default 15 min). The Cloud Run instance stops as soon as the redirect is written, so its CPU/memory and outbound egress aren't tied up by the byte stream. Cloud Run's per-instance concurrency cap (set to 4 for the BFF) is freed back to handle the next request. **R2 egress is free**, so the redirect also drops the variable cost component to zero — a video-heavy app's largest operating-cost vector.
+- **`R2_BUCKET` blank** (local dev) — the same route falls back to `respondFile` streaming. No object-store dependency, no signing roundtrip.
 
-The HMAC signing layer on top of this is unchanged — the BFF still verifies its own token (where applicable — separation stems / mixes) before the redirect/stream, so the upstream auth model didn't move. What moved is *who sends the bytes to the client*: BFF in dev, GCS in production.
+The HMAC signing layer on top of this is unchanged — the BFF still verifies its own token (where applicable — separation stems / mixes) before the redirect/stream, so the upstream auth model didn't move. What moved is *who sends the bytes to the client*: BFF in dev, R2 in production.
+
+> **Historical note.** The BFF originally used GCS V4 signed URLs in this slot. It was migrated to R2 specifically because GCS egress (\$0.12/GB after 1 GB/month free) was projected to dominate operating cost at modest mobile-user scale. The S3-compatible API (`software.amazon.awssdk:s3` against the R2 endpoint) made the migration mostly a config swap. The shape of this section is unchanged — only the backend is.
 
 ### Render quality profile
 

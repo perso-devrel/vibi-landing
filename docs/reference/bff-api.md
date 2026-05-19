@@ -6,7 +6,7 @@ Specification for every endpoint the vibi mobile client calls. The **Swagger UI*
 - Auth: most endpoints require `Authorization: Bearer <jwt>` (BFF-issued JWT). Issuance: `POST /api/v2/auth/google` or `POST /api/v2/auth/apple`.
 - multipart upload form-field limits are noted separately (must be called out when over 50MB — see `vibi-bff/CLAUDE.md` "Known BFF bug patterns").
 - Full response model definitions: `vibi-bff/src/main/kotlin/com/vibi/bff/model/BffModels.kt` (plus `AuthModels.kt`, `ChatModels.kt`, `PersoModels.kt`).
-- **Download endpoints (`/render/{id}/download`, `/separate/{id}/stem/{stemId}`, `/separate/mix/{id}/download`) 302-redirect to a V4 signed GCS URL when `GCS_BUCKET` is set** — Cloud Run instance and egress are decoupled from the byte stream. When `GCS_BUCKET` is blank (the local-dev path) the same routes fall back to `respondFile` streaming. Clients must follow redirects.
+- **Download endpoints (`/render/{id}/download`, `/separate/{id}/stem/{stemId}`, `/separate/mix/{id}/download`) 302-redirect to a Cloudflare R2 SigV4 presigned URL when `R2_BUCKET` is set** — R2 egress is free, so Cloud Run instance *and* egress cost are both decoupled from the byte stream. When `R2_BUCKET` is blank (the local-dev path) the same routes fall back to `respondFile` streaming. Clients must follow redirects.
 
 > **Removed surfaces** (BFF commit `52f8d7c refactor(bff): sticker/자막/더빙 surface 절단`): `/api/v2/subtitles*`, `/api/v2/autodub*`, `/api/v2/lipsync*`, sticker overlays in `/render`, subtitle burn-in in `/render`. The mobile client still holds some historical `BffApi` methods (`submitSubtitleJob`, `submitAutoDubJob`, `requestLipSync`) — these will 404 if called.
 
@@ -255,7 +255,7 @@ Output resolution: `segments[0].width`/`height` in multi-segment mode, ffprobe e
 
 ### `GET /api/v2/render/{jobId}/download`
 
-mp4 byte stream. **Not statically mounted** — always go through this endpoint. With `GCS_BUCKET` set, responds `302` to a V4 signed URL.
+mp4 byte stream. **Not statically mounted** — always go through this endpoint. With `R2_BUCKET` set, responds `302` to an R2 SigV4 presigned URL.
 
 ---
 

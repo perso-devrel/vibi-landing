@@ -33,8 +33,10 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 | `BFF_BASE_URL` | | `http://localhost:8080` | Public URL used to sign download links. Change to ngrok / LAN address when exposing externally. |
 | `STORAGE_PATH` | | `./storage` | Root for upload / render / separation artifacts. Use a location with sufficient disk space. |
 | `CORS_ALLOWED_ORIGINS` | | *(blank = any)* | Comma-separated whitelist. For Android-only deployments, set to a sentinel like `android-only.invalid` to block browsers. |
-| `GCS_BUCKET` | | *(blank)* | GCS bucket name. When set, large render / separation outputs are uploaded and the `/download` endpoint **302-redirects** to a V4 signed URL — Cloud Run instance and egress are decoupled from the byte stream. Blank falls back to `respondFile` streaming (the dev path). |
-| `GCS_SIGNED_URL_TTL_SEC` | | `900` (15m) | V4 signed URL lifetime (s). 60..86400. Only consulted when `GCS_BUCKET` is set. |
+| `R2_BUCKET` | | *(blank)* | Cloudflare R2 bucket name. When set, large render / separation outputs are uploaded and the `/download` endpoint **302-redirects** to a SigV4 presigned URL. **R2 egress is free**, so this decouples Cloud Run instance time *and* zeros out egress cost. Blank falls back to `respondFile` streaming (the dev path). |
+| `R2_ACCOUNT_ID` | | — | 32-char hex from `dash.cloudflare.com/<id>/r2`. Determines the S3 endpoint host. Required when `R2_BUCKET` is set. |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | | — | R2 API token (Object Read & Write). Issued in Cloudflare dashboard → R2 → Manage API Tokens. Required when `R2_BUCKET` is set. |
+| `SIGNED_URL_TTL_SEC` | | `900` (15m) | Presigned URL lifetime (s). 60..86400. Only consulted when `R2_BUCKET` is set. |
 
 ### Separation / signing
 

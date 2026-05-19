@@ -131,8 +131,8 @@ What goes where (Settings → Secrets and variables → Actions):
 | **Secret** | `GOOGLE_OAUTH_CLIENT_IDS` | Comma-separated iOS / Android / Web client ids. |
 | **Variable** | `CORS_ALLOWED_ORIGINS` | Plain comma list — visible in workflow logs intentionally. |
 | **Variable** | `BFF_BASE_URL` | Optional. Set when you own a custom domain (`https://api.example.com`); leave blank to self-reference the Cloud Run-issued URL. |
-| **Variable** | `GCS_BUCKET` | Optional. When set, big render / separation outputs 302-redirect to a V4 signed URL — decouples Cloud Run egress and instance time from the byte stream. |
-| **Secret Manager** | `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `AUTH_JWT_SECRET`, `SEPARATION_SIGNING_SECRET` | Created by `deploy/cloud-run.sh` from your `.env`. The workflow mounts them via `--set-secrets`. |
+| **Variable** | `R2_BUCKET`, `R2_ACCOUNT_ID` | Optional. When `R2_BUCKET` is set, big render / separation outputs 302-redirect to a Cloudflare R2 SigV4 presigned URL — **R2 egress is free**, so this decouples Cloud Run egress *and* zeros out its cost. `R2_ACCOUNT_ID` is the 32-char hex from the Cloudflare dashboard URL. |
+| **Secret Manager** | `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `AUTH_JWT_SECRET`, `SEPARATION_SIGNING_SECRET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Created by `deploy/cloud-run.sh` from your `.env`. The workflow mounts them via `--set-secrets`. R2 credentials are an API token (Object Read & Write) issued in the Cloudflare dashboard. |
 
 After that, `git push origin main` ships a new revision. Two things worth flagging on first read of `deploy.yml`:
 
@@ -141,7 +141,9 @@ After that, `git push origin main` ships a new revision. Two things worth flaggi
 
 The runtime credential is the Cloud Run **attached service account** (`GCP_RUNTIME_SA_EMAIL`) — `GOOGLE_APPLICATION_CREDENTIALS` stays blank and `GeminiClient` falls back to Application Default Credentials via the metadata server. Memory-tier vs upload-size: scale `MAX_UPLOAD_FILE_SIZE_MB` down when running on `--memory 1Gi`, up on `4Gi+`.
 
-The full walkthrough — WIF bootstrap commands, IAM roles per secret, the GCS bucket + `roles/iam.serviceAccountTokenCreator` self-binding required for signed-URL issuance, and a table mapping five common errors (`invalid_target`, `unauthorized_client`, `iam.serviceAccounts.getAccessToken denied`, `run deploy: Permission denied`, 500 only on `/download` after a successful deploy) to their root cause — lives in `vibi-bff/deploy/GITHUB_ACTIONS_SETUP.md`.
+The full walkthrough — WIF bootstrap commands, IAM roles per secret, R2 bucket creation + API token in the Cloudflare dashboard, and a table mapping five common errors (`invalid_target`, `unauthorized_client`, `iam.serviceAccounts.getAccessToken denied`, `run deploy: Permission denied`, 500 only on `/download` after a successful deploy) to their root cause — lives in `vibi-bff/deploy/GITHUB_ACTIONS_SETUP.md`.
+
+> **Lifecycle / retention.** R2 lifecycle rules are managed in the Cloudflare dashboard (Settings → Object lifecycle rules), not in `deploy/cloud-run.sh`. The repo ships `vibi-bff/deploy/r2-lifecycle.json` with a 7-day expire rule — apply via dashboard or `aws s3api put-bucket-lifecycle-configuration` with the R2 endpoint override.
 
 ## 5. Wire up mobile
 

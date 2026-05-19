@@ -133,7 +133,7 @@ suspend fun getRenderStatus(jobId: String): RenderStatusResponse =
 
 `RemoteRenderExecutor` polls each `jobId` independently. The `onProgress` callback bubbles up to `SaveAllVariantsUseCase`, which **averages** progress across all in-flight variants and emits a single `0..100` percent to the UI overlay.
 
-When a job reaches `COMPLETED`, the executor calls `GET /api/v2/render/{jobId}/download`. With `GCS_BUCKET` set, the BFF uploads the result to GCS and `302`-redirects to a V4 signed URL — the byte stream comes straight from GCS, decoupling the Cloud Run instance from outbound egress. Without `GCS_BUCKET` (local dev), the same route falls back to `respondFile` streaming. Either way, the Ktor Client follows the redirect transparently.
+When a job reaches `COMPLETED`, the executor calls `GET /api/v2/render/{jobId}/download`. With `R2_BUCKET` set, the BFF uploads the result to Cloudflare R2 and `302`-redirects to a SigV4 presigned URL — the byte stream comes straight from R2, decoupling the Cloud Run instance from outbound egress (and since R2 egress is free, dropping that cost component to zero). Without `R2_BUCKET` (local dev), the same route falls back to `respondFile` streaming. Either way, the Ktor Client follows the redirect transparently.
 
 ## 7. Gallery save
 
@@ -163,7 +163,7 @@ TimelineScreen 저장 tap
               → RemoteRenderExecutor → BffApi.submitRenderJob(inputId=…)
                                      → POST /api/v2/render → jobId
                                      → poll /status → COMPLETED
-                                     → GET /download → mp4 bytes (or 302 → GCS)
+                                     → GET /download → mp4 bytes (or 302 → R2)
             ← outputPath
          }
        } awaitAll
@@ -214,5 +214,5 @@ Key BFF endpoint reference: [`../reference/bff-api.md#render`](../reference/bff-
 
 - The chat way to drive the same flow ("이 구간 음원분리 후 저장해줘"): [`tutorial-chat-assistant.md`](./tutorial-chat-assistant.md)
 - The separation flavor of job-then-poll: [`tutorial-stem-separation.md`](./tutorial-stem-separation.md)
-- The render pipeline's design decisions (concat demuxer, GCS redirect, quality profile): [`../explanation/pipelines.md`](../explanation/pipelines.md)
+- The render pipeline's design decisions (concat demuxer, R2 redirect, quality profile): [`../explanation/pipelines.md`](../explanation/pipelines.md)
 - Exact per-route spec: [`../reference/bff-api.md`](../reference/bff-api.md)

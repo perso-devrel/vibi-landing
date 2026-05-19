@@ -20,7 +20,7 @@ This is intended as a technical retrospective, not self-congratulation — it in
 | [`claude-toolbox/skills.md`](./claude-toolbox/skills.md) | How I drew the boundaries between skills |
 | [`ios-pitfalls-with-kmp.md`](./ios-pitfalls-with-kmp.md) | Seven KMP/iOS pitfalls I encountered twice or more |
 | [`cloud-run-deploy-journey.md`](./cloud-run-deploy-journey.md) | Eight pitfalls between `./gradlew run` and a Cloud Run deploy on `git push` |
-| [`egress-redirect-to-gcs.md`](./egress-redirect-to-gcs.md) | Moving the download data plane off Cloud Run and onto V4 signed GCS URLs |
+| [`egress-redirect-to-gcs.md`](./egress-redirect-to-gcs.md) | Moving the download data plane off Cloud Run and onto V4 signed GCS URLs *(historical — the BFF was later migrated to Cloudflare R2 SigV4 presigned URLs to capture R2's free egress. The shape of the redirect is unchanged; only the backend swapped.)* |
 | [`operating-rules.md`](./operating-rules.md) | Operating rules that settled in from working with an AI agent |
 
 ## Relationship to product docs
