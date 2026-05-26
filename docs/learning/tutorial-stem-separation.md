@@ -32,22 +32,23 @@ The timeline opens at the **편집·음원** step (`TimelineStep.EditAudio`) by 
 1. Drag on the timeline bar to select a range (`isRangeSelecting=true`). The selection band shows on the bar; the panel below reads `구간 5s ~ 12s · 재생 3s`.
 2. Tap **"이 구간 음원분리"**.
 
-That tap calls `TimelineViewModel.onStartSeparation(...)`, which dispatches `StartAudioSeparationUseCase` directly with the segment's source URI and the chosen range:
+That tap calls `TimelineViewModel.onStartSeparation(...)`, which dispatches `StartAudioSeparationUseCase` directly with the segment's source URI and the chosen range. The mobile side does **trim + audio extract on-device** (iOS `AVAssetExportPresetAppleM4A`) and ships an already-trimmed m4a:
 
 ```
 StartAudioSeparationUseCase
   → AudioSeparationRepository.startSeparation(...)
+     → AudioExtractor.trimAndExtract(uri, range)        ← produces a trimmed m4a (mobile-side)
      → MediaJobUploader (platform actual: Android / iOS)
-        → BffApi.startSeparation(file=<segment bytes>, SeparationSpec(trimStartMs, trimEndMs, ...))
+        → BffApi.startSeparation(file=<trimmed m4a>, SeparationSpec(sourceLanguageCode="auto"))
 ```
 
-The mobile client used to pre-render an audio-only m4a via `/render` and pass `editedRenderJobId` to `/separate`. That preamble was dropped in commit `3d94e95 refactor(separation): /render 선행 호출 제거` — the segment's original source URI is now uploaded directly. The BFF still accepts `spec.editedRenderJobId` (see `MediaSourceResolver`) and renders with `outputKind="audio"` are still possible, but the default mobile flow no longer takes that path.
+Two earlier ceremony layers are gone: the pre-render m4a step (`3d94e95 refactor(separation): /render 선행 호출 제거`) and the BFF-side trim path (`editedRenderJobId` / `MediaSourceResolver`) were both removed once the contract simplified to "mobile sends audio only." `SeparationSpec` is now just `{ sourceLanguageCode }` — trim windows and `mediaType` left the wire.
 
 **numberOfSpeakers is no longer prompted** — Perso auto-detects, and the field is dead on the BFF side. The old "Long-press a segment → Sheet → Speakers: 2 → Separate" flow is gone.
 
-> A second separation in the same project: vibi rejects ranges that overlap an existing `separationDirectives[]` entry. The chat assistant explicitly negotiates this (option A/B/C — see [`tutorial-chat-assistant.md`](./tutorial-chat-assistant.md)); the manual UI just blocks the start.
+> A second separation in the same project: vibi rejects ranges that overlap an existing `separationDirectives[]` entry. The manual UI blocks the start with a toast — pick a non-overlapping window, or delete the existing directive first.
 
-> Want to separate **just a BGM clip** instead of the video's own audio? Tap a BGM clip → "음원분리" — the call routes through the same sheet/use-case with `bgmSeparationTargetId` set, and on confirm `onConfirmStemMix` swaps the original BGM for the mixed stems instead of inserting a new clip.
+> Want to separate **just a BGM clip** instead of the video's own audio? Tap a BGM clip → "음원분리" — the call routes through the same use-case with `bgmSeparationTargetId` set, and on confirm the original BGM is swapped for the resulting `SeparationDirective` instead of a new clip being inserted.
 
 ## 3. The request the BFF receives
 
@@ -58,13 +59,13 @@ The BFF console prints lines like:
 [separate] job sep-... created
 ```
 
-The route lives at `vibi-bff/src/main/kotlin/com/vibi/bff/routes/SeparationRoutes.kt`. `MediaSourceResolver` resolves the source from either the multipart `file` field (the default mobile path) or — if the client supplied `spec.editedRenderJobId` — a previously-rendered output. Then:
+The route lives at `vibi-bff/src/main/kotlin/com/vibi/bff/routes/SeparationRoutes.kt`. It:
 
-1. If `trimStartMs` / `trimEndMs` are set, ffmpeg **stream-copies just that window** before uploading to Perso. Trim validation (`partial_trim_range`, `trim_range_invalid`, `trim_range_too_short`, `trim_end_exceeds_duration`) runs here — see [`../reference/bff-api.md#audio-separation--remix`](../reference/bff-api.md#audio-separation--remix).
-2. `SeparationService.start(jobId, spec)` is invoked.
-3. `{ "jobId": "sep-..." }` is returned to the client immediately (the job runs in the background).
+1. Whitelists the upload codec — `m4a` / `mp3` / `wav` only. Anything else (e.g. `flac`, video, `ogg`) → `400 unsupported_audio_format`. Perso's separation pipeline silently fails on FLAC even though earlier upload steps succeed; the BFF blocks at the front door.
+2. Charges credits (`1 per minute of source, minimum 1`). Insufficient balance → `402 insufficient_credits`. On job failure the charge is refunded (idempotent — no-op if already refunded).
+3. Hands the file off to `SeparationService.start(jobId, spec)`. Returns `{ "jobId": "sep-..." }` immediately; the job runs in the background.
 
-> Why trim on the BFF side? Perso bills by the length it processes, and processing time scales with window length. The client just declares the window; validation and stream-copy stay on the BFF. See [`../explanation/pipelines.md`](../explanation/pipelines.md#stem-separation--remix).
+> Why trim on the **mobile** side? Perso bills by length, and the mobile client already has the source on disk — extracting + trimming locally saves a 50 MB+ round trip when the user only wants 10 seconds. The BFF receives a small m4a and forwards it straight to Perso.
 
 ## 4. Inside SeparationService
 
@@ -101,35 +102,15 @@ Each stem URL embeds an HMAC token good for `SEPARATION_URL_TTL_SEC` (default 30
 
 ## 6. Auto-confirm + multi-directive timeline
 
-vibi auto-confirms the mix immediately on `READY` (the user does **not** have to pick stems in a sheet — that was the old flow). The new pattern:
+vibi auto-confirms a default mix immediately on `READY` (the user does **not** have to pick stems in a sheet — that was the old flow). The new pattern:
 
-1. On `READY`, all stems are downloaded.
-2. `onConfirmStemMix` runs with a default selection (typically all speakers at full volume, background muted) — the result is materialized as a `SeparationDirective` on the project.
-3. The directive appears on the timeline as a warm-amber band over the separated range.
-
-The user can then re-enter the range and switch which stem is playing — `StemMixer` keeps all stems in memory and swaps the active `groupId` for the directive. Transitions in/out of the range mute the original video segment (`VideoPlayer.volumeScale=0/1`), so the user hears only the stems while inside, and original audio while outside.
+1. On `READY`, all stem URLs are persisted on a new `SeparationDirective` with a default selection (typically all speakers at full volume, background muted).
+2. The directive appears on the timeline as a warm-amber band over the separated range.
+3. The user can re-enter the range to adjust per-stem volumes; the preview is computed **entirely on the mobile side** — multiple `AVAudioPlayer` / `ExoPlayer` instances play the stems in parallel, with volume slider changes feeding into each player's `volume` property in real time.
 
 Multiple separations in the same project produce multiple directives. The mixer keeps them all prepared in parallel — moving the playhead from one to the next is instant (no re-download).
 
-> The "one mix per separation" rule still applies on the BFF: once `/mix` is called for a `jobId`, the source stems on disk are atomically disposed. A second `/mix` against the same `jobId` returns `409 Conflict`. For external clients that want to pick stems manually, download every stem you might want before the first mix call.
-
-For the BFF-side mix request shape (`POST /api/v2/separate/{jobId}/mix` body):
-
-```kotlin
-val req = MixRequest(stems = listOf(
-    StemSelection(stemId = "speaker_0", volume = 1.0),
-    StemSelection(stemId = "voice_all", volume = 0.4),
-))
-bffApi.requestStemMix(jobId, req)
-```
-
-The BFF responds `{ "mixJobId": "mix-..." }` and runs:
-
-```
-1) (atomic) dispose this jobId's source stems
-2) ffmpeg amix selected stems with per-stem volume weights
-3) cache the mix file + sign URL with HMAC
-```
+> **There is no server-side mix endpoint.** The earlier `POST /api/v2/separate/{jobId}/mix` (and its `mixJobId` polling pair) was removed once the mobile-local preview proved sufficient. The final committed mix is performed by the **render** pipeline: when the user exports, the project's `SeparationDirective.selections[]` (each `{stemId, audioUrl, volume}`) is sent inside `RenderConfig.separationDirectives[]`, and ffmpeg `amix=normalize=0` does the combine in the same pass that produces the output mp4.
 
 ## 7. iOS audio playback note
 
@@ -139,52 +120,50 @@ On iOS, K/N `cinterop` makes streaming `AVPlayer` from BFF URLs silent in practi
 
 ## To reconstruct the same flow in your own app
 
-The takeaway of this tutorial: **separation is dubbing with one extra round trip in the middle**. The BFF holds the in-between state (per-speaker stems) while the user (or the auto-confirm path) decides, then collapses it into a single mp3 on confirmation.
+The takeaway of this tutorial: **separation gives you a per-speaker fan-out, the user picks the mix locally, and the chosen combination is baked into the final render**. The BFF holds the in-between state (per-speaker stems) and only commits the mix once, at export time.
 
 Key steps in summary:
 
-1. Mobile → BFF: (optional) `POST /api/v2/render` with `outputKind=audio` → `editedRenderJobId`
-2. Mobile → BFF: `POST /api/v2/separate` (multipart `file` **or** `spec.editedRenderJobId`) → `jobId`
+1. Mobile: trim + audio extract → m4a
+2. Mobile → BFF: `POST /api/v2/separate` (multipart `file` + minimal `spec`) → `jobId`
 3. BFF → Perso: upload → `submitAudioSeparation` → poll → `/download?target=originalVoiceSpeakers` (.tar) + `originalBackgroundPath`
 4. Mobile ← BFF: poll `jobId` → `stems[]` with signed URLs
-5. Mobile → BFF: `POST /separate/{jobId}/mix` with selected stems + volumes → `mixJobId`
-6. BFF → local: amix selected stems → cache + sign
-7. Mobile ← BFF: poll `mixJobId` → `downloadUrl` → bytes
+5. Mobile: build a `SeparationDirective`; preview volume mixes locally with multiple players
+6. Mobile → BFF (at export time): `POST /render` (or `/render/v3`) carrying `separationDirectives[*].selections[]` → final mp4
 
 To take this pattern as-is into your own domain:
 
 - Issue a Perso key → inject into your own BFF ([`../how-to/deploy-your-own-bff.md`](../how-to/deploy-your-own-bff.md))
-- Fork just the `SeparationRoutes` + `SeparationService` + `StemMixService` + `PersoClient` pieces of vibi-bff
+- Fork the `SeparationRoutes` + `SeparationService` + `PersoClient` pieces of vibi-bff, and the `RenderConfig.separationDirectives` handling inside `RenderService`
 
 ---
 
 ## Common pitfalls
 
-### Second `/mix` call returns `409 Conflict`
+### Stem URL returns 403 after a long wait
 
-**Cause**: As covered in step 6, the BFF disposes the source stems atomically when the mix starts. The separation result is now gone.
-
-**Fix**: Re-run `POST /api/v2/separate` to get a new `jobId`, then mix from there. If you anticipate needing multiple variants, **download every stem you might want before the first mix call** — stem URLs stay valid until `SEPARATION_URL_TTL_SEC`.
-
-### Status still says `PROCESSING` after a long wait, or the stem URL returns 403
-
-**Symptom**: The poll loop never reaches `READY`, or stem URLs that worked earlier now 403.
+**Symptom**: A stem URL that worked earlier now 403s.
 
 **Causes + fixes**:
-- Token expired (`SEPARATION_URL_TTL_SEC` default 30 minutes) → call `getSeparationStatus(jobId)` again for a fresh URL.
-- BFF restarted (the in-memory `jobId` is gone) → re-submit the separation.
+- Token expired (`SEPARATION_URL_TTL_SEC`, default 7 days) → call `getSeparationStatus(jobId)` again for a fresh URL.
+- BFF restarted before the job entered Postgres job-table tracking (older transient state) → re-submit the separation.
 - Storage-host 404 cached by Cloudflare for 4h — addressed by the `PERSO_STORAGE_BASE_URL` fresh-link retry; if you're running your own BFF, make sure that variable is set.
+
+### `/render` returns `400 invalid_stem_url`
+
+**Cause**: A `RenderConfig.separationDirectives[*].selections[].audioUrl` is not a BFF-signed `/separate/.../stem/` URL (e.g. you cached the URL across an env switch, or constructed it manually).
+
+**Fix**: Always carry stem URLs straight through from the most recent `getSeparationStatus(jobId)` response into the render config — don't transform or re-host them.
 
 ### A `speaker_N` stem plays as silence
 
-**Cause**: Perso's per-utterance script attributed no utterances to that speaker (typical when auto-detect over-counts, or one speaker only appears outside the trim window). The bundled `.tar` still contains a (silent) entry for the slot.
+**Cause**: Perso's per-utterance script attributed no utterances to that speaker (typical when auto-detect over-counts, or one speaker only appears outside the trimmed window). The bundled `.tar` still contains a (silent) entry for the slot.
 
-**Fix**: Skip that stem when picking selections for `/mix`. Tighten the trim if it recurs.
+**Fix**: Skip that stem when picking selections for the directive. Tighten the trim if it recurs.
 
 ---
 
 ## Up next
 
-- The chat way to trigger the same flow — "이 구간 보컬만 남겨줘" → proposal → 적용: [`tutorial-chat-assistant.md`](./tutorial-chat-assistant.md)
 - Why two steps (separate, then mix) instead of one: [`../explanation/pipelines.md`](../explanation/pipelines.md#stem-separation--remix)
 - Per-endpoint spec: [`../reference/bff-api.md#audio-separation--remix`](../reference/bff-api.md#audio-separation--remix)

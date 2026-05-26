@@ -1,18 +1,18 @@
-# Tutorial — Export multiple variants from a single edit
+# Tutorial — Export a project to mp4
 
-This tutorial walks the flow of exporting an edited video — **from the mobile UI tap all the way down to the ffmpeg pipeline the BFF runs**. The interesting twist is the *multi-variant* path: vibi renders N output files (one per language the user picked) by uploading the source video **once** and re-using a cached `inputId` for every variant. By the end:
+This tutorial walks the export flow — **from the timeline 저장 tap all the way down to the ffmpeg pipeline the BFF runs**. The interesting twist is the *asset-by-reference* path: vibi avoids re-uploading the source video on every export by pushing bytes directly to Cloudflare R2 once, then referencing them by SHA-256 key. By the end:
 
 - You'll have intuition for the job-then-poll skeleton that all vibi BFF flows share.
-- You'll know exactly when `/render/inputs` saves you a 50 MB re-upload and when it doesn't.
-- You'll be able to reconstruct the "upload once, render N times in parallel" pattern in your own code.
+- You'll know when `POST /assets/upload-url` saves you a 50 MB re-upload and when it doesn't.
+- You'll be able to reconstruct the "upload-once-to-object-store, render-by-reference" pattern in your own code.
 
-Prerequisite: [`getting-started.md`](./getting-started.md) is done, BFF and the mobile app are alive, and you're signed in.
+Prerequisite: [`getting-started.md`](./getting-started.md) is done, BFF and the mobile app are alive, and you're signed in. The asset-by-reference path requires `R2_BUCKET` to be configured on the BFF — without it the mobile client falls back to the legacy multipart `POST /render` (still supported).
 
 ---
 
 ## 0. What you need
 
-- A 10–30 second mp4 (longer works but the demo gets slow). Multiple speakers or BGM aren't required.
+- A 10–30 second mp4 (longer works but the demo gets slow).
 - A shell where the BFF console stdout is visible. You'll trace calls there.
 
 ## 1. Build something to export (mobile)
@@ -25,81 +25,94 @@ Launch the app → InputScreen → pick a video. The app does the local prep wit
 The app navigates to TimelineScreen. Do a couple of things so the export has something to render:
 
 - Drag a range and tap **"이 구간 음원분리"** to add a `SeparationDirective` (this also triggers a BFF separation job — covered in detail in [`tutorial-stem-separation.md`](./tutorial-stem-separation.md)).
-- Add a BGM clip from "BGM" → pick a file from device or use 즉시 녹음.
+- Add a BGM clip from "BGM" → pick a file from device or record on the spot.
 - Optionally use **BgmTrimSheet** on the BGM clip to drag a sub-range.
 
-Nothing about this step is unique to multi-variant export — segments, separation directives, BGM clips, and any locally authored subtitles all feed the same render config below.
+## 2. Tap 저장
 
-## 2. Open the export sheet
+Tap the **저장** action in the timeline header. The default export is a single mp4 — the multi-language variant picker that lived here previously was retired alongside the subtitle / auto-dub features.
 
-Tap the **저장** action in the timeline header. `ExportVariantPickerSheet` opens with a checklist of variants:
+## 3. Push the bytes to R2 — `POST /assets/upload-url`
 
-| Variant key | What it means |
-|---|---|
-| `original` | The base edit. No language tag in the filename — saved as `VID_<hash>_0.mp4`. |
-| `original_subtitle` (sentinel `""`) | Same edit, original-language subtitles burned in. Saved as `SUB_원본_<hash>_<idx>.mp4`. Only offered when there's a confirmed original-language subtitle clip. |
-| `<lang>` (e.g. `en`, `ko`) | Per-language variant. Saved as `SUB_EN_...` (subtitles only), `DUB_EN_...` (dub audio only), or `DUBSUB_EN_...` (both). |
-
-The variant list is computed by `SaveAllVariantsUseCase.computeAllVariantKeys`. `original` is always included; translation languages appear only when there's an actual artifact (subtitle clip or dub audio path).
-
-> Auto-generated dubs / auto-subtitles aren't currently produced by the BFF — those routes were removed (`52f8d7c`). Subtitles can still be manually authored via `InsertSubtitleSheet` and burned into the export. Dub audio paths exist for manually-supplied audio but the chat / panel "generate dub" UI is dead.
-
-Check the variants you want and tap **저장**.
-
-## 3. Single source upload — `/render/inputs`
-
-`SaveAllVariantsUseCase` looks at the count of variants that need an actual render (anything other than `original` when the project has no edits whatsoever). If that count is **≥ 2**, it uploads the source bytes once first:
+`V3RenderExecutor` walks the project's segments and BGM clips and, for each one, asks the BFF for an R2 presigned PUT URL keyed by SHA-256:
 
 ```kotlin
-// vibi-mobile/shared/.../usecase/save/SaveAllVariantsUseCase.kt
-val preUploadedInputId: String? = if (renderVariantCount >= 2) {
-    runCatching { uploadInputCacheOnce(segments, dubClips) }.getOrNull()
-} else null
-```
-
-That call hits `POST /api/v2/render/inputs` with the multipart fields `video` (the first VIDEO segment's source) and `audios` (one part per dub-audio file). The BFF console prints:
-
-```
-[POST] /api/v2/render/inputs
-[inputs] inputId=ab12cd34ef567890 (size 18234567 bytes, ttl 86400000ms)
-```
-
-The `inputId` is the SHA-256 prefix of the video bytes (16 hex chars), so re-uploading the identical file resolves to the same slot. TTL is 24h by default (`RENDER_INPUT_CACHE_TTL_HOURS`), with an hourly sweep removing expired entries.
-
-> When `runCatching { uploadInputCacheOnce(...) }` throws (e.g. transient network glitch), `preUploadedInputId` stays `null` and each variant falls back to its own multipart re-upload — the export still completes, just less efficiently.
-
-## 4. Parallel renders, one per variant
-
-Each variant runs in its own coroutine inside a `coroutineScope { ... awaitAll() }`. The per-variant call is `ExportPlatformAdapter.executeExport(ExportRequest)` — Android and iOS implementations both end up calling `RemoteRenderExecutor` which posts to `/api/v2/render`:
-
-```kotlin
-val request = ExportRequest(
-    projectId = "$projectId#$languageCode",
-    outputLanguageCode = languageCode,
-    segments = segments,
-    dubClips = dubClips,
-    bgmClips = bgmClips,
-    separationDirectives = separationDirectives,
-    frameWidth = project.frameWidth,
-    frameHeight = project.frameHeight,
-    backgroundColorHex = project.backgroundColorHex,
-    audioOverridePath = audioOverridePath,
-    preUploadedInputId = preUploadedInputId,
+// vibi-mobile/shared/.../data/remote/AssetUploadManager.kt
+val resp = api.requestAssetUploadUrl(
+    AssetUploadUrlRequest(
+        sha256Hex = sha256(bytes).hex(),
+        sizeBytes = bytes.size.toLong(),
+        ext = "mp4",
+        contentType = "video/mp4",
+    )
 )
 ```
 
-When `preUploadedInputId` is set, the multipart request to `/api/v2/render` drops the `video_0` / `audio_0` file parts and includes an `inputId` form field instead. The BFF resolves the bytes from its cache. Server log:
+The BFF console prints:
 
 ```
-[POST] /api/v2/render            inputId=ab12cd34ef567890
-[POST] /api/v2/render            inputId=ab12cd34ef567890
-[POST] /api/v2/render            inputId=ab12cd34ef567890
-[render] job rnd-...-en started
-[render] job rnd-...-ko started
-[render] job rnd-...-ja started
+[POST] /api/v2/assets/upload-url
+[assets] key=assets/ab12cd34...e9.mp4 alreadyExists=false ttl=300s
 ```
 
-Three multipart bodies, only the small `config` JSON in each — the 18 MB video uploaded once.
+The response is one of two shapes:
+
+| Field | Fresh asset | Already in R2 |
+|---|---|---|
+| `assetKey` | `assets/<sha>.<ext>` | same |
+| `alreadyExists` | `false` | `true` |
+| `uploadUrl` | `https://...r2.cloudflarestorage.com/...?X-Amz-Signature=...` | `null` |
+| `expiresInSec` | `300` | `0` |
+
+When `alreadyExists=true`, the mobile client **skips the PUT entirely** and reuses the `assetKey`. This is what makes the second export of the same source effectively free — only the per-export render config travels over the wire.
+
+When fresh, `AssetUploadManager` PUTs the bytes directly to R2:
+
+```kotlin
+api.putAssetToR2(resp.uploadUrl!!, bytes, contentType = "video/mp4")
+```
+
+> SigV4 binds `contentType` and `Content-Length` at sign time — the PUT must use the same values or R2 returns 401. `BffApi.putAssetToR2` enforces that by passing the same `contentType` argument through to the request.
+
+> **No R2?** `R2_BUCKET` blank → `POST /assets/upload-url` returns `503 r2_disabled` and the mobile client falls back to the legacy `POST /render` multipart path (`BffApi.submitRenderJob`), which uploads bytes inline. Same result, more bytes.
+
+## 4. Submit the render — `POST /render/v3`
+
+With every segment + BGM clip translated to an `assets/<sha>.<ext>` key, `V3RenderExecutor` posts the render config as JSON only — no multipart body:
+
+```kotlin
+// vibi-mobile/shared/.../data/repository/V3RenderExecutor.kt
+val jobId = api.submitRenderJobV3(config).jobId
+```
+
+The body shape:
+
+```jsonc
+// RenderConfigV3
+{
+  "segments": [
+    { "sourceAssetKey": "assets/ab12...e9.mp4", "order": 0,
+      "durationMs": 30000, "trimStartMs": 0, "trimEndMs": 30000,
+      "volumeScale": 1.0, "speedScale": 1.0 }
+  ],
+  "bgmClips": [
+    { "audioAssetKey": "assets/cd34...77.mp3", "startMs": 0,
+      "sourceTrimStartMs": 2000, "sourceTrimEndMs": 8000, "volume": 0.6 }
+  ],
+  "separationDirectives": [ /* with stem URLs from /separate */ ],
+  "outputKind": "video",
+  "quality": "medium"
+}
+```
+
+BFF console:
+
+```
+[POST] /api/v2/render/v3       segments=1 bgmClips=1 separationDirectives=1
+[render] job rnd-... started
+```
+
+The BFF resolves each `sourceAssetKey` / `audioAssetKey` by downloading the R2 object once into its local asset cache (TTL `ASSET_CACHE_TTL_HOURS`, default 24h), then runs the same ffmpeg pipeline as the legacy multipart `/render`.
 
 ## 5. The ffmpeg pipeline
 
@@ -107,23 +120,28 @@ Three multipart bodies, only the small `config` JSON in each — the 18 MB video
 
 ```
 1) Per-segment normalization
-   - VIDEO: input-side seek + scale/pad to output resolution + silent AAC track
-   - IMAGE: -loop 1 + letterbox + silent AAC track
+   - input-side seek (-ss / -to via trimStartMs / trimEndMs)
+   - speed (setpts + atempo) and volume scaling
+   - emit a per-segment normalized mp4 with consistent codec / fps / resolution
 2) Concat demuxer (-c copy) — all normalized clips share codec / fps / resolution
 3) Final mix pass
-   - audio_override (if provided) replaces the original audio entirely
-   - dubClips    → adelay + volume → amix
-   - bgmClips    → atrim (sub-range from BgmTrimSheet) + adelay + volume → amix
-   - subtitles   → burn-in via -vf "ass=..."   (only when there's a confirmed subtitle to render)
+   - separationDirectives → per-range stem amix (normalize=0) using `selections[]` URLs
+   - bgmClips             → atrim (sub-range from BgmTrimSheet) + adelay + volume → amix
 ```
 
-Concurrency is bounded by `RENDER_MAX_CONCURRENT` (default `availableProcessors() / 2`). Three parallel renders on a 4-vCPU box will hold two ffmpeg processes in flight at a time and queue the third.
+Concurrency is bounded by `RENDER_MAX_CONCURRENT` (default `availableProcessors() / 2`).
 
-> The final pass uses `-c:v copy` since normalization already produced output-resolution H.264 (`6bcb392 perf(render): 최종 mix 패스 -c:v copy`). This is what makes multi-variant cheap server-side — each variant differs only in the audio mix and optional subtitle burn-in.
+> The final pass uses `-c:v copy` since normalization already produced output-resolution H.264 (`6bcb392 perf(render): 최종 mix 패스 -c:v copy`). All the variation between exports happens in the audio mix layer — the video stream is bit-identical across re-renders.
+
+The `quality` knob maps to:
+
+| Profile | x264 CRF | preset | audio bitrate |
+|---|---|---|---|
+| `high` | 20 | slow | 192k |
+| `medium` (default) | 23 | fast | 192k |
+| `low` | 28 | fast | 128k |
 
 ## 6. Mobile polls
-
-Same job-then-poll skeleton as separation:
 
 ```kotlin
 // vibi-mobile/shared/.../BffApi.kt
@@ -131,23 +149,13 @@ suspend fun getRenderStatus(jobId: String): RenderStatusResponse =
     client.get("api/v2/render/$jobId/status").body()
 ```
 
-`RemoteRenderExecutor` polls each `jobId` independently. The `onProgress` callback bubbles up to `SaveAllVariantsUseCase`, which **averages** progress across all in-flight variants and emits a single `0..100` percent to the UI overlay.
+`V3RenderExecutor` polls the `jobId` and the `onProgress` callback feeds a `0..100` percent into the UI overlay.
 
-When a job reaches `COMPLETED`, the executor calls `GET /api/v2/render/{jobId}/download`. With `R2_BUCKET` set, the BFF uploads the result to Cloudflare R2 and `302`-redirects to a SigV4 presigned URL — the byte stream comes straight from R2, decoupling the Cloud Run instance from outbound egress (and since R2 egress is free, dropping that cost component to zero). Without `R2_BUCKET` (local dev), the same route falls back to `respondFile` streaming. Either way, the Ktor Client follows the redirect transparently.
+When the job reaches `COMPLETED`, the executor calls `GET /api/v2/render/{jobId}/download`. With `R2_BUCKET` set, the BFF uploads the result mp4 to R2 and `302`-redirects to a SigV4 presigned URL — the byte stream comes straight from R2, decoupling the Cloud Run instance from outbound egress (and since R2 egress is free, dropping that cost component to zero). Without `R2_BUCKET` (local dev), the same route falls back to `respondFile` streaming. Either way, the Ktor Client follows the redirect transparently.
 
 ## 7. Gallery save
 
-After all variants finish rendering, `SaveAllVariantsUseCase` saves each output to the device gallery serially via `GallerySaver.saveVideo(path, displayName)`. The display name encodes the variant type so the user can spot them in their gallery without re-opening the app:
-
-| Prefix | When |
-|---|---|
-| `VID_` | `original`, or any variant without dub/subtitle |
-| `SUB_원본_` | `original_subtitle` |
-| `SUB_<LANG>_` | translation lang with subtitle only |
-| `DUB_<LANG>_` | translation lang with dub audio only |
-| `DUBSUB_<LANG>_` | translation lang with both dub and subtitle |
-
-`saveToGallery=false` skips the gallery write — used by the share-sheet path that wants the file path directly.
+The downloaded mp4 is handed to `GallerySaver.saveVideo(path, displayName)` — `IosGallerySaver` uses `PHPhotoLibrary` + `NSPhotoLibraryAddUsageDescription`, `AndroidGallerySaver` uses MediaStore on API 29+ and direct file write on older versions.
 
 ## 8. Where the export lands in code
 
@@ -155,52 +163,44 @@ A request-to-effect map:
 
 ```
 TimelineScreen 저장 tap
-  → SaveAllVariantsUseCase.invoke(projectId, ...)
-     → (if multi-variant) BffApi.uploadRenderInputs → inputId
-     → coroutineScope {
-         for each variant async {
-            ExportPlatformAdapter.executeExport(request)
-              → RemoteRenderExecutor → BffApi.submitRenderJob(inputId=…)
-                                     → POST /api/v2/render → jobId
-                                     → poll /status → COMPLETED
-                                     → GET /download → mp4 bytes (or 302 → R2)
-            ← outputPath
-         }
-       } awaitAll
-     → for each outputPath: GallerySaver.saveVideo(path, displayName)
-     → onProgress(100)
-     → Result.success(listOf(SavedVariant(lang, path)))
+  → ExportUseCase.invoke(projectId)
+     → V3RenderExecutor
+        → AssetUploadManager.ensureUploaded(asset)
+           → BffApi.requestAssetUploadUrl   → AssetUploadUrlResponse
+           → if !alreadyExists: BffApi.putAssetToR2(presignedUrl, bytes, contentType)
+        → BffApi.submitRenderJobV3(RenderConfigV3) → jobId
+        → poll /render/{jobId}/status → COMPLETED
+        → GET /render/{jobId}/download → mp4 bytes (302 → R2 in prod, direct stream in dev)
+     → GallerySaver.saveVideo(path, displayName)
 ```
-
-`ExportRequest` + `RemoteRenderExecutor` + the two `BffApi` calls (`uploadRenderInputs`, `submitRenderJob`) are the entire client-side export surface.
 
 ---
 
 ## To reconstruct the same flow in your own app
 
-A "render once per output language, share one upload" pattern in three pieces:
+A "skip re-upload across repeated renders" pattern in three pieces:
 
-1. **Content-addressed input cache** on the BFF: `inputId = sha256(video)[:16]`. The same video on retry resolves to the same slot, with a TTL sweep cleaning up after disuse.
-2. **Per-variant render config**: keep the heavy bytes (video, dub audios) out of each variant's multipart body — pass them by `inputId` instead. The variant config is just the JSON spec (segments, dub clips, BGM atrim windows, subtitle ASS).
-3. **Suspending parallel renders**: `coroutineScope { async { … } }` per variant, averaging progress at the use-case layer. Bound `RENDER_MAX_CONCURRENT` on the BFF side to the box's CPU budget.
+1. **Content-addressed object store** in front of the BFF. R2's per-object dedup-on-key gives you "have we seen this exact byte stream before?" for free — combine it with `objectExists` on the BFF and the answer is one HEAD round trip.
+2. **Per-render config carries asset keys, not bytes.** This caps the render request size at "however much JSON your timeline produces" instead of "however large your source video is" — Cloud Run's request-body limit never matters.
+3. **Suspending polling on the client.** Ktor `client.get` + `delay(1.seconds)` is enough; the BFF's job state survives `respondFile` vs R2-redirect transparently.
 
-Key BFF endpoint reference: [`../reference/bff-api.md#render`](../reference/bff-api.md#render).
+Key BFF endpoint reference: [`../reference/bff-api.md#render-multipart--v3-asset-by-reference`](../reference/bff-api.md#render-multipart--v3-asset-by-reference).
 
 ---
 
 ## Common pitfalls
 
-### `inputId` lookup returns 404 inside a variant render
+### `400 invalid_stem_url` from `/render/v3`
 
-**Cause**: 24h TTL elapsed between `/render/inputs` and the variant's `/render` call (rare unless the user paused mid-export). Or a different BFF instance handled the variant (multi-instance deploys would need shared storage — the current single-instance assumption holds in vibi).
+**Cause**: A `separationDirectives[*].selections[].audioUrl` is not a BFF-signed `/separate/.../stem/` URL — typically because the stem URL was cached across an env switch (dev → staging) or constructed manually.
 
-**Fix**: `SaveAllVariantsUseCase` re-runs the variant with a fresh multipart upload on 404. Worst case the export is slower, not failed.
+**Fix**: Always carry stem URLs straight from the most recent `getSeparationStatus(jobId)` response into the render config; refresh them when they 401/403.
 
-### Different variants take wildly different times
+### `503 r2_disabled` from `/assets/upload-url`
 
-**Cause**: ffmpeg `-c:v copy` keeps things linear in video duration, but `amix` cost scales with input count. A variant with 5 dub clips + BGM + atrim takes longer than one with no dubs. With `RENDER_MAX_CONCURRENT=2` on a 4-vCPU box, the slowest variant determines wall time.
+**Cause**: `R2_BUCKET` (or one of `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`) is missing on the BFF.
 
-**Fix**: Stagger variant submission isn't currently implemented — `coroutineScope { awaitAll }` fires all at once. If wall-time matters more than parallelism, drop `RENDER_MAX_CONCURRENT` to 1.
+**Fix**: Either configure R2 (see [`../reference/environment.md`](../reference/environment.md)) or let the mobile client fall back to the multipart path — `RemoteRenderExecutor` is wired to handle the 503 by routing through `BffApi.submitRenderJob` instead.
 
 ### Gallery save fails on iOS with "no permission"
 
@@ -212,7 +212,6 @@ Key BFF endpoint reference: [`../reference/bff-api.md#render`](../reference/bff-
 
 ## Up next
 
-- The chat way to drive the same flow ("이 구간 음원분리 후 저장해줘"): [`tutorial-chat-assistant.md`](./tutorial-chat-assistant.md)
 - The separation flavor of job-then-poll: [`tutorial-stem-separation.md`](./tutorial-stem-separation.md)
 - The render pipeline's design decisions (concat demuxer, R2 redirect, quality profile): [`../explanation/pipelines.md`](../explanation/pipelines.md)
 - Exact per-route spec: [`../reference/bff-api.md`](../reference/bff-api.md)

@@ -17,7 +17,7 @@ The goal of this doc is to take you from a fresh checkout of vibi to **BFF + mob
 | **Postgres** (Neon free tier OK) | BFF user upsert + JWT issuance | `DATABASE_URL`, `DB_USER`, `DB_PASSWORD` |
 | **Google OAuth client IDs** | App sign-in is gated by Google | Cloud Console → APIs & Services → Credentials |
 | *(optional)* Apple Sign In client id | iOS Sign in with Apple | iOS bundle id (e.g. `com.vibi.ios`) |
-| *(optional)* GCP service account | Gemini chat | Project with Vertex AI enabled |
+| *(optional)* Cloudflare R2 bucket | Egress-free download path | `R2_BUCKET` + `R2_ACCOUNT_ID` + R2 API token |
 
 Sign up for Perso → create a workspace → issue the API key and note the `spaceSeq`. You can look up `spaceSeq` via `GET /portal/api/v1/spaces`.
 
@@ -77,8 +77,7 @@ Success signal:
 
 Open in a browser to verify:
 
-- <http://localhost:8080/swagger> — API spec UI
-- <http://localhost:8080/api/v2/languages> — The first live endpoint that actually calls Perso. If healthy, it returns a language list JSON. A 401/402 means the key or spaceSeq is wrong.
+- <http://localhost:8080/swagger> — API spec UI. If this loads, Ktor is up and routing.
 
 > 🚧 If blocked: `PERSO_API_KEY must be set` / `SEPARATION_SIGNING_SECRET must be at least 32 chars` → [`../how-to/troubleshooting.md`](../how-to/troubleshooting.md).
 
@@ -193,7 +192,7 @@ At this point the **first real call to the BFF** happens when you trigger stem s
 ## Success checklist
 
 - [ ] BFF console prints `Responding at http://0.0.0.0:8080`
-- [ ] <http://localhost:8080/api/v2/languages> returns HTTP 200 with a JSON body
+- [ ] <http://localhost:8080/swagger> loads in the browser
 - [ ] Android: `adb install` succeeds, Splash opens, Login lets you sign in with Google, InputScreen follows
 - [ ] iOS: same flow in the simulator (`Auth.xcconfig` filled in)
 - [ ] Upload a short video → reach the timeline screen

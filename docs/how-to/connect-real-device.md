@@ -37,7 +37,7 @@ If you get `Request timeout` → either you're not on the same LAN (guest Wi-Fi,
 System Settings → Network → Firewall.
 
 If the firewall is on:
-- Temporarily turn it off → on the phone, check `http://<mac_IP>:8080/api/v2/languages` opens in the browser
+- Temporarily turn it off → on the phone, check `http://<mac_IP>:8080/swagger` opens in the browser
 - If it opens, the firewall is the cause. Add an allow rule for Java (or `gradle` / `wrapper`) in Firewall Options
 
 If you're on a corporate network where you can't turn off the firewall, or router-side client isolation is on → use ngrok as a workaround (see Option B in [`deploy-your-own-bff.md`](./deploy-your-own-bff.md)).
@@ -120,9 +120,9 @@ For iOS, Xcode Clean Build Folder (`⌘ ⇧ K`) and Run.
 Go in order — once the answer is yes, move on:
 
 - [ ] BFF console: `Responding at http://0.0.0.0:8080`
-- [ ] Browser on the same machine: `http://localhost:8080/api/v2/languages` returns 200
+- [ ] Browser on the same machine: `http://localhost:8080/swagger` returns 200
 - [ ] `ping` from the phone to the Mac IP works
-- [ ] Phone browser hits `http://<mac_IP>:8080/api/v2/languages` and gets 200
+- [ ] Phone browser hits `http://<mac_IP>:8080/swagger` and gets 200
   - If not: firewall / router client isolation
 - [ ] On iOS, ATS exception or ngrok https
 - [ ] On Android, networkSecurityConfig or ngrok https

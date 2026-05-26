@@ -31,7 +31,7 @@ AUTH_JWT_SECRET=<output of: openssl rand -hex 32>
 GOOGLE_OAUTH_CLIENT_IDS=<iOS, Android, Web client ids — comma-separated>
 ```
 
-For caption translation and chat you also need Vertex AI variables. Full table in [`../reference/environment.md`](../reference/environment.md).
+Optional: R2 for egress-free downloads, IAP verifier keys for credit purchases, Sentry DSN for error monitoring. Full table in [`../reference/environment.md`](../reference/environment.md).
 
 > ⚠️ **Never commit `.env` to git**. It is already listed in `.gitignore` — verify.
 
@@ -50,10 +50,10 @@ Success signal:
 Live check:
 
 ```bash
-curl http://localhost:8080/api/v2/languages | jq .
+curl -I http://localhost:8080/swagger
 ```
 
-An HTTP 200 with a JSON array of supported languages means the Perso key is live. If you get 401 / 402 → [`troubleshooting.md#perso-402--payment-required`](./troubleshooting.md#perso-402--payment-required).
+`HTTP/1.1 200 OK` confirms Ktor is up and routing. The Perso key isn't exercised until you submit a `/api/v2/separate` job — if that returns 401/402 → [`troubleshooting.md#perso-402--payment-required`](./troubleshooting.md#perso-402--payment-required).
 
 ## 4. External exposure options
 
@@ -127,7 +127,7 @@ What goes where (Settings → Secrets and variables → Actions):
 | **Secret** | `GCP_WIF_PROVIDER` | Output of step 2 — the WIF provider resource path. |
 | **Secret** | `GCP_SA_EMAIL` | Deploy-time SA (allowed to `gcloud run deploy`). |
 | **Secret** | `GCP_PROJECT_ID` | Cloud Run hosting project. |
-| **Secret** | `GCP_RUNTIME_SA_EMAIL` | Runtime SA attached to the Cloud Run service (this is the identity `GeminiClient` ADC resolves to). |
+| **Secret** | `GCP_RUNTIME_SA_EMAIL` | Runtime SA attached to the Cloud Run service. |
 | **Secret** | `GOOGLE_OAUTH_CLIENT_IDS` | Comma-separated iOS / Android / Web client ids. |
 | **Variable** | `CORS_ALLOWED_ORIGINS` | Plain comma list — visible in workflow logs intentionally. |
 | **Variable** | `BFF_BASE_URL` | Optional. Set when you own a custom domain (`https://api.example.com`); leave blank to self-reference the Cloud Run-issued URL. |
@@ -137,9 +137,8 @@ What goes where (Settings → Secrets and variables → Actions):
 After that, `git push origin main` ships a new revision. Two things worth flagging on first read of `deploy.yml`:
 
 - **`^@^` delimiter** — `--set-env-vars` uses `^@^` as the entry separator instead of the default `,`, because `GOOGLE_OAUTH_CLIENT_IDS` itself contains commas. Switching the delimiter to `@` lets the comma-bearing value stay inline.
-- **Cross-project `GEMINI_PROJECT_ID`** — the project Vertex AI is enabled in can differ from the Cloud Run hosting project. The workflow's `env:` block keeps `GEMINI_PROJECT_ID` separate from `GCP_PROJECT_ID` for exactly this case.
 
-The runtime credential is the Cloud Run **attached service account** (`GCP_RUNTIME_SA_EMAIL`) — `GOOGLE_APPLICATION_CREDENTIALS` stays blank and `GeminiClient` falls back to Application Default Credentials via the metadata server. Memory-tier vs upload-size: scale `MAX_UPLOAD_FILE_SIZE_MB` down when running on `--memory 1Gi`, up on `4Gi+`.
+The runtime credential is the Cloud Run **attached service account** (`GCP_RUNTIME_SA_EMAIL`). Memory-tier vs upload-size: scale `MAX_UPLOAD_FILE_SIZE_MB` down when running on `--memory 1Gi`, up on `4Gi+`.
 
 The full walkthrough — WIF bootstrap commands, IAM roles per secret, R2 bucket creation + API token in the Cloudflare dashboard, and a table mapping five common errors (`invalid_target`, `unauthorized_client`, `iam.serviceAccounts.getAccessToken denied`, `run deploy: Permission denied`, 500 only on `/download` after a successful deploy) to their root cause — lives in `vibi-bff/deploy/GITHUB_ACTIONS_SETUP.md`.
 

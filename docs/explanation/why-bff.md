@@ -1,6 +1,6 @@
 # Why a BFF Layer
 
-vibi's mobile app does **not** call external voice APIs (Perso, Vertex AI Gemini) directly. Every external call goes through `vibi-bff`, a Ktor backend in the sibling directory. This article explains the background of that decision — what was gained, what was given up.
+vibi's mobile app does **not** call the external voice API (Perso) directly. Every external call goes through `vibi-bff`, a Ktor backend in the sibling directory. This article explains the background of that decision — what was gained, what was given up.
 
 ---
 
@@ -21,12 +21,12 @@ A leaked key means someone else's traffic eats the quota and the bill. For exter
 ```
 ┌────────────────┐     ┌─────────────┐     ┌────────────────┐
 │ vibi-mobile    │HTTPS│ vibi-bff    │HTTPS│ Perso AI       │
-│ (Android, iOS) │────▶│  /api/v2/*  │────▶│ Gemini         │
-│   no API keys  │     │ holds keys  │     │ (external API) │
+│ (Android, iOS) │────▶│  /api/v2/*  │────▶│ (external API) │
+│   no API keys  │     │ holds keys  │     │                │
 └────────────────┘     └─────────────┘     └────────────────┘
 ```
 
-Mobile calls only **vibi-bff's `/api/v2`**. External keys exist only in the BFF's environment variables (`PERSO_API_KEY`, `GEMINI_*`). Not a single character of an external API key ships in the mobile build artifacts.
+Mobile calls only **vibi-bff's `/api/v2`**. External keys exist only in the BFF's environment variables (`PERSO_API_KEY`, R2 / IAP / Sentry credentials, …). Not a single character of an external API key ships in the mobile build artifacts.
 
 ### What the BFF layer brings
 

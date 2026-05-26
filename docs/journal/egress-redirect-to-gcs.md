@@ -46,7 +46,7 @@ suspend fun ApplicationCall.respondDownload(
 }
 ```
 
-Five downstream call sites (`RenderRoutes`, `SeparationRoutes` × 2, `AutoDubRoutes` × 2, `SubtitleRoutes`) replaced their `respondFile` calls with `respondDownload`. The local-dev path with no GCS configured falls through to the original streaming flow.
+Every download call site (`RenderRoutes`, `SeparationRoutes`, plus the now-removed `AutoDubRoutes` / `SubtitleRoutes` of the time) replaced its `respondFile` call with `respondDownload`. The local-dev path with no GCS configured falls through to the original streaming flow.
 
 Once that landed, the per-download Cloud Run footprint dropped to roughly the cost of an `upload-if-absent` GCS metadata roundtrip (when the file is already in GCS) plus the redirect response (~one HTTP roundtrip's worth of CPU). The mp4 itself never crosses Cloud Run's egress.
 

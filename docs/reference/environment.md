@@ -13,7 +13,7 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 
 `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `SEPARATION_SIGNING_SECRET`, `AUTH_JWT_SECRET`, `GOOGLE_OAUTH_CLIENT_IDS`, `DATABASE_URL`, `DB_USER`, `DB_PASSWORD` are fail-fast at boot — the server exits immediately on missing or malformed values.
 
-> **Local dev vs Cloud Run.** `.env` is for local `./gradlew run` (and the one-shot `deploy/cloud-run.sh` bootstrap). The single source of runtime env for production Cloud Run is `.github/workflows/deploy.yml` — Secret Manager for sensitive values (`PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `AUTH_JWT_SECRET`, `SEPARATION_SIGNING_SECRET`), GitHub Secrets for the deploy-time identities (`GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`, `GCP_PROJECT_ID`, `GCP_RUNTIME_SA_EMAIL`, `GOOGLE_OAUTH_CLIENT_IDS`), and GitHub Variables for plain config (`CORS_ALLOWED_ORIGINS`, `BFF_BASE_URL`). Update those in repo Settings → Secrets and variables → Actions, then push or "Run workflow". Comma-containing values are quoted via the `^@^` delimiter (see `deploy.yml`).
+> **Local dev vs Cloud Run.** `.env` is for local `./gradlew run` (and the one-shot `deploy/cloud-run.sh` bootstrap). The single source of runtime env for production Cloud Run is `.github/workflows/deploy.yml` — Secret Manager for sensitive values, GitHub Secrets for the deploy-time identities (`GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`, `GCP_PROJECT_ID`, `GCP_RUNTIME_SA_EMAIL`, `GOOGLE_OAUTH_CLIENT_IDS`), and GitHub Variables for plain config (`CORS_ALLOWED_ORIGINS`, `BFF_BASE_URL`). Update those in repo Settings → Secrets and variables → Actions, then push or "Run workflow". Comma-containing values are quoted via the `^@^` delimiter (see `deploy.yml`).
 
 ### Perso AI
 
@@ -22,6 +22,8 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 | `PERSO_API_KEY` | ✅ | — | Perso-issued API key. Used for audio separation. (Past surfaces — STT / auto-dubbing / lipsync — were removed from the BFF in commit `52f8d7c`.) |
 | `PERSO_SPACE_SEQ` | ✅ | — | Perso workspace ID. Look up via `GET /portal/api/v1/spaces`. **Must be greater than 0.** |
 | `PERSO_BASE_URL` | | `https://api.perso.ai` | Upstream base URL. Change only when fronted by your own gateway. |
+| `PERSO_STORAGE_BASE_URL` | | `https://portal-media.perso.ai` | Audio-separation `/download` responses point at this CDN host (`/perso-storage/...` paths), not `PERSO_BASE_URL`. Auth header is **not** sent here. |
+| `PERSO_DOWNLOAD_ALLOWED_HOSTS` | | `portal-media.perso.ai` | Comma-separated SSRF whitelist for download fetches. `PERSO_BASE_URL` and `PERSO_STORAGE_BASE_URL` hosts are added automatically. |
 | `PERSO_POLL_INTERVAL_MS` | | `15000` | Progress poll interval (ms). **Must be ≥ 1000.** |
 | `PERSO_MAX_POLL_MINUTES` | | `30` | Audio separation job poll timeout (minutes). **1..120.** |
 
@@ -33,31 +35,19 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 | `BFF_BASE_URL` | | `http://localhost:8080` | Public URL used to sign download links. Change to ngrok / LAN address when exposing externally. |
 | `STORAGE_PATH` | | `./storage` | Root for upload / render / separation artifacts. Use a location with sufficient disk space. |
 | `CORS_ALLOWED_ORIGINS` | | *(blank = any)* | Comma-separated whitelist. For Android-only deployments, set to a sentinel like `android-only.invalid` to block browsers. |
-| `R2_BUCKET` | | *(blank)* | Cloudflare R2 bucket name. When set, large render / separation outputs are uploaded and the `/download` endpoint **302-redirects** to a SigV4 presigned URL. **R2 egress is free**, so this decouples Cloud Run instance time *and* zeros out egress cost. Blank falls back to `respondFile` streaming (the dev path). |
-| `R2_ACCOUNT_ID` | | — | 32-char hex from `dash.cloudflare.com/<id>/r2`. Determines the S3 endpoint host. Required when `R2_BUCKET` is set. |
+| `R2_BUCKET` | | *(blank)* | Cloudflare R2 bucket name. When set, large render / separation outputs are uploaded and the `/download` endpoints **302-redirect** to a SigV4 presigned URL. **R2 egress is free**, so this decouples Cloud Run instance time *and* zeros out egress cost. Blank falls back to `respondFile` streaming (the dev path). |
+| `R2_ACCOUNT_ID` | | — | 32-char hex from `dash.cloudflare.com/<id>/r2`. Determines the S3 endpoint host as `https://{accountId}.r2.cloudflarestorage.com` (no separate endpoint var). Required when `R2_BUCKET` is set. |
 | `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | | — | R2 API token (Object Read & Write). Issued in Cloudflare dashboard → R2 → Manage API Tokens. Required when `R2_BUCKET` is set. |
 | `SIGNED_URL_TTL_SEC` | | `900` (15m) | Presigned URL lifetime (s). 60..86400. Only consulted when `R2_BUCKET` is set. |
 
-### Separation / signing
+### Separation
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
-| `SEPARATION_SIGNING_SECRET` | ✅ | — | HMAC key for stem / mix download URLs. **Enforced ≥ 32 chars.** Generate with `openssl rand -hex 32`. Rotation invalidates all unexpired tokens at once. |
-| `SEPARATION_ABANDON_TTL_MS` | | `604800000` (7d) | Time (ms) before READY-but-uncollected separation results are cleaned up. Must be ≥ 60_000. Matches the "resume separation later" window the mobile client assumes. |
-| `SEPARATION_MIX_TTL_MS` | | `600000` (10m) | Mix artifact retention time (ms). Must be ≥ 60_000. |
-| `SEPARATION_URL_TTL_SEC` | | `604800` (7d) | Stem download token lifetime (s). 60..604800. Must not exceed `SEPARATION_ABANDON_TTL_MS` — a live token for a reaped job has no server-side mapping. |
-| `SEPARATION_MIX_URL_TTL_SEC` | | `600` (10m) | Mix download token lifetime (s). 60..604800. |
-
-### Vertex AI Gemini (chat assistant)
-
-Boot succeeds even if these are missing, as long as chat is not used — they are validated on first call.
-
-| Key | Required | Default | Description |
-|---|:-:|---|---|
-| `GEMINI_PROJECT_ID` | | — | Vertex AI project. Named `GEMINI_*` (not `GCP_*`) so the Cloud Run hosting project and the Vertex-AI-enabled project can differ. |
-| `GEMINI_LOCATION` | | `us-central1` | Vertex AI region. |
-| `GEMINI_MODEL` | | `gemini-2.5-flash` | Model ID. |
-| `GOOGLE_APPLICATION_CREDENTIALS` | | — | Path to a local service account JSON. Leave blank to fall back to Application Default Credentials — on Cloud Run that resolves to the attached SA via the metadata server; locally it resolves to the `gcloud auth application-default login` cache. |
+| `SEPARATION_SIGNING_SECRET` | ✅ | — | HMAC key for stem download URLs. **Enforced ≥ 32 chars.** Generate with `openssl rand -hex 32`. Rotation invalidates all unexpired tokens at once. |
+| `SEPARATION_ABANDON_TTL_MS` | | `604800000` (7d) | Time (ms) before READY-but-uncollected separation results are cleaned up. Matches the "resume separation later" window the mobile client assumes. |
+| `SEPARATION_URL_TTL_SEC` | | `604800` (7d) | Stem download token lifetime (s). 60..604800. **Must not exceed** `SEPARATION_ABANDON_TTL_MS` — a live token for a reaped job has no server-side mapping. |
+| `SEPARATION_MAX_PERSO_IN_FLIGHT` | | `2` | BFF-side concurrency cap for Perso `/audio-separation` calls. The dispatcher queues additional requests. Default `2` keeps "1 running + 1 Perso-side queued" so there is no idle gap. |
 
 ### Authentication (Google + Apple Sign In + own JWT)
 
@@ -68,23 +58,47 @@ Boot succeeds even if these are missing, as long as chat is not used — they ar
 | `AUTH_JWT_SECRET` | ✅ | — | HMAC-SHA256 signing key. **Enforced ≥ 32 chars.** Rotation invalidates every unexpired JWT at once. |
 | `AUTH_JWT_EXPIRY_SECONDS` | | `604800` (7d) | Issued access token lifetime (s). 60..7776000 (90 days). |
 
-### Postgres (user upsert)
+### Postgres (user upsert + credits + jobs)
 
-The BFF persists `(provider, providerSub)` tuples into a Postgres `users` table on every sign-in. Neon free tier is sufficient.
+The BFF persists `(provider, providerSub)` tuples into a Postgres `users` table on every sign-in, plus credit balances, IAP transactions, render/separation job history. Neon free tier is sufficient.
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
 | `DATABASE_URL` | ✅ | — | JDBC URL. Format: `jdbc:postgresql://<host>/<db>?sslmode=require`. H2 also accepted for local tests. |
 | `DB_USER` | ✅ | — | DB role. |
 | `DB_PASSWORD` | ✅ | — | DB password. |
-| `DB_MAX_POOL` | | `5` | HikariCP pool size (1..50). Neon free tier 100 connection cap. |
+| `DB_MAX_POOL` | | `5` | HikariCP pool size. Neon free tier 100 connection cap — 5 per instance is generous. |
 
-### Perso storage host + SSRF whitelist
+### Admin UI
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
-| `PERSO_STORAGE_BASE_URL` | | `https://portal-media.perso.ai` | Audio-separation `/download` responses point at this CDN host (`/perso-storage/...` paths), not `PERSO_BASE_URL`. The auth header is **not** sent to this host. |
-| `PERSO_DOWNLOAD_ALLOWED_HOSTS` | | `portal-media.perso.ai` | Comma-separated SSRF whitelist. `PERSO_BASE_URL` and `PERSO_STORAGE_BASE_URL` hosts are added automatically. |
+| `ADMIN_SLUG` | | *(blank = disabled)* | Unguessable mount path — when set, the admin SPA is served at `/${ADMIN_SLUG}/`. Alphanumeric / dash / underscore, 6..64 chars. Example: `ADMIN_SLUG=x-vb-2026-panel`. |
+
+### IAP receipt verifiers (App Store / Play Billing)
+
+`POST /api/v2/credits/purchase` won't credit anything until the receipt is verified upstream. When the platform's required keys are blank, that platform's purchase calls return `400 iap_unconfigured`.
+
+| Key | Required | Default | Description |
+|---|:-:|---|---|
+| `IAP_APPLE_ISSUER_ID` | (per platform) | — | App Store Connect → Users and Access → Keys → Issuer ID (UUID). |
+| `IAP_APPLE_KEY_ID` | (per platform) | — | 10-char Key ID of the In-App Purchase key. |
+| `IAP_APPLE_PRIVATE_KEY` | (per platform) | — | `.p8` private key body. Newlines may be passed as literal `\n` — AppConfig restores real newlines. |
+| `IAP_APPLE_BUNDLE_ID` | (per platform) | — | iOS app bundle id. Verified against the receipt's `bundleId`. |
+| `IAP_APPLE_ENV` | | `production` | `production` for App Store, `sandbox` for TestFlight / sandbox tester. |
+| `IAP_GOOGLE_PACKAGE_NAME` | (per platform) | — | Android app package name. |
+| `IAP_GOOGLE_SERVICE_ACCOUNT_JSON` | (per platform) | — | Service account JSON body for the Android Publisher API. Single-line OK — the JSON parser handles it. |
+
+### Error monitoring (Sentry)
+
+Boot is a no-op when `SENTRY_DSN_BFF` is blank — dev/test won't pollute the production Sentry project.
+
+| Key | Required | Default | Description |
+|---|:-:|---|---|
+| `SENTRY_DSN_BFF` | | *(blank = disabled)* | Sentry project DSN. |
+| `SENTRY_ENV` | | `dev` | Tag for filtering (e.g. `prod`, `staging`). |
+| `SENTRY_TRACES_SAMPLE_RATE` | | `0.1` | Performance trace sampling rate (0.0..1.0). |
+| `SENTRY_RELEASE` | | — | Release identifier — CI should inject the git SHA so Sentry can group issues by deploy. |
 
 ### Runtime tunables (process-level)
 
@@ -92,11 +106,14 @@ These bypass `AppConfig` and are read directly from the process environment — 
 
 | Key | Default | Description |
 |---|---|---|
-| `MAX_UPLOAD_FILE_SIZE_MB` | `500` | Multipart upload ceiling. Tie to the Cloud Run `--memory` tier — `1Gi` → `200`, `4Gi` → `1000`. Applied to every `receiveMultipart(formFieldLimit=…)` call. |
+| `MAX_UPLOAD_FILE_SIZE_MB` | `500` | General multipart upload ceiling (`POST /render`, `/render/inputs`, asset PUT size cap). Tie to the Cloud Run `--memory` tier — `1Gi` → `200`, `4Gi` → `1000`. |
+| `MAX_SEPARATION_AUDIO_MB` | `100` | Separation-only audio upload ceiling. Mobile sends trimmed m4a/mp3/wav — 60min AAC 192k is ~86 MB, so 100 MB has safe margin. |
+| `RENDER_INPUT_CACHE_TTL_HOURS` | `24` | TTL of the multipart `/render/inputs` cache. Increase when users edit N variants over many hours. |
+| `ASSET_CACHE_TTL_HOURS` | `24` | TTL of the on-disk asset cache used by `/render/v3` after downloading R2 bytes. Hourly sweep removes expired entries. |
+| `RENDER_MAX_CONCURRENT` | CPU count / 2 | ffmpeg fan-out cap. Set explicitly when containerized hosts misreport `availableProcessors()`. |
 | `HTTP_CONNECT_TIMEOUT_MS` | `120000` (120s) | Ktor HTTP client `connectTimeoutMillis`. Extend for cold starts on the upstream. |
 | `HTTP_REQUEST_TIMEOUT_MS` | `600000` (600s) | `requestTimeoutMillis`. Large Perso uploads sit on this. |
 | `HTTP_SOCKET_TIMEOUT_MS` | `600000` (600s) | `socketTimeoutMillis`. Same situation as above. |
-| `RENDER_MAX_CONCURRENT` | CPU count | ffmpeg fan-out cap for the render pipeline. |
 
 ### Symptoms on missing values
 
@@ -109,8 +126,8 @@ These bypass `AppConfig` and are read directly from the process environment — 
 | `GOOGLE_OAUTH_CLIENT_IDS` | `GOOGLE_OAUTH_CLIENT_IDS must not be empty (comma-separated)` |
 | `DATABASE_URL` | `DATABASE_URL must not be blank` |
 | `DB_USER` / `DB_PASSWORD` | Hikari fails to initialize the pool at startup. |
-| `GEMINI_PROJECT_ID` missing | Boot succeeds. 5xx on first call to `/api/v2/chat`. |
-| `GOOGLE_APPLICATION_CREDENTIALS` missing **and** no ADC cache **and** not on Cloud Run | Boot succeeds. Gemini calls fail with `Could not load credentials`. |
+| `R2_BUCKET` set, `R2_ACCOUNT_ID` blank | Boot fails — R2 config validates as all-or-nothing. |
+| `IAP_APPLE_*` partial | Apple receipt verifier is null. `POST /credits/purchase` with `platform=apple` returns `400 iap_unconfigured`. |
 | `STORAGE_PATH` directory missing | Boot succeeds. `IOException` on first upload. Recommended to pre-create: `mkdir -p ./storage/{uploads,render,separation}`. |
 
 ---
@@ -156,5 +173,6 @@ When using a LAN IP, additional setup may be required — see [`../how-to/connec
 ## Code references
 
 - `vibi-bff/src/main/kotlin/com/vibi/bff/config/AppConfig.kt` — env → validated `AppConfig` data class.
-- `vibi-bff/build.gradle.kts` — `application { mainClass.set(...) }` + build output paths.
-- Workspace root [`README.md`](../../README.md) — BFF_BASE_URL per-target table (this document is the single source of truth; the README is an excerpt).
+- `vibi-bff/src/main/kotlin/com/vibi/bff/Constants.kt` — `MAX_UPLOAD_FILE_SIZE`, `MAX_SEPARATION_AUDIO_SIZE`.
+- `vibi-bff/src/main/resources/application.conf` — HOCON template that env vars override.
+- `vibi-bff/src/main/kotlin/com/vibi/bff/Application.kt` — Sentry init + the process-level tunable reads.

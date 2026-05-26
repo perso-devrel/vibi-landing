@@ -20,7 +20,7 @@ For vibi, the domain gap between the two directories is large enough.
 | Framework | Ktor 3 + ffmpeg/ffprobe | Compose Multiplatform + Ktor Client + Room v19 |
 | Build unit | single gradle project | KMP `:shared` + CMP `:cmp` + Xcode `iosApp` |
 | Common pitfalls | multipart 50MB limit, ffmpeg path escaping, Perso 5xx backoff | NSURL absolute paths, AVAsset lazy load, configuration cache |
-| External calls | Perso · Vertex AI Gemini | (none — only calls the BFF) |
+| External calls | Perso | (none — only calls the BFF) |
 
 If one agent had to cover both, it would have to throw away half of its context every turn — handling Ktor's `StatusPages` mapping in one turn, then the NSData conversion in expect/actual the next. The *per-domain pitfall sets* (Known bug patterns) and the *service-layer maps* are too different.
 
@@ -60,7 +60,7 @@ If a subagent's description spells out "which tasks are its territory," the pare
 ```
 bff-dev:  vibi-bff (Kotlin/Ktor 백엔드) 전용 서브에이전트.
           Ktor 3 + kotlinx.serialization + ffmpeg/ffprobe 서비스 레이어 범위.
-          자막/자동더빙/렌더/오디오 분리 라우트 및 Perso/Gemini 프록시 작업에 호출.
+          렌더/오디오 분리 라우트 및 Perso 프록시 작업에 호출.
 
 kmp-dev:  vibi-mobile (KMP `:shared` 비즈니스 로직 + Compose Multiplatform `:cmp` UI
           + iosApp Xcode 엔트리) 전용 서브에이전트. 모바일 클라이언트의 모든 작업.

@@ -21,8 +21,7 @@ Step-by-step guides you follow end to end.
 
 - [`getting-started.md`](./learning/getting-started.md) — Environment setup → spin up BFF → mobile build → sign in → first app screen
 - [`tutorial-stem-separation.md`](./learning/tutorial-stem-separation.md) — Separate per-speaker stems, remix the selection, and insert into the timeline
-- [`tutorial-export-variants.md`](./learning/tutorial-export-variants.md) — Render multiple localized variants from a single edit with a shared input cache
-- [`tutorial-chat-assistant.md`](./learning/tutorial-chat-assistant.md) — Edit by talking — natural-language requests → typed proposals → auto-apply
+- [`tutorial-export-variants.md`](./learning/tutorial-export-variants.md) — End-to-end export pipeline from the timeline 저장 tap through the v3 asset-by-reference render flow
 
 ### [`reference/`](./reference/) — Look up
 Specs to search and consume when you need them.
