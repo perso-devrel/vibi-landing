@@ -82,5 +82,6 @@ export type Dict = {
     productLinks: LinkItem[];
     copyright: string; // template with {year}
     githubLinks: LinkItem[];
+    legalLinks: LinkItem[];
   };
 };

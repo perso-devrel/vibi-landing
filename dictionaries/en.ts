@@ -140,5 +140,9 @@ export const en: Dict = {
       { label: "vibi", href: "https://github.com/perso-devrel/vibi" },
       { label: "vibi-bff", href: "https://github.com/perso-devrel/vibi-bff" },
     ],
+    legalLinks: [
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
+    ],
   },
 };

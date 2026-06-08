@@ -699,9 +699,24 @@ function Footer({ dict }: { dict: Dict }) {
         style={{ borderColor: "var(--color-hairline-soft)" }}
       >
         <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-3 px-6 py-6 md:flex-row md:items-center">
-          <p className="caption" style={{ color: "var(--color-muted)" }}>
-            {copyright}
-          </p>
+          <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-5">
+            <p className="caption" style={{ color: "var(--color-muted)" }}>
+              {copyright}
+            </p>
+            <ul className="flex items-center gap-4">
+              {footer.legalLinks.map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    className="caption transition-opacity hover:opacity-60"
+                    style={{ color: "var(--color-muted)" }}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
           <ul className="flex items-center gap-4">
             {footer.githubLinks.map((g) => (
               <li key={g.href}>
