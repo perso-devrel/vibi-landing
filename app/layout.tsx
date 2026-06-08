@@ -20,7 +20,7 @@ const bodyLatin = Inter({
 export const metadata: Metadata = {
   title: dict.meta.title,
   description: dict.meta.description,
-  metadataBase: new URL("https://vibi.app"),
+  metadataBase: new URL("https://www.vibi.fm"),
   openGraph: {
     title: dict.meta.title,
     description: dict.meta.description,
