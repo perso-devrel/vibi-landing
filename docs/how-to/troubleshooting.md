@@ -88,33 +88,34 @@ cd vibi-mobile
 
 ## Room migration conflict / crash on first app launch
 
-**Symptom**: Immediate crash on first launch or after an update. Logs show `IllegalStateException: Migration didn't properly handle ...` or `A migration from N to M was required but not found`.
+**Symptom**: Immediate crash on first launch or after an update. Logs show `IllegalStateException: Cannot find a Migration ...` or a Room schema-mismatch trace.
 
-**Cause**: A DB with an older schema remains on the local device, and the code-side Migration list does not cover the path from that version.
+**Cause**: While vibi is in showcase mode, `:shared` runs Room **v5 with `fallbackToDestructiveMigration(dropAllTables=true)`** — every schema change drops the local DB on next open. Crashes during dev usually mean the install survived an aborted schema change, or you're running an old binary against a fresh schema.
 
 **Fix** (during development):
 - Android emulator: `adb uninstall com.vibi.cmp`, or clear app data
 - iOS simulator: long-press the vibi app on the simulator → Delete App
 - After reinstall, it starts from a fresh schema
 
-For a production scenario, first confirm that `MigrationsTest` and `Migration7To8Test` under `:shared:testDebugUnitTest` pass.
+Versioned migration code does not exist yet — that policy will be revisited before release. Until then, no `MigrationsTest`-style guards run in CI; the destructive fallback is the contract.
 
 ---
 
 ## `IOException: ... storage/uploads ...` on first BFF upload
 
-**Symptom**: BFF boots fine but the first multipart upload returns 500 with `NoSuchFileException` in the logs.
+**Symptom**: BFF boots fine but the first multipart upload returns 500 with `NoSuchFileException` or `Permission denied` in the logs.
 
-**Cause**: The `STORAGE_PATH` directory (default `./storage`) does not exist.
+**Cause**: `STORAGE_PATH` (default `./storage`) is auto-created by `FileStorageService` at boot, but the **parent path has to be writable**. Mounted volumes, read-only filesystems, or a `STORAGE_PATH` pointing at a path the BFF user has no write permission on all surface here.
 
-**Fix**: Create it before starting the BFF.
+**Fix**: Point `STORAGE_PATH` at a writable absolute path:
 
 ```bash
-cd vibi-bff
-mkdir -p storage/{uploads,render,separation}
+export STORAGE_PATH=/var/lib/vibi/storage   # Linux
+# or in .env
+STORAGE_PATH=/Users/<you>/vibi-bff-storage
 ```
 
-Or point `STORAGE_PATH` to an absolute path that already exists.
+The five subdirectories (`uploads`, `render`, `separation`, `render-input-cache`, `asset-cache`) are created on demand — you do not need to pre-create them.
 
 ---
 
@@ -150,7 +151,7 @@ Both must print output.
 
 **Cause**: Ktor 3.x's `receiveMultipart()` defaults `formFieldLimit` to 50MB.
 
-**Fix** (when BFF code edits are needed): For new multipart routes, pass `call.receiveMultipart(formFieldLimit = MAX_*_FILE_SIZE)` explicitly. Existing routes already do this (`SubtitleRoutes`, `AutoDubRoutes`, `SeparationRoutes`, `RenderRoutes`).
+**Fix** (when BFF code edits are needed): For new multipart routes, pass `call.receiveMultipart(formFieldLimit = MAX_*_FILE_SIZE)` explicitly. Existing routes already do this (`SeparationRoutes`, `RenderRoutes`, `/render/inputs`). The retired multipart routes (`SubtitleRoutes`, `AutoDubRoutes`) are gone — don't pattern-match against them.
 
 ---
 
@@ -198,4 +199,4 @@ Both must print output.
 | iOS simulator | `http://localhost:8080/` |
 | Physical device (Android / iOS) | Mac LAN IP — details in [`connect-real-device.md`](./connect-real-device.md) |
 
-After changing `local.properties`, **the app must be rebuilt** (`BFF_BASE_URL` is injected via BuildConfig and resolved at compile time).
+After changing `local.properties` (Android) or `iosApp/Configs/Auth.xcconfig` (iOS), **the app must be rebuilt** — `BFF_BASE_URL` is baked in at compile time (Android: BuildConfig from Gradle; iOS: xcconfig → `Info.plist` substitution). Re-run `./gradlew :cmp:assembleDebug --no-configuration-cache` for Android and Xcode "Clean Build Folder" + Run for iOS.

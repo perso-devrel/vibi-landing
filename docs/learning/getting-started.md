@@ -187,7 +187,9 @@ InputScreen lists past drafts (per signed-in user — A and B don't see each oth
 
 At this point the **first real call to the BFF** happens when you trigger stem separation or save an export. Dragging a range and tapping **"이 구간 음원분리"** is the fastest way to see a real Perso job complete — for the detailed flow see [`tutorial-stem-separation.md`](./tutorial-stem-separation.md).
 
-> Drafts are retained for 7 days (a small notice on InputScreen reminds you). Log out via the small text button at the bottom of InputScreen.
+> Stem separation is gated by an in-app credit balance (1 credit per minute of source, minimum 1). Signing in for the first time auto-grants a small signup bonus (`SIGNUP_BONUS_CREDITS`, currently `3`) — enough for short demo clips. When that runs out you top up via the credit purchase sheet (StoreKit / Play Billing) or, for ops, the admin-only `POST /api/v2/credits/admin-grant`. Without IAP keys configured (`IAP_APPLE_*` / `IAP_GOOGLE_*` blank in the BFF env), the purchase endpoint returns `400 iap_unconfigured` and admin-grant is the only path — bestow yourself the admin role in the `users` table to use it.
+
+> Drafts are retained for 7 days (a small notice on InputScreen reminds you). Log out via the user avatar in the top-right corner of InputScreen → "Sign out" in the `UserMenuSheet`.
 
 ## Success checklist
 
@@ -200,6 +202,6 @@ At this point the **first real call to the BFF** happens when you trigger stem s
 If you got here, **your dev environment is set up**. Next:
 
 - Walk through stem separation end-to-end → [`tutorial-stem-separation.md`](./tutorial-stem-separation.md)
-- Export your edit as multiple variants → [`tutorial-export-variants.md`](./tutorial-export-variants.md)
+- Export your edit through the v3 asset-by-reference flow → [`tutorial-export-variants.md`](./tutorial-export-variants.md)
 - Want to expose a BFF you spun up with your own Perso key to other devices → [`../how-to/deploy-your-own-bff.md`](../how-to/deploy-your-own-bff.md)
 - What external API calls the BFF intercepts, and why → [`../explanation/why-bff.md`](../explanation/why-bff.md)

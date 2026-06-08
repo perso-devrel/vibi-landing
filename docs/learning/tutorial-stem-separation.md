@@ -98,7 +98,7 @@ suspend fun getSeparationStatus(jobId: String): SeparationStatusResponse =
 
 The UI updates the progress overlay (an accent-color fill on the affected timeline range) until `status` becomes `READY` (typically 1–3× the trimmed window length). When `READY`, the response carries a `stems` array — each entry has `stemId`, a human label ("All speakers" / "Speaker 1" / …), and a signed `url` for that stem's audio.
 
-Each stem URL embeds an HMAC token good for `SEPARATION_URL_TTL_SEC` (default 30 minutes). On expiry, call `getSeparationStatus(jobId)` again to refresh.
+Each stem URL embeds an HMAC token good for `SEPARATION_URL_TTL_SEC` (default 7 days, capped by `SEPARATION_ABANDON_TTL_MS`). On expiry, call `getSeparationStatus(jobId)` again to refresh.
 
 ## 6. Auto-confirm + multi-directive timeline
 

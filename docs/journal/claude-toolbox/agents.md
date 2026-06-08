@@ -17,7 +17,7 @@ For vibi, the domain gap between the two directories is large enough.
 | | `vibi-bff` | `vibi-mobile` |
 |---|---|---|
 | Language | Kotlin (JVM) | Kotlin (Multiplatform — JVM + LLVM/iOS) |
-| Framework | Ktor 3 + ffmpeg/ffprobe | Compose Multiplatform + Ktor Client + Room v19 |
+| Framework | Ktor 3 + ffmpeg/ffprobe | Compose Multiplatform + Ktor Client + Room v5 (multiplatform, destructive migration) |
 | Build unit | single gradle project | KMP `:shared` + CMP `:cmp` + Xcode `iosApp` |
 | Common pitfalls | multipart 50MB limit, ffmpeg path escaping, Perso 5xx backoff | NSURL absolute paths, AVAsset lazy load, configuration cache |
 | External calls | Perso | (none — only calls the BFF) |

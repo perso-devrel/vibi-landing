@@ -50,12 +50,12 @@ All three steps are needed because *where the 0 comes from* differs per case —
 
 **Two workaround options** (in this order of preference):
 
-1. **Receive an already-muxed mp4 from the BFF and play it with a single AVPlayer** — the current dubbing preview pattern. Most robust. The mobile side never needs to manipulate audio; the BFF pre-mixes via ffmpeg.
+1. **Use `AVAudioPlayer` / `AVAudioEngine` instead of `AVPlayer` + `audioMix`** — `AVAudioPlayer.volume` *is* exposed in cinterop, so per-stem volume preview rides on `AVAudioPlayer` instances pooled in `StemMixer.ios.kt`. The final committed mix is deferred to the BFF's ffmpeg `amix=normalize=0` pass at `/render` time.
 2. **Swift bridge** — an `@objc class` on the iosApp side handles AVMutableAudioMix and returns an `AVPlayerItem`, injected via protocol from K/N.
 
 Don't try to work around it through cinterop — it dead-ends every time. Waste of time.
 
-**Observation**: KMP's "direct access to iOS native APIs" runs into the limit that *cinterop's surface is incomplete*. 90% of APIs are well exposed, but when the missing 10% lands on a critical path, the design itself has to route around it. After hitting this pitfall, vibi added the design principle *audio manipulation happens in the BFF mux*.
+**Observation**: KMP's "direct access to iOS native APIs" runs into the limit that *cinterop's surface is incomplete*. 90% of APIs are well exposed, but when the missing 10% lands on a critical path, the design itself has to route around it. After hitting this pitfall, vibi settled on the split *interactive preview = on-device `AVAudioPlayer` pool / final committed mix = BFF ffmpeg pass*.
 
 ## Pitfall 4 — `NSData → ByteArray` copy: using `allocArrayOf(bytes)` as the dest breaks everything
 

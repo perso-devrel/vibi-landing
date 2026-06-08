@@ -21,7 +21,7 @@ Step-by-step guides you follow end to end.
 
 - [`getting-started.md`](./learning/getting-started.md) — Environment setup → spin up BFF → mobile build → sign in → first app screen
 - [`tutorial-stem-separation.md`](./learning/tutorial-stem-separation.md) — Separate per-speaker stems, remix the selection, and insert into the timeline
-- [`tutorial-export-variants.md`](./learning/tutorial-export-variants.md) — End-to-end export pipeline from the timeline 저장 tap through the v3 asset-by-reference render flow
+- [`tutorial-export-variants.md`](./learning/tutorial-export-variants.md) — End-to-end export pipeline from the timeline 저장 tap through the v3 asset-by-reference render flow (single mp4 — multi-language variants were retired with the auto-dub / subtitle surface)
 
 ### [`reference/`](./reference/) — Look up
 Specs to search and consume when you need them.
@@ -42,7 +42,7 @@ The "why" and "how we decided" background.
 
 - [`why-bff.md`](./explanation/why-bff.md) — Why the mobile app does not call external APIs directly
 - [`why-kmp.md`](./explanation/why-kmp.md) — Why KMP/CMP over Flutter / RN
-- [`pipelines.md`](./explanation/pipelines.md) — Design of the stem-separation and multi-variant render pipelines
+- [`pipelines.md`](./explanation/pipelines.md) — Design of the stem-separation and asset-by-reference render pipelines
 
 ### [`journal/`](./journal/) — How it was built
 Not how to use vibi, but the meta and retrospective on *how vibi was built*.

@@ -13,7 +13,7 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 
 `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `SEPARATION_SIGNING_SECRET`, `AUTH_JWT_SECRET`, `GOOGLE_OAUTH_CLIENT_IDS`, `DATABASE_URL`, `DB_USER`, `DB_PASSWORD` are fail-fast at boot — the server exits immediately on missing or malformed values.
 
-> **Local dev vs Cloud Run.** `.env` is for local `./gradlew run` (and the one-shot `deploy/cloud-run.sh` bootstrap). The single source of runtime env for production Cloud Run is `.github/workflows/deploy.yml` — Secret Manager for sensitive values, GitHub Secrets for the deploy-time identities (`GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`, `GCP_PROJECT_ID`, `GCP_RUNTIME_SA_EMAIL`, `GOOGLE_OAUTH_CLIENT_IDS`), and GitHub Variables for plain config (`CORS_ALLOWED_ORIGINS`, `BFF_BASE_URL`). Update those in repo Settings → Secrets and variables → Actions, then push or "Run workflow". Comma-containing values are quoted via the `^@^` delimiter (see `deploy.yml`).
+> **Local dev vs Cloud Run.** `.env` is for local `./gradlew run` (and the one-shot `deploy/cloud-run.sh` bootstrap). The single source of runtime env for production Cloud Run is `.github/workflows/deploy.yml` — Secret Manager for sensitive values, GitHub Secrets for the deploy-time identities (`GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`, `GCP_PROJECT_ID`, `GCP_RUNTIME_SA_EMAIL`, `GOOGLE_OAUTH_CLIENT_IDS`, `GOOGLE_OAUTH_CLIENT_ID_ADMIN`, `APPLE_OAUTH_CLIENT_IDS`, `ADMIN_SLUG`), and GitHub Variables for plain config (`CORS_ALLOWED_ORIGINS`, `BFF_BASE_URL`, `R2_BUCKET`, `R2_ACCOUNT_ID`). Update those in repo Settings → Secrets and variables → Actions, then push or "Run workflow". Comma-containing values are quoted via the `^@^` delimiter (see `deploy.yml`).
 
 ### Perso AI
 
@@ -47,7 +47,8 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 | `SEPARATION_SIGNING_SECRET` | ✅ | — | HMAC key for stem download URLs. **Enforced ≥ 32 chars.** Generate with `openssl rand -hex 32`. Rotation invalidates all unexpired tokens at once. |
 | `SEPARATION_ABANDON_TTL_MS` | | `604800000` (7d) | Time (ms) before READY-but-uncollected separation results are cleaned up. Matches the "resume separation later" window the mobile client assumes. |
 | `SEPARATION_URL_TTL_SEC` | | `604800` (7d) | Stem download token lifetime (s). 60..604800. **Must not exceed** `SEPARATION_ABANDON_TTL_MS` — a live token for a reaped job has no server-side mapping. |
-| `SEPARATION_MAX_PERSO_IN_FLIGHT` | | `2` | BFF-side concurrency cap for Perso `/audio-separation` calls. The dispatcher queues additional requests. Default `2` keeps "1 running + 1 Perso-side queued" so there is no idle gap. |
+| `SEPARATION_MAX_PERSO_IN_FLIGHT` | | `2` | BFF-side concurrency cap for Perso `/audio-separation` calls. The dispatcher queues additional requests. Default `2` keeps "1 running + 1 Perso-side queued" so there is no idle gap. **1..5.** |
+| `SEPARATION_STUCK_SUBMITTING_SEC` | | `600` (10m) | If a job sits in `SUBMITTING` for more than this many seconds, the reaper treats the worker as dead and requeues the job. Must be **longer** than worst-case Perso upload + retry and **shorter** than the stale-QUEUED window (30 min). **60..1800.** |
 
 ### Authentication (Google + Apple Sign In + own JWT)
 
@@ -74,6 +75,7 @@ The BFF persists `(provider, providerSub)` tuples into a Postgres `users` table 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
 | `ADMIN_SLUG` | | *(blank = disabled)* | Unguessable mount path — when set, the admin SPA is served at `/${ADMIN_SLUG}/`. Alphanumeric / dash / underscore, 6..64 chars. Example: `ADMIN_SLUG=x-vb-2026-panel`. |
+| `VITE_GOOGLE_OAUTH_CLIENT_ID_ADMIN` | (build-time) | — | Google OAuth **web** client id inlined into the admin SPA bundle at `npm run build` time (Vite reads `VITE_*` env vars). Typically the same web client id you list in `GOOGLE_OAUTH_CLIENT_IDS`. If unset, the admin LoginPage renders a "build env missing" notice and the Google button is hidden. CI wires this from a GitHub Secret named `GOOGLE_OAUTH_CLIENT_ID_ADMIN`. |
 
 ### IAP receipt verifiers (App Store / Play Billing)
 
@@ -128,7 +130,7 @@ These bypass `AppConfig` and are read directly from the process environment — 
 | `DB_USER` / `DB_PASSWORD` | Hikari fails to initialize the pool at startup. |
 | `R2_BUCKET` set, `R2_ACCOUNT_ID` blank | Boot fails — R2 config validates as all-or-nothing. |
 | `IAP_APPLE_*` partial | Apple receipt verifier is null. `POST /credits/purchase` with `platform=apple` returns `400 iap_unconfigured`. |
-| `STORAGE_PATH` directory missing | Boot succeeds. `IOException` on first upload. Recommended to pre-create: `mkdir -p ./storage/{uploads,render,separation}`. |
+| `STORAGE_PATH` parent not writable | `FileStorageService` mkdirs the path on boot, so a missing directory is fine. But if the **parent** is read-only or owned by a different user, boot logs `Storage initialized at ...` and the first upload throws `IOException: Permission denied`. Point `STORAGE_PATH` at a writable absolute path. |
 
 ---
 

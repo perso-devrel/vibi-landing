@@ -6,9 +6,9 @@ Specification for every endpoint the vibi mobile client calls. The **Swagger UI*
 - Auth: most endpoints require `Authorization: Bearer <jwt>` (BFF-issued JWT). Issuance: `POST /api/v2/auth/google` or `POST /api/v2/auth/apple`.
 - multipart upload form-field limits are noted separately (must be called out when over 50MB — see `vibi-bff/CLAUDE.md` "Known BFF bug patterns").
 - Full response model definitions: `vibi-bff/src/main/kotlin/com/vibi/bff/model/BffModels.kt` (plus `AuthModels.kt`, `CreditModels.kt`, `PersoModels.kt`).
-- **Download endpoints (`/render/{id}/download`, `/separate/{id}/stem/{stemId}`, `/separate/mix/{id}/download`) 302-redirect to a Cloudflare R2 SigV4 presigned URL when `R2_BUCKET` is set** — R2 egress is free, so Cloud Run instance *and* egress cost are both decoupled from the byte stream. When `R2_BUCKET` is blank (the local-dev path) the same routes fall back to `respondFile` streaming. Clients must follow redirects.
+- **Download endpoints (`/render/{id}/download`, `/separate/{id}/stem/{stemId}`) 302-redirect to a Cloudflare R2 SigV4 presigned URL when `R2_BUCKET` is set** — R2 egress is free, so Cloud Run instance *and* egress cost are both decoupled from the byte stream. When `R2_BUCKET` is blank (the local-dev path) the same routes fall back to `respondFile` streaming. Clients must follow redirects.
 
-> **Removed surfaces** (BFF commit `52f8d7c refactor(bff): sticker/자막/더빙 surface 절단`, plus later cuts): `/api/v2/subtitles*`, `/api/v2/autodub*`, `/api/v2/lipsync*`, sticker overlays in `/render`, subtitle burn-in in `/render`, `/api/v2/chat` (Gemini function-calling assistant), `/api/v2/languages`, and the server-side mix endpoints `POST /api/v2/separate/{id}/mix` / `GET /api/v2/separate/mix/{id}{,/download}`. Final mix is now performed inside `/render` via `RenderConfig.separationDirectives[*].selections[]`; volume-slider preview during stem editing is done locally on the mobile side (multi-player playback). The mobile `BffApi.kt` still has dead `requestStemMix` / `getMixStatus` / `downloadMix` methods — they will 404.
+> **Removed surfaces** (BFF commit `52f8d7c refactor(bff): sticker/자막/더빙 surface 절단`, plus later cuts): `/api/v2/subtitles*`, `/api/v2/autodub*`, `/api/v2/lipsync*`, sticker overlays in `/render`, subtitle burn-in in `/render`, `/api/v2/chat` (Gemini function-calling assistant), `/api/v2/languages`, and the server-side mix endpoints `POST /api/v2/separate/{id}/mix` / `GET /api/v2/separate/mix/{id}{,/download}`. Final mix is now performed inside `/render` via `RenderConfig.separationDirectives[*].selections[]`; volume-slider preview during stem editing is done locally on the mobile side (multi-player playback). The mobile `BffApi.kt` has been pruned to match — none of the dead caller methods remain.
 
 Table of contents:
 
@@ -17,6 +17,7 @@ Table of contents:
 - [Render (multipart + v3 asset-by-reference)](#render-multipart--v3-asset-by-reference)
 - [Asset upload (v3)](#asset-upload-v3)
 - [Audio separation + remix](#audio-separation--remix)
+- [Admin (read-only)](#admin-read-only)
 - [Dev testdata](#dev-testdata)
 
 ---
@@ -58,6 +59,8 @@ Permanently deletes the authenticated user. FK cascade clears `user_credits`, `c
 ## Credits + IAP
 
 The mobile client gates audio separation on a credit balance (1 credit per minute of separation source, rounded up, minimum 1). IAP receipts are verified directly against Apple/Google upstream APIs before crediting the balance.
+
+> **Signup bonus.** The first successful `/auth/{google,apple}` upsert grants `SIGNUP_BONUS_CREDITS` (currently `3`) via `CreditRepository.grantSignupBonus` — recorded in the ledger as `(kind='signup', ref_id="signup-<userId>")`, UNIQUE-idempotent so a duplicate sign-in won't double-grant. Grant failures are logged but never block the sign-in itself.
 
 ### `GET /api/v2/credits`
 
@@ -103,7 +106,7 @@ Admin-role-only test/demo top-up. No receipt verification. Each call gets a fres
 
 ## Render (multipart + v3 asset-by-reference)
 
-Local ffmpeg pipeline. Multi-segment normalize → concat demuxer (`-c copy`) → final mix (`-c:v copy`, BGM `atrim`+`amix`, optional audio_override).
+Local ffmpeg pipeline. Multi-segment normalize → concat demuxer (`-c copy`) → final mix (`-c:v copy`, BGM `atrim`+`amix`, separation stem `amix normalize=0`).
 
 Two submission paths coexist:
 
@@ -112,7 +115,7 @@ Two submission paths coexist:
 
 ### `POST /api/v2/render/inputs`
 
-For multi-variant export, uploads the source video once and caches it. The returned `inputId` is passed to `POST /render` to avoid multipart re-upload cost. `inputId = sha256(video)[:16]`, so the same file resolves to the same slot on retry. TTL default 24h (`RENDER_INPUT_CACHE_TTL_HOURS`), hourly sweep.
+Legacy companion to multipart `POST /render`. Uploads the source video once and caches it so the same video can back several follow-up renders without re-multiparting. The returned `inputId` is passed to `POST /render` as a form field to skip the `video*` parts. `inputId = sha256(video)[:16]`, so the same file resolves to the same slot on retry. TTL default 24h (`RENDER_INPUT_CACHE_TTL_HOURS`), hourly sweep. The current mobile build uses `/render/v3` for the same effect via R2 asset addressing — `/render/inputs` stays as a fallback when `R2_BUCKET` isn't configured.
 
 **Request** — multipart `video` (one part).
 
@@ -124,12 +127,12 @@ For multi-variant export, uploads the source video once and caches it. The retur
 | Field | Description |
 |---|---|
 | `inputId` | (optional) Cache ID returned by `/render/inputs`. If present, the `video*` parts are skipped. |
-| `video` *(legacy)* / `video_0`, `video_1`, … | Source video. |
-| `segment_image_0`, … | Still image for IMAGE-type segments. |
-| `audio_0`, `audio_1`, … | Dub audio tracks (referenced from `dubClips[]`). |
+| `video` *(legacy single-video mode)* / `video_0`, `video_1`, … | Source video. |
 | `bgm_0`, … | BGM tracks (referenced from `bgmClips[]`). |
-| `audio_override` | (optional) Replaces the source video's original audio entirely. |
+| `inputId` | (optional) Re-use a previously uploaded video from `/render/inputs` instead of resending bytes. |
 | `config` | JSON `RenderConfig` (form-item). |
+
+Sticker overlays, dub clips, image segments, and audio-override are all gone — the remaining render surface is segment concat + BGM amix + separation stem amix.
 
 **RenderConfig** — two modes:
 
@@ -281,6 +284,21 @@ Status + signed URL per stem on `READY`. Also returns `actualDurationMs` (measur
 Signed stem audio stream. 401 if no token, 403 if expired.
 
 > **Final mix lives in `/render`, not `/separate`** — the volume-slider preview while the user edits stems plays the stem URLs locally (multi-player AVAudioPlayer / ExoPlayer mix on the mobile side). The final committed mix is performed by `/render` via `RenderConfig.separationDirectives[*].selections[]`, where each selection passes a stem URL + volume. ffmpeg `amix` runs with `normalize=0` so unmuting all stems preserves the original loudness (commit `92e1758`). The BFF checks every `selections[].audioUrl` is its own HMAC-signed `/separate/.../stem/` URL — foreign URLs are rejected with `400 invalid_stem_url`.
+
+---
+
+## Admin (read-only)
+
+`/api/v2/admin/*` is mounted unconditionally on the BFF, but every handler enforces `requireAdmin(jwtSecret)` — the JWT must carry the `admin` role or the call returns `403`. There are no mutating routes; admins read aggregated KPIs and per-user activity only. The admin SPA itself ships in-process and is mounted at `/${ADMIN_SLUG}/` only when `ADMIN_SLUG` is set (see [`environment.md`](./environment.md)).
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v2/admin/overview` | Top KPI cards — total users, total jobs, cumulative source duration, 7-day active users. |
+| GET | `/api/v2/admin/stats/daily` | Daily trend. `from` / `to` are ISO dates; default = last 30 days. `from` inclusive, `to` exclusive. |
+| GET | `/api/v2/admin/users` | Paged user list with per-user job counters + last-activity timestamp. |
+| GET | `/api/v2/admin/users/{userId}/jobs` | Render + separation job history for a single user. |
+
+Code: `vibi-bff/.../routes/AdminRoutes.kt` + `service/AdminRepository.kt`. DTOs in `model/AdminModels.kt`.
 
 ---
 

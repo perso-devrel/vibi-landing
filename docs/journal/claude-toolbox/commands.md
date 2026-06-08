@@ -21,7 +21,7 @@ design       → implement       → contract check → review    → ship
 
 [`.claude/commands/plan.md`](../../../.claude/commands/plan.md)
 
-When cross-directory work comes in — e.g. "reflect BGM context in automatic subtitle generation" — designing BFF, shared, and cmp simultaneously in a single agent's head always leaves one side underbaked. So the command forces six explicit phases:
+When cross-directory work comes in — e.g. "add an admin grant button that surfaces the new credit balance in the mobile user menu" — designing BFF, shared, and cmp simultaneously in a single agent's head always leaves one side underbaked. So the command forces six explicit phases:
 
 1. Impact scope (BFF route? shared DTO? cmp UI? iOS adapter?)
 2. **Design from the BFF first** — the BFF is the contract's source of truth
@@ -42,7 +42,7 @@ The BFF's routes/DTOs and mobile shared's `BffApi`/DTOs *aren't linked at compil
 
 1. **Endpoint coverage** — BFF's `/api/v2/*` lines up 1:1 with mobile `BffApi` methods
 2. **DTO field consistency** — `@SerialName`, types, nullability
-3. **Multipart part names** — keys like `video_0`/`audio_0`/`image_0`/`config` match character for character
+3. **Multipart part names** — keys like `video_0`/`bgm_0`/`file`/`spec`/`config`/`inputId` match character for character
 4. **HTTP status codes** — BFF `ErrorHandling` mapping ↔ mobile `expectSuccess = true` `ResponseException` handling
 5. **Domain interface consistency** — `AudioSeparationRepository` and friends correspond logically to BFF endpoints
 

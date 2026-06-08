@@ -27,8 +27,8 @@ Each skill is user-invocable via trigger keywords (e.g. "render", "separation", 
 `render-pipeline.md` and `separation-pipeline.md` are like that. Each has:
 
 - Its own routes (`RenderRoutes.kt`, `SeparationRoutes.kt`)
-- Its own 1–2 services (`RenderService` / `SeparationService` + `StemMixService`)
-- Its own multipart key convention (`video_0`/`audio_0`/`image_0`... vs `file`/`spec`)
+- Its own 1–2 services (`RenderService` + `RenderInputCacheService` / `SeparationService`)
+- Its own multipart key convention (`video_0`/`bgm_0`/`inputId`... vs `file`/`spec`)
 - Its own external dependency (assembling ffmpeg commands vs Perso's 3-step upload → translate → poll → download)
 - Its own collection of pitfalls (Windows path escaping vs Perso 5xx backoff)
 

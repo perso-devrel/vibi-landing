@@ -52,9 +52,9 @@ If it had been RN/Flutter, the same migration would have meant rewriting the dom
 
 ### Shared (`commonMain`)
 
-- Domain model (`DubClip`, `Segment`, `Stem`, `EditProject`, ...)
-- Repository interfaces + implementations (Room + BFF Ktor Client)
-- UseCases (input · subtitle · separation · timeline · text · bgm · image · save · draft · export)
+- Domain model (`Segment`, `Stem`, `BgmClip`, `SeparationDirective`, `EditProject`, ...)
+- Repository interfaces + implementations (Room v5 + BFF Ktor Client)
+- UseCases (input · separation · timeline · text · bgm · image · save · draft · export)
 - ViewModels (Koin)
 - DI modules
 - All UI (Compose Multiplatform — `:cmp/commonMain`)
@@ -65,8 +65,10 @@ If it had been RN/Flutter, the same migration would have meant rewriting the dom
 - `VideoPlayer` — Android `Media3 ExoPlayer`, iOS `AVPlayer`
 - `VideoMetadataExtractor` — `MediaMetadataRetriever` vs `AVURLAsset`
 - `GallerySaver` — `MediaStore` vs `PHPhotoLibrary`
-- `ExportPlatformAdapter` — Android uses ffmpeg-kit + content URI, iOS delegates to BFF `/api/v2/render`
-- Multipart uploader for auto-dub and captions (`MediaJobUploader`) — per-platform file handle differences
+- `GoogleSignInClient` / `AppleSignInClient` — Credential Manager + GoogleSignIn SPM vs `AuthenticationServices`
+- `StemMixer` — Android ExoPlayer multi-instance vs iOS `AVAudioEngine` graph
+- `ExportPlatformAdapter` — both platforms delegate the render to BFF `/api/v2/render` (legacy) or `/render/v3` (current asset-by-reference flow); the platform side handles input upload + gallery save
+- `MediaJobUploader` — multipart upload of trimmed separation audio. Per-platform file handle differences (Android `Uri` + `ContentResolver` vs iOS `NSURL` + `NSData`).
 - Time, UUID, and File system primitives
 
 This divergence is explicit via KMP's `expect fun` / `expect class` — meaning the IDE can navigate which platform-specific code lives where. Different from the implicit divergence of plugins and bridges.

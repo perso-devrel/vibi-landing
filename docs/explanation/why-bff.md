@@ -33,9 +33,9 @@ Mobile calls only **vibi-bff's `/api/v2`**. External keys exist only in the BFF'
 1. **API key isolation** — the core motivation. Keys only in server env vars, zero in the mobile bundle.
 2. **Unified error model** — each external API has a different error shape; the BFF normalizes them to a single `ErrorResponse(error, detail?)`. The client only has to write one error-handling path. The mapping lives in [`../reference/error-contract.md`](../reference/error-contract.md).
 3. **Vendor abstraction** — if the upstream needs to change (different provider, dual-vendor failover), swap at the BFF layer *without rebuilding or redeploying mobile*. vibi currently runs a single-vendor Perso configuration, but the seam exists.
-4. **Signed downloads** — stem · mix · dub artifacts are not statically mounted but signed with HMAC tokens. Rotating `SEPARATION_SIGNING_SECRET` once invalidates every unexpired token.
+4. **Signed downloads** — separation stems and (when R2 is configured) render outputs are not statically mounted but gated by HMAC tokens (stems) or short-lived SigV4 presigned URLs (render outputs). Rotating `SEPARATION_SIGNING_SECRET` once invalidates every unexpired stem token.
 5. **Coalesced external calls** — when a single mobile action would otherwise fan out to multiple Perso endpoints (e.g. submit + poll + download + storage-host hop), the BFF executes that sequence inline and exposes a single typed job to mobile.
-6. **Local ffmpeg pipeline** — multi-segment concat · BGM `atrim`+`amix` sub-range mixing · multi-variant render with shared input cache are all done by the BFF directly with ffmpeg. Mobile does not need to embed ffmpeg-kit ([`pipelines.md`](./pipelines.md)).
+6. **Local ffmpeg pipeline** — multi-segment concat · BGM `atrim`+`amix` sub-range mixing · separation stem `amix normalize=0` are all done by the BFF directly with ffmpeg. Mobile does not need to embed ffmpeg-kit ([`pipelines.md`](./pipelines.md)).
 
 ### Tradeoffs
 
