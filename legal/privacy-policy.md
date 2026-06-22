@@ -1,9 +1,9 @@
 # Privacy Policy
 
 **Effective date:** June 8, 2026
-**Last updated:** June 8, 2026
+**Last updated:** June 22, 2026
 
-This Privacy Policy explains how **vibi** ("**vibi**", "**we**", "**us**", or "**our**") collects, uses, shares, and protects information when you use the **vibi** mobile application (the "**App**"; iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`) and related services (together, the "**Service**").
+This Privacy Policy explains how **vibi** ("**vibi**", "**we**", "**us**", or "**our**") collects, uses, shares, and protects information when you use the **vibi** mobile application (the "**App**"; iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`), the **vibi panel for Adobe Premiere Pro** (the "**Plugin**"), and our related backend services (together, the "**Service**"). The App and the Plugin share the same vibi account and backend.
 
 By using the Service, you agree to the practices described here. If you do not agree, please do not use the Service.
 
@@ -28,10 +28,10 @@ We only collect what the App needs to function. **We do not use any advertising,
 
 ### 2.1 Information you provide
 - **Account information** — when you sign in with Google or Apple, we receive your **email address**, **display name**, and a provider **user identifier**. With Sign in with Apple you may choose to hide your email (Apple relay address).
-- **Media you upload for editing** — the **video and audio files** you select to process (e.g., for voice/music separation and rendering), and the project settings you create (segment timings, audio levels, language selection).
+- **Media you upload for editing** — the **video and audio files** you select to process (e.g., for voice/music separation and rendering). In the Plugin this is the audio from a local file or from a clip in your Premiere Pro project/timeline. We also receive the project settings you create (segment timings, audio levels, language/speaker selection).
 
 ### 2.2 Information created when you use the Service
-- **Processed media** — derived audio stems and rendered videos produced from your uploads.
+- **Processed media** — derived audio stems, **timecoded transcripts / diarized scripts (which include the words spoken in your audio and the speaker labels assigned to them)**, and rendered videos produced from your uploads.
 - **Account identifiers** — an internal user ID and authentication token (JWT) issued by our backend.
 - **Credit balance and usage** — how many credits you hold and consume. New accounts receive a small number of free credits.
 - **Purchase records** — if and when paid credits become available, the app store sends us a **receipt / purchase token**, **product ID**, **platform** (Apple or Google), and **transaction ID**. We never receive or store your full payment card details — payment is handled by Apple or Google.
@@ -48,6 +48,8 @@ The App requests these permissions only for the stated purpose, and only when ne
 | Microphone | iOS / Android | Record audio to insert into your timeline |
 | Photo library (read) | iOS / Android | Let you pick a video to edit |
 | Save to photo library | iOS / Android | Save the finished video to your device |
+
+The **Plugin** does not use mobile device permissions. It reads only the audio you choose — a local file, or a clip from your Premiere Pro project/timeline — and writes results back to the location you select, using the local file access Adobe Premiere Pro grants it.
 
 We do **not** collect location, contacts, or health data.
 
@@ -72,7 +74,7 @@ We do **not** sell your personal data, and we do **not** use it for advertising 
 
 ## 4. How your media is processed
 
-When you edit a video, the App uploads your media to our backend and to **Cloudflare R2** object storage for processing (audio separation and video rendering). Processing is automated. Once a job finishes and you download the result, your uploaded source files and intermediate stems are retained only as described in **§7**.
+When you process media (in the App or the Plugin), we upload it to our backend, to our AI processing provider **Perso** (perso.ai) — which performs the audio separation and speech transcription — and to **Cloudflare R2** object storage. Processing is automated. Your uploaded source files and the derived results are retained only as described in **§7**.
 
 ---
 
@@ -85,7 +87,9 @@ We share data only with the service providers ("processors") needed to run the S
 | **Google** (Sign-In) | Authentication | OAuth token, profile basics |
 | **Apple** (Sign in with Apple) | Authentication | OAuth token, profile basics |
 | **Apple App Store / Google Play** | Process in-app purchases | Purchase receipt / token |
+| **Perso** (perso.ai) | AI audio separation & speech transcription | Uploaded audio; derived stems and transcript |
 | **Cloudflare** (R2 object storage) | Store and transfer your media | Uploaded media, rendered output |
+| **Paddle** | Process web/desktop credit purchases, where offered (e.g. via the Plugin) | Purchase / transaction details (no card data) |
 
 We may also disclose data when **required by law**, to **enforce our Terms**, or in connection with a **merger, acquisition, or sale of assets** (you will be notified of any such change).
 
@@ -104,7 +108,8 @@ We are based in the **Republic of Korea**, and our service providers (including 
 | Data | Retention |
 |---|---|
 | Account data (email, name, user ID) | Until you delete your account, then removed within **30 days** |
-| Uploaded source media & intermediate stems | Deleted within **72 hours** of job completion |
+| Uploaded source media | Deleted within **72 hours** of job completion |
+| Separation results you keep as history (stems + transcript) | Until you delete them, or up to **90 days** |
 | Rendered output | Until you delete it, or up to **30 days** |
 | Purchase records | As required by tax/accounting law (typically **5 years**) |
 | Crash logs | **90 days** |
@@ -113,7 +118,7 @@ We are based in the **Republic of Korea**, and our service providers (including 
 
 ## 8. Your rights
 
-Depending on where you live, you have some or all of the following rights. To exercise any of them, contact **jepark2934@gmail.com**. We will respond within the time the law requires (e.g., 30 days under GDPR, 45 days under CCPA). You can also **delete your account directly in the App**, which deletes your account data.
+Depending on where you live, you have some or all of the following rights. To exercise any of them, contact **jepark2934@gmail.com**. We will respond within the time the law requires (e.g., 30 days under GDPR, 45 days under CCPA). You can also **delete your account in the mobile App** (Settings → Account), or **request deletion by emailing us** at the address above (including if you only use the Premiere Pro Plugin) — either removes your account data.
 
 ### 8.1 EU / EEA & UK (GDPR / UK GDPR)
 Access, rectification, erasure, restriction, portability, objection, and the right to withdraw consent. You may also lodge a complaint with your local supervisory authority.
@@ -137,7 +142,7 @@ We protect your data with encryption in transit (HTTPS/TLS), access controls, to
 
 ## 10. Account deletion
 
-You can delete your account at any time from within the App (Settings → Account). Deletion removes your account data per **§7**. Some records may be retained where the law requires (e.g., purchase/tax records).
+You can delete your account at any time from within the mobile App (Settings → Account), or by emailing **jepark2934@gmail.com** from any platform (including the Premiere Pro Plugin, which does not have an in-panel deletion control). Deletion removes your account data per **§7**. Some records may be retained where the law requires (e.g., purchase/tax records).
 
 ---
 

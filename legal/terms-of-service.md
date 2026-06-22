@@ -1,9 +1,9 @@
 # Terms of Service
 
 **Effective date:** June 8, 2026
-**Last updated:** June 8, 2026
+**Last updated:** June 22, 2026
 
-These Terms of Service ("**Terms**") are a binding agreement between you and **vibi** ("**vibi**", "**we**", "**us**", "**our**") governing your use of the **vibi** mobile application (iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`) and related services (the "**Service**").
+These Terms of Service ("**Terms**") are a binding agreement between you and **vibi** ("**vibi**", "**we**", "**us**", "**our**") governing your use of the **vibi** mobile application (iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`), the **vibi panel for Adobe Premiere Pro**, and our related backend services (the "**Service**").
 
 **By creating an account or using the Service, you agree to these Terms and to our [Privacy Policy](/privacy).** If you do not agree, do not use the Service.
 
@@ -26,14 +26,14 @@ You must be at least **14 years old** (or the higher minimum age required in you
 
 ## 3. The Service
 
-vibi lets you edit videos — including AI-assisted **voice/music separation**, adding background music, and **rendering** a finished video. Processing happens partly on your device and partly on our servers. We may change, add, or remove features over time.
+vibi lets you edit audio and video — including AI-assisted **voice/music separation**, **speech transcription/speaker diarization**, adding background music, and **rendering**. The **Premiere Pro panel** separates a clip's audio into per-speaker stems plus a timecoded transcript and sends the result back into your project. Processing happens partly on your device and partly on our servers (and our AI processor, Perso). We may change, add, or remove features over time.
 
 ---
 
 ## 4. Credits and purchases
 
 - Some features (e.g., audio separation, rendering) consume **credits**. New accounts receive a small number of **free credits**.
-- Where paid credits are offered, they are purchased through **Apple In-App Purchase** or **Google Play Billing**. Those stores process payment and their terms apply.
+- Where paid credits are offered, they are purchased through **Apple In-App Purchase** or **Google Play Billing** (in the mobile App), or **Paddle** (for web/desktop, including the Premiere Pro panel). Those providers process payment and their terms apply.
 - **Prices** are shown in the App before purchase and may change prospectively.
 - Credits are a **limited license to use Service features**, have **no cash value**, are **non-transferable**, and are **not redeemable for money** except where the law requires.
 - Credits **do not expire** unless an expiry is disclosed at the time of purchase.
@@ -76,7 +76,7 @@ The Service, including the App, software, branding, and "vibi" name and logo, is
 
 ## 8. Third-party services
 
-The Service relies on third parties (Apple, Google, and our hosting/storage providers). Their terms and policies apply to their portions, and we are not responsible for third-party services.
+The Service relies on third parties (Apple, Google, Adobe, our AI processor **Perso**, the **Paddle** payment platform, and our hosting/storage providers such as Cloudflare). Their terms and policies apply to their portions, and we are not responsible for third-party services. If you obtained the Premiere Pro panel through the **Adobe Marketplace / Exchange**, your use is also subject to Adobe's applicable terms.
 
 ---
 
