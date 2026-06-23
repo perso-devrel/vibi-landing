@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **Effective date:** June 8, 2026
-**Last updated:** June 22, 2026
+**Last updated:** June 23, 2026
 
 This Privacy Policy explains how **vibi** ("**vibi**", "**we**", "**us**", or "**our**") collects, uses, shares, and protects information when you use the **vibi** mobile application (the "**App**"; iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`), the **vibi panel for Adobe Premiere Pro** (the "**Plugin**"), and our related backend services (together, the "**Service**"). The App and the Plugin share the same vibi account and backend.
 
@@ -136,7 +136,7 @@ We extend equivalent rights to users elsewhere on request, to the extent applica
 
 ## 9. Security
 
-We protect your data with encryption in transit (HTTPS/TLS), access controls, token-based authentication, and presigned, time-limited URLs for media transfer. No method of transmission or storage is 100% secure, but we work to protect your information and will notify you and regulators of a breach where the law requires.
+We protect your data with encryption in transit (HTTPS/TLS), access controls, token-based authentication (your sign-in token is kept in the device's secure storage — the **iOS Keychain** or **Android private app storage**, excluded from device backups), and presigned, time-limited URLs for media transfer. No method of transmission or storage is 100% secure, but we work to protect your information and will notify you and regulators of a breach where the law requires.
 
 ---
 
