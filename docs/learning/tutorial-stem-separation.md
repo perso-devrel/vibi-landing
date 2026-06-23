@@ -62,7 +62,7 @@ The BFF console prints lines like:
 The route lives at `vibi-bff/src/main/kotlin/com/vibi/bff/routes/SeparationRoutes.kt`. It:
 
 1. Whitelists the upload codec — `m4a` / `mp3` / `wav` only. Anything else (e.g. `flac`, video, `ogg`) → `400 unsupported_audio_format`. Perso's separation pipeline silently fails on FLAC even though earlier upload steps succeed; the BFF blocks at the front door.
-2. Charges credits (`1 per minute of source, minimum 1`). Insufficient balance → `402 insufficient_credits`. On job failure the charge is refunded (idempotent — no-op if already refunded).
+2. Charges credits (`1 credit per started 5 minutes of source`, `ceil`, minimum 1) **at submit time**. Insufficient balance → `402 insufficient_credits`. On job failure the charge is refunded (idempotent — no-op if already refunded).
 3. Hands the file off to `SeparationService.start(jobId, spec)`. Returns `{ "jobId": "sep-..." }` immediately; the job runs in the background.
 
 > Why trim on the **mobile** side? Perso bills by length, and the mobile client already has the source on disk — extracting + trimming locally saves a 50 MB+ round trip when the user only wants 10 seconds. The BFF receives a small m4a and forwards it straight to Perso.

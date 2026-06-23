@@ -21,7 +21,7 @@ Or grab a zip under your account and unpack it — either works.
 cp .env.example .env
 ```
 
-Keys to fill in `.env`:
+Keys to fill in `.env` (these are **fail-fast at boot** — a blank or malformed value exits immediately):
 
 ```dotenv
 PERSO_API_KEY=<your_perso_api_key>
@@ -29,7 +29,13 @@ PERSO_SPACE_SEQ=<your_workspace_seq>
 SEPARATION_SIGNING_SECRET=<output of: openssl rand -hex 32>
 AUTH_JWT_SECRET=<output of: openssl rand -hex 32>
 GOOGLE_OAUTH_CLIENT_IDS=<iOS, Android, Web client ids — comma-separated>
+# Postgres — Neon free tier is enough. sslmode is now enforced (require / verify-ca / verify-full).
+DATABASE_URL=jdbc:postgresql://<host>.neon.tech/neondb?sslmode=require
+DB_USER=<db_role>
+DB_PASSWORD=<db_password>
 ```
+
+> The BFF persists users, credits, and job history in Postgres, so the three `DB*` keys are required — boot fails with `DATABASE_URL must not be blank` otherwise. An `jdbc:h2:` URL is accepted for a throwaway local run.
 
 Optional: R2 for egress-free downloads, IAP verifier keys for credit purchases, Sentry DSN for error monitoring. Full table in [`../reference/environment.md`](../reference/environment.md).
 
@@ -50,10 +56,10 @@ Success signal:
 Live check:
 
 ```bash
-curl -I http://localhost:8080/swagger
+curl -i http://localhost:8080/healthz
 ```
 
-`HTTP/1.1 200 OK` confirms Ktor is up and routing. The Perso key isn't exercised until you submit a `/api/v2/separate` job — if that returns 401/402 → [`troubleshooting.md#perso-402--payment-required`](./troubleshooting.md#perso-402--payment-required).
+`HTTP/1.1 200 OK` confirms Ktor is up and routing. (`/healthz` is the always-on readiness probe; the Swagger UI at `/swagger` only mounts when you set `ENABLE_SWAGGER=true` in `.env`.) The Perso key isn't exercised until you submit a `/api/v2/separate` job — if that returns 401/402 → [`troubleshooting.md#perso-402--payment-required`](./troubleshooting.md#perso-402--payment-required).
 
 ## 4. External exposure options
 
@@ -132,11 +138,12 @@ What goes where (Settings → Secrets and variables → Actions):
 | **Variable** | `CORS_ALLOWED_ORIGINS` | Plain comma list — visible in workflow logs intentionally. |
 | **Variable** | `BFF_BASE_URL` | Optional. Set when you own a custom domain (`https://api.example.com`); leave blank to self-reference the Cloud Run-issued URL. |
 | **Variable** | `R2_BUCKET`, `R2_ACCOUNT_ID` | Optional. When `R2_BUCKET` is set, big render / separation outputs 302-redirect to a Cloudflare R2 SigV4 presigned URL — **R2 egress is free**, so this decouples Cloud Run egress *and* zeros out its cost. `R2_ACCOUNT_ID` is the 32-char hex from the Cloudflare dashboard URL. |
-| **Secret Manager** | `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `AUTH_JWT_SECRET`, `SEPARATION_SIGNING_SECRET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Created by `deploy/cloud-run.sh` from your `.env`. The workflow mounts them via `--set-secrets`. R2 credentials are an API token (Object Read & Write) issued in the Cloudflare dashboard. |
+| **Secret Manager** | `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `AUTH_JWT_SECRET`, `SEPARATION_SIGNING_SECRET`, `DATABASE_URL`, `DB_USER`, `DB_PASSWORD`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` (+ `IAP_APPLE_ISSUER_ID` / `IAP_APPLE_KEY_ID` / `IAP_APPLE_PRIVATE_KEY` when billing is live) | Created by `deploy/cloud-run.sh` from your `.env`. The workflow mounts them via `--set-secrets`. R2 credentials are an API token (Object Read & Write) issued in the Cloudflare dashboard. |
 
 After that, `git push origin main` ships a new revision. Two things worth flagging on first read of `deploy.yml`:
 
 - **`^@^` delimiter** — `--set-env-vars` uses `^@^` as the entry separator instead of the default `,`, because `GOOGLE_OAUTH_CLIENT_IDS` itself contains commas. Switching the delimiter to `@` lets the comma-bearing value stay inline.
+- **Scale-to-zero runtime spec** — the deploy step pins `--cpu 1 --memory 2Gi --cpu-boost --concurrency 4 --timeout 600 --min-instances 0 --max-instances 2 --no-cpu-throttling --session-affinity` in `us-central1`. `--min-instances 0` means the service costs nothing while idle (it cold-starts on the next request); `--no-cpu-throttling` keeps CPU allocated for the instance's whole lifetime so background ffmpeg renders and Perso polling keep advancing between requests; `--session-affinity` pins a polling client to the instance holding its job. This pairs with **Neon's idle compute suspend** (the BFF drains its DB connection pool when idle), so a quiet deployment scales the app *and* the database toward zero cost. Behind Cloud Run's proxy, set the `RATE_LIMIT_TRUSTED_PROXY_HOPS` Variable to `1` so the rate-limiter reads the real client IP.
 
 The runtime credential is the Cloud Run **attached service account** (`GCP_RUNTIME_SA_EMAIL`). Memory-tier vs upload-size: scale `MAX_UPLOAD_FILE_SIZE_MB` down when running on `--memory 1Gi`, up on `4Gi+`.
 

@@ -13,7 +13,7 @@ Do not hardcode keys, secrets, or internal IPs in code — use `<placeholder>` o
 
 `PERSO_API_KEY`, `PERSO_SPACE_SEQ`, `SEPARATION_SIGNING_SECRET`, `AUTH_JWT_SECRET`, `GOOGLE_OAUTH_CLIENT_IDS`, `DATABASE_URL`, `DB_USER`, `DB_PASSWORD` are fail-fast at boot — the server exits immediately on missing or malformed values.
 
-> **Local dev vs Cloud Run.** `.env` is for local `./gradlew run` (and the one-shot `deploy/cloud-run.sh` bootstrap). The single source of runtime env for production Cloud Run is `.github/workflows/deploy.yml` — Secret Manager for sensitive values, GitHub Secrets for the deploy-time identities (`GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`, `GCP_PROJECT_ID`, `GCP_RUNTIME_SA_EMAIL`, `GOOGLE_OAUTH_CLIENT_IDS`, `GOOGLE_OAUTH_CLIENT_ID_ADMIN`, `APPLE_OAUTH_CLIENT_IDS`, `ADMIN_SLUG`), and GitHub Variables for plain config (`CORS_ALLOWED_ORIGINS`, `BFF_BASE_URL`, `R2_BUCKET`, `R2_ACCOUNT_ID`). Update those in repo Settings → Secrets and variables → Actions, then push or "Run workflow". Comma-containing values are quoted via the `^@^` delimiter (see `deploy.yml`).
+> **Local dev vs Cloud Run.** `.env` is for local `./gradlew run` (and the one-shot `deploy/cloud-run.sh` bootstrap). The single source of runtime env for production Cloud Run is `.github/workflows/deploy.yml` — Secret Manager for sensitive values, GitHub Secrets for the deploy-time identities (`GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`, `GCP_PROJECT_ID`, `GCP_RUNTIME_SA_EMAIL`, `GOOGLE_OAUTH_CLIENT_IDS`, `GOOGLE_OAUTH_CLIENT_ID_ADMIN`, `APPLE_OAUTH_CLIENT_IDS`, `ADMIN_SLUG`), and GitHub Variables for plain config (`CORS_ALLOWED_ORIGINS`, `BFF_BASE_URL`, `R2_BUCKET`, `R2_ACCOUNT_ID`). Update those in repo Settings → Secrets and variables → Actions, then push or "Run workflow". Comma-containing values are quoted via the `^@^` delimiter (see `deploy.yml`). Postgres credentials (`DATABASE_URL`, `DB_USER`, `DB_PASSWORD`) and the Apple IAP key (`IAP_APPLE_ISSUER_ID` / `IAP_APPLE_KEY_ID` / `IAP_APPLE_PRIVATE_KEY`) ride through Secret Manager; the non-secret IAP fields (`IAP_APPLE_BUNDLE_ID`, `IAP_APPLE_ENV`, `IAP_GOOGLE_PACKAGE_NAME`) and `RATE_LIMIT_TRUSTED_PROXY_HOPS` are GitHub Variables.
 
 ### Perso AI
 
@@ -65,7 +65,7 @@ The BFF persists `(provider, providerSub)` tuples into a Postgres `users` table 
 
 | Key | Required | Default | Description |
 |---|:-:|---|---|
-| `DATABASE_URL` | ✅ | — | JDBC URL. Format: `jdbc:postgresql://<host>/<db>?sslmode=require`. H2 also accepted for local tests. |
+| `DATABASE_URL` | ✅ | — | JDBC URL. Format: `jdbc:postgresql://<host>/<db>?sslmode=require`. For `jdbc:postgresql://` URLs the BFF now **fails boot if `sslmode` is absent or `sslmode=disable`** (`require`/`verify-ca`/`verify-full` accepted). H2 test URLs are exempt. |
 | `DB_USER` | ✅ | — | DB role. |
 | `DB_PASSWORD` | ✅ | — | DB password. |
 | `DB_MAX_POOL` | | `5` | HikariCP pool size. Neon free tier 100 connection cap — 5 per instance is generous. |
@@ -116,6 +116,19 @@ These bypass `AppConfig` and are read directly from the process environment — 
 | `HTTP_CONNECT_TIMEOUT_MS` | `120000` (120s) | Ktor HTTP client `connectTimeoutMillis`. Extend for cold starts on the upstream. |
 | `HTTP_REQUEST_TIMEOUT_MS` | `600000` (600s) | `requestTimeoutMillis`. Large Perso uploads sit on this. |
 | `HTTP_SOCKET_TIMEOUT_MS` | `600000` (600s) | `socketTimeoutMillis`. Same situation as above. |
+| `RATE_LIMIT_TRUSTED_PROXY_HOPS` | `0` | Trusted reverse-proxy hop count in front of the BFF. The rate-limiter reads the client IP that many positions from the **right** of `X-Forwarded-For` so a spoofed left-most entry can't dodge limits. Behind Cloud Run set `1`. |
+| `UPLOADS_TTL_HOURS` | `6` | Retention (hours) of the `uploads/` staging dir (raw uploaded PII media) before the sweep deletes it. |
+| `ADMIN_GRANT_DAILY_CAP` | `1000` | Max credits `POST /credits/admin-grant` may mint per rolling 24h before `429 admin_grant_daily_cap_exceeded`. |
+| `RENDER_PROCESS_TIMEOUT_MIN` | `30` | Hard timeout (minutes) on the final ffmpeg render pass — kills a wedged encode instead of holding the instance. |
+
+### Dev / debug toggles
+
+Off in production. Both expose surface that must never be public, so they are opt-in and ship blank in `.env.example`.
+
+| Key | Default | Description |
+|---|---|---|
+| `ENABLE_SWAGGER` | *(blank = off)* | `=true` mounts the Swagger UI at `/swagger`. It serves the **full unauthenticated** API spec, so it stays off everywhere except local exploration. Use `GET /healthz` for boot/liveness checks instead. |
+| `ENABLE_TESTDATA_MOCK` | *(blank = off)* | `=true` mounts the unauthenticated `/api/v2/testdata/separation/*` mock routes used to develop separation flows without hitting Perso. |
 
 ### Symptoms on missing values
 

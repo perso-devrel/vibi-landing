@@ -23,7 +23,7 @@ sequenceDiagram
 
     Note over M: AudioExtractor.trimAndExtract(uri, range)<br/>→ trimmed m4a (mobile-side)
     M->>B: POST /api/v2/separate<br/>multipart(file, SeparationSpec)
-    B->>B: Reserve credits (1 per minute, ≥1)
+    B->>B: Reserve credits (1 per started 5 min, ≥1)
     B-->>M: 202 { jobId: "sep-..." }
 
     Note over B,P: SeparationService.submit() (dispatcher queue)

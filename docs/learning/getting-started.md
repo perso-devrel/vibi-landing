@@ -75,9 +75,10 @@ Success signal:
 [main] INFO  Application - Responding at http://0.0.0.0:8080
 ```
 
-Open in a browser to verify:
+Verify it's up:
 
-- <http://localhost:8080/swagger> — API spec UI. If this loads, Ktor is up and routing.
+- `curl http://localhost:8080/healthz` returns `200` — the always-on readiness probe.
+- The Swagger API-spec UI at <http://localhost:8080/swagger> is mounted **only if you set `ENABLE_SWAGGER=true`** in `.env` (it's off by default, even locally). Add it when you want to browse the spec.
 
 > 🚧 If blocked: `PERSO_API_KEY must be set` / `SEPARATION_SIGNING_SECRET must be at least 32 chars` → [`../how-to/troubleshooting.md`](../how-to/troubleshooting.md).
 
@@ -187,14 +188,14 @@ InputScreen lists past drafts (per signed-in user — A and B don't see each oth
 
 At this point the **first real call to the BFF** happens when you trigger stem separation or save an export. Dragging a range and tapping **"이 구간 음원분리"** is the fastest way to see a real Perso job complete — for the detailed flow see [`tutorial-stem-separation.md`](./tutorial-stem-separation.md).
 
-> Stem separation is gated by an in-app credit balance (1 credit per minute of source, minimum 1). Signing in for the first time auto-grants a small signup bonus (`SIGNUP_BONUS_CREDITS`, currently `3`) — enough for short demo clips. When that runs out you top up via the credit purchase sheet (StoreKit / Play Billing) or, for ops, the admin-only `POST /api/v2/credits/admin-grant`. Without IAP keys configured (`IAP_APPLE_*` / `IAP_GOOGLE_*` blank in the BFF env), the purchase endpoint returns `400 iap_unconfigured` and admin-grant is the only path — bestow yourself the admin role in the `users` table to use it.
+> Stem separation is gated by an in-app credit balance (**1 credit per started 5 minutes** of source, rounded up, minimum 1). Signing in for the first time auto-grants a small signup bonus (`SIGNUP_BONUS_CREDITS`, currently `3`) — enough for short demo clips. The in-app purchase UI is currently **hidden (free pre-launch)** — the balance is shown but the buy flow is gated off — so when the bonus runs out the practical top-up is the admin-only `POST /api/v2/credits/admin-grant` (the `/credits/purchase` receipt-verification endpoint stays live for when billing switches on). Without IAP keys configured (`IAP_APPLE_*` / `IAP_GOOGLE_*` blank in the BFF env), purchase returns `400 iap_unconfigured` and admin-grant is the only path — bestow yourself the admin role in the `users` table to use it.
 
 > Drafts are retained for 7 days (a small notice on InputScreen reminds you). Log out via the user avatar in the top-right corner of InputScreen → "Sign out" in the `UserMenuSheet`.
 
 ## Success checklist
 
 - [ ] BFF console prints `Responding at http://0.0.0.0:8080`
-- [ ] <http://localhost:8080/swagger> loads in the browser
+- [ ] `curl http://localhost:8080/healthz` returns `200` (Swagger UI only if `ENABLE_SWAGGER=true`)
 - [ ] Android: `adb install` succeeds, Splash opens, Login lets you sign in with Google, InputScreen follows
 - [ ] iOS: same flow in the simulator (`Auth.xcconfig` filled in)
 - [ ] Upload a short video → reach the timeline screen

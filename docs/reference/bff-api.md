@@ -2,8 +2,11 @@
 
 Specification for every endpoint the vibi mobile client calls. The **Swagger UI** (`http://localhost:8080/swagger`) is the authoritative single source of truth; this markdown is an offline lookup / citation copy.
 
+- **Swagger is mounted only when `ENABLE_SWAGGER=true`** (off by default, including local dev — it exposes the full *unauthenticated* spec). For a liveness/readiness probe that's always on, use **`GET /healthz`** (unauthenticated, exempt from rate limiting, returns `200`).
 - All responses are JSON. Error shape: [`error-contract.md`](./error-contract.md).
-- Auth: most endpoints require `Authorization: Bearer <jwt>` (BFF-issued JWT). Issuance: `POST /api/v2/auth/google` or `POST /api/v2/auth/apple`.
+- Auth: most endpoints require `Authorization: Bearer <jwt>` (BFF-issued JWT). Issuance: `POST /api/v2/auth/google` or `POST /api/v2/auth/apple`. The BFF-issued JWT carries `iss="vibi-bff"` / `aud="vibi-mobile"`; tokens minted before this tightening (no `aud`) are rejected, so a one-time re-login is required after that deploy.
+- **Submit endpoints** (`POST /render`, `/render/v3`, `/render/inputs`, `POST /separate`) additionally re-check that the account still exists — a valid JWT for a since-deleted account → `401 account_deleted`. Polling/download GETs skip the DB check (no cost impact).
+- **Rate limits** (429 on exceed, Ktor `RateLimit` plugin): auth login **10/min** (per IP), render submit **10/min** and separation submit (`POST /separate`) **20/min** (per user, IP fallback). Status-poll and download GETs are not limited. Behind a proxy, set `RATE_LIMIT_TRUSTED_PROXY_HOPS` so the client IP is read from the right of `X-Forwarded-For`.
 - multipart upload form-field limits are noted separately (must be called out when over 50MB — see `vibi-bff/CLAUDE.md` "Known BFF bug patterns").
 - Full response model definitions: `vibi-bff/src/main/kotlin/com/vibi/bff/model/BffModels.kt` (plus `AuthModels.kt`, `CreditModels.kt`, `PersoModels.kt`).
 - **Download endpoints (`/render/{id}/download`, `/separate/{id}/stem/{stemId}`) 302-redirect to a Cloudflare R2 SigV4 presigned URL when `R2_BUCKET` is set** — R2 egress is free, so Cloud Run instance *and* egress cost are both decoupled from the byte stream. When `R2_BUCKET` is blank (the local-dev path) the same routes fall back to `respondFile` streaming. Clients must follow redirects.
@@ -48,7 +51,7 @@ Exchanges an Apple ID Token for a BFF JWT.
 
 ### `DELETE /api/v2/auth/account`
 
-Permanently deletes the authenticated user. FK cascade clears `user_credits`, `credit_transactions`, `render_jobs`, `separation_jobs` per the V5 migration policy. Satisfies the App Store guideline 5.1.1(v) "in-app account deletion" requirement.
+Permanently deletes the authenticated user. FK cascade clears `user_credits`, `credit_transactions`, `render_jobs`, `separation_jobs` per the V5 migration policy. Before deleting the row, an `AccountContentEraser` also removes that user's separation stems and render outputs from local disk **and R2** (GDPR/CCPA erasure). Satisfies the App Store guideline 5.1.1(v) "in-app account deletion" requirement.
 
 **Request** — empty body. `Authorization: Bearer <jwt>` required.
 
@@ -58,7 +61,7 @@ Permanently deletes the authenticated user. FK cascade clears `user_credits`, `c
 
 ## Credits + IAP
 
-The mobile client gates audio separation on a credit balance (1 credit per minute of separation source, rounded up, minimum 1). IAP receipts are verified directly against Apple/Google upstream APIs before crediting the balance.
+The mobile client gates audio separation on a credit balance. Cost is **1 credit per started 5 minutes** of separation-source duration — `ceil(durationMs / 5min)`, minimum 1 (`CreditCost.forSeparation`, `BILLABLE_BLOCK_MS = 5*60*1000`). A 1-second per-block grace (`BOUNDARY_GRACE_MS`) absorbs AAC encoder padding so the `/credits/cost` quote matches the deduction. IAP receipts are verified directly against Apple/Google upstream APIs before crediting the balance.
 
 > **Signup bonus.** The first successful `/auth/{google,apple}` upsert grants `SIGNUP_BONUS_CREDITS` (currently `3`) via `CreditRepository.grantSignupBonus` — recorded in the ledger as `(kind='signup', ref_id="signup-<userId>")`, UNIQUE-idempotent so a duplicate sign-in won't double-grant. Grant failures are logged but never block the sign-in itself.
 
@@ -96,7 +99,7 @@ Verifies a StoreKit2 / Play Billing receipt against Apple's App Store Server API
 
 ### `POST /api/v2/credits/admin-grant`
 
-Admin-role-only test/demo top-up. No receipt verification. Each call gets a fresh server-generated `txId` (`admin-<uuid>`) so repeated calls accumulate. Returns 403 unless the JWT subject has admin role.
+Admin-role-only test/demo top-up. No receipt verification. Each call gets a fresh server-generated `txId` (`admin-<uuid>`) so repeated calls accumulate. Returns 403 unless the JWT subject has admin role. Capped at `ADMIN_GRANT_DAILY_CAP` credits per rolling 24h (default `1000`) — over the cap → `429 admin_grant_daily_cap_exceeded`.
 
 **Request** — JSON `AdminGrantRequest { "productId" }`.
 
@@ -265,7 +268,7 @@ Mobile clients send audio only — trim + audio-extract (m4a AAC) happens on-dev
 
 > Earlier versions exposed `mediaType`, `numberOfSpeakers`, `trimStartMs/EndMs` etc. Those were removed when the contract became audio-only — the mobile client does trim/extraction itself, so the BFF doesn't need to. Old fields are tolerated (`AppJson` ignores unknown keys) but ignored.
 
-The route also charges credits before dispatching to Perso (cost = 1 per minute of source, minimum 1). Insufficient balance → `402 insufficient_credits`. On job failure the charge is refunded (idempotent — no-op if already refunded).
+The route charges credits **at submit time**, before dispatching to Perso — cost = **1 credit per started 5 minutes** of source duration (`ceil`, minimum 1; source length is ffprobe-measured, with a conservative size-based fallback on probe failure). Insufficient balance → `402 insufficient_credits` (detail `required=<n> balance=<n>`). On job failure or reaping the charge is refunded (idempotent — no-op if already refunded). Submit is also rate-limited to 20/min per user and rejects a deleted-account JWT with `401 account_deleted`.
 
 **Response** — `SeparationResponse { "jobId": "sep-..." }`.
 
@@ -289,14 +292,23 @@ Signed stem audio stream. 401 if no token, 403 if expired.
 
 ## Admin (read-only)
 
-`/api/v2/admin/*` is mounted unconditionally on the BFF, but every handler enforces `requireAdmin(jwtSecret)` — the JWT must carry the `admin` role or the call returns `403`. There are no mutating routes; admins read aggregated KPIs and per-user activity only. The admin SPA itself ships in-process and is mounted at `/${ADMIN_SLUG}/` only when `ADMIN_SLUG` is set (see [`environment.md`](./environment.md)).
+`/api/v2/admin/*` is mounted unconditionally on the BFF, but every handler enforces `requireAdmin(jwtSecret)` — the JWT must carry the `admin` role or the call returns `403 admin_required`. There are no mutating routes; admins read aggregated KPIs and per-user activity only. The admin SPA itself ships in-process and is mounted at `/${ADMIN_SLUG}/` only when `ADMIN_SLUG` is set (see [`environment.md`](./environment.md)).
 
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/api/v2/admin/overview` | Top KPI cards — total users, total jobs, cumulative source duration, 7-day active users. |
 | GET | `/api/v2/admin/stats/daily` | Daily trend. `from` / `to` are ISO dates; default = last 30 days. `from` inclusive, `to` exclusive. |
-| GET | `/api/v2/admin/users` | Paged user list with per-user job counters + last-activity timestamp. |
+| GET | `/api/v2/admin/users` | Paged user list with per-user job counters + last-activity timestamp. `limit` 1..200 (default 50), `offset` ≥0, `q` search. |
+| GET | `/api/v2/admin/stats/external-calls` | Perso daily call count + failure rate + p95 latency. |
+| GET | `/api/v2/admin/stats/duration-histogram` | Source-duration distribution (5 buckets). |
+| GET | `/api/v2/admin/jobs/active` | In-progress render + separation jobs. |
+| GET | `/api/v2/admin/stats/signups` | Daily new signups by provider. |
+| GET | `/api/v2/admin/revenue` | Paying users + sold credits + platform split (admin-grant excluded). |
+| GET | `/api/v2/admin/revenue/daily` | Daily IAP revenue trend (admin-grant excluded). |
+| GET | `/api/v2/admin/jobs/status-breakdown` | Job success / failure breakdown. |
 | GET | `/api/v2/admin/users/{userId}/jobs` | Render + separation job history for a single user. |
+
+Daily-range params validate: bad format → `400 invalid_from_date` / `invalid_to_date`; `from >= to` → `400 from_must_be_before_to`; span over 90 days → `400 range_too_wide`.
 
 Code: `vibi-bff/.../routes/AdminRoutes.kt` + `service/AdminRepository.kt`. DTOs in `model/AdminModels.kt`.
 
@@ -304,7 +316,7 @@ Code: `vibi-bff/.../routes/AdminRoutes.kt` + `service/AdminRepository.kt`. DTOs 
 
 ## Dev testdata
 
-These are mock endpoints for local development. Not authenticated.
+These are mock endpoints for local development. Not authenticated — so they are **mounted only when `ENABLE_TESTDATA_MOCK=true`** (off by default; never enabled in production).
 
 ### `GET /api/v2/testdata/separation/list`
 

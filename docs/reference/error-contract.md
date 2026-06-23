@@ -20,6 +20,7 @@ Code: `vibi-bff/src/main/kotlin/com/vibi/bff/plugins/ErrorHandling.kt`. The mobi
 |---|:-:|---|---|
 | `NotFoundException` | 404 | `cause.message` | Explicitly thrown by a route handler (e.g. `jobId not found`) |
 | `IllegalArgumentException` | 400 | `cause.message` | DTO validation via `require(...)` failure — most validation today flows through this path (free-form messages) |
+| `BadRequestException` | 400 | `bad_request` | Malformed / unparseable JSON request body (previously leaked as 500) |
 | `ApiErrorException` | (specified) | `errorCode` + `detail` | Structured validation failure with a stable machine code — see the catalog below |
 | `PersoApiException` (401) | 401 | `Authentication failed with Perso` | Upstream 401 |
 | `PersoApiException` (402) | 402 | `Insufficient Perso quota` | Upstream 402 (workspace limit) |
@@ -30,6 +31,8 @@ Code: `vibi-bff/src/main/kotlin/com/vibi/bff/plugins/ErrorHandling.kt`. The mobi
 | Client disconnect | (no response) | — | `ChannelWriteException`, `Broken pipe`, etc. are logged at DEBUG only |
 
 > The sanitize convention (`34b7002 fix(security)`) keeps raw upstream messages out of the `detail` field — Perso wording is mapped only by status code, and IAP verifier reasons collapse to a single `receipt_invalid` regardless of the underlying cause (refund vs wrong productId vs replay). Specifics live in BFF logs.
+
+> **`429` from rate limiting.** The Ktor `RateLimit` plugin guards auth login (10/min per IP), render submit (10/min) and separation submit (20/min, per user with IP fallback). A throttled request returns `429` with a `Retry-After` header and may not carry the standard `{error, detail}` body — branch on the **status**, not the body, for `429`. (The credits-specific `429 admin_grant_daily_cap_exceeded` above *does* use the structured body.)
 
 ---
 
@@ -50,6 +53,14 @@ Cases where the `error` field is a machine code rather than a human-readable sen
 | `iap_unconfigured` | 400 | `POST /credits/purchase` | Platform-side IAP verifier env (`IAP_APPLE_*` / `IAP_GOOGLE_*`) is blank |
 | `receipt_invalid` | 400 | `POST /credits/purchase` | Upstream verification failed (sanitized — internal reason in BFF logs only) |
 | `receipt_verify_unavailable` | 502 | `POST /credits/purchase` | Apple/Google upstream transient error. Safe to retry with the same `transactionId`. |
+| `admin_grant_daily_cap_exceeded` | 429 | `POST /credits/admin-grant` | Admin top-ups exceeded `ADMIN_GRANT_DAILY_CAP` (default 1000) in a rolling 24h |
+
+### Auth — submit endpoints
+
+| `error` | HTTP | Origin | Notes |
+|---|:-:|---|---|
+| `account_deleted` | 401 | `POST /render`, `/render/v3`, `/render/inputs`, `POST /separate` | A structurally-valid JWT whose user row no longer exists — the submit path re-checks account existence so a deleted account can't keep spending. Re-auth required. |
+| `admin_required` | 403 | `/api/v2/admin/*`, `POST /credits/admin-grant` | JWT lacks the `admin` role |
 
 ### Render — `/api/v2/render*`
 
@@ -100,6 +111,7 @@ catch (e: ResponseException) {
         "unsupported_audio_format"   -> showError("Pick an m4a / mp3 / wav file")
         "receipt_verify_unavailable" -> retryWithBackoff()           // 502, safe retry
         "iap_unconfigured"           -> hidePurchaseButton()         // dev/test build
+        "account_deleted"            -> forceReLogin()               // 401, token outlived the account
         else                         -> showGenericError(body.error)
     }
 }
