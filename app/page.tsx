@@ -1,14 +1,37 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import { dict, type Dict } from "@/dictionaries";
+import iosShot from "./_media/ios-editor.png";
+import pluginShot from "./_media/plugin-panel.png";
 import { Wordmark } from "@/app/_components/wordmark";
 import { BadgePill } from "@/app/_components/badge-pill";
 import { GithubGlyph } from "@/app/_components/github-glyph";
 
+// TODO(launch): PLACEHOLDER conversion URLs — DO NOT ship as-is.
+// APP_STORE_URL needs the real numeric App Store id; PREMIERE_URL must point at the
+// published Adobe Exchange listing (currently a search query that does not resolve to the app).
+const APP_STORE_URL = "https://apps.apple.com/app/vibi";
+const PREMIERE_URL = "https://exchange.adobe.com/apps/search?q=vibi";
+const PLUGIN_REPO_URL = "https://github.com/perso-devrel/vibi-adobe-plugin";
+
+// App-screenshot sizing — single knobs for the device/window mockups (px).
+const PHONE_FRAME_WIDTH = 212;
+const PLUGIN_PANEL_MAX_WIDTH = 372;
+
+const NAV_LINKS = [
+  { href: "#why", key: "why" as const },
+  { href: "#features", key: "features" as const },
+  { href: "#scenario", key: "scenario" as const },
+  { href: "#workflow", key: "workflow" as const },
+];
+
 export default function Home() {
   return (
     <main className="relative">
+      <JsonLd dict={dict} />
       <Nav dict={dict} />
-      <Hero dict={dict} />
+      <BrandHero dict={dict} />
+      <AppsSection dict={dict} />
       <Differentiator dict={dict} />
       <Features dict={dict} />
       <UseCase dict={dict} />
@@ -20,6 +43,55 @@ export default function Home() {
 }
 
 /* ────────────────────────────────────────────────────────── */
+/* Structured data (JSON-LD)                                   */
+/* ────────────────────────────────────────────────────────── */
+
+function JsonLd({ dict }: { dict: Dict }) {
+  const site = "https://www.vibi.fm";
+  const graph = [
+    {
+      "@type": "Organization",
+      "@id": `${site}/#org`,
+      name: "vibi",
+      url: site,
+      sameAs: ["https://github.com/perso-devrel/vibi", PLUGIN_REPO_URL],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${site}/#website`,
+      url: site,
+      name: "vibi",
+      description: dict.meta.description,
+      publisher: { "@id": `${site}/#org` },
+    },
+    {
+      "@type": "MobileApplication",
+      name: "vibi",
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "iOS 17+",
+      url: APP_STORE_URL,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      publisher: { "@id": `${site}/#org` },
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: dict.plugin.panelName,
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "Adobe Premiere Pro 26+",
+      url: PREMIERE_URL,
+      publisher: { "@id": `${site}/#org` },
+    },
+  ];
+  const json = { "@context": "https://schema.org", "@graph": graph };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+    />
+  );
+}
+
+/* ────────────────────────────────────────────────────────── */
 /* Nav                                                         */
 /* ────────────────────────────────────────────────────────── */
 
@@ -27,137 +99,337 @@ function Nav({ dict }: { dict: Dict }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
-        <a href="/" className="flex items-center gap-2">
+        <a href="#top" className="flex items-center gap-2">
           <Wordmark />
         </a>
-        <nav className="hidden items-center gap-8 text-[15px] font-medium text-[var(--color-ink)] md:flex">
-          <a href="#why" className="hover:opacity-60 transition-opacity">{dict.nav.why}</a>
-          <a href="#features" className="hover:opacity-60 transition-opacity">{dict.nav.features}</a>
-          <a href="#scenario" className="hover:opacity-60 transition-opacity">{dict.nav.scenario}</a>
-          <a href="#workflow" className="hover:opacity-60 transition-opacity">{dict.nav.workflow}</a>
+        <nav
+          aria-label="Primary"
+          className="hidden items-center gap-8 text-[15px] font-medium text-[var(--color-ink)] md:flex"
+        >
+          {NAV_LINKS.map((l) => (
+            <a key={l.href} href={l.href} className="hover:opacity-60 transition-opacity">
+              {dict.nav[l.key]}
+            </a>
+          ))}
         </nav>
         <div className="flex items-center gap-2">
-          <a href="/docs" className="btn-outline">
+          <a href="/docs" className="btn-outline hidden sm:inline-flex">
             {dict.nav.docs}
             <ArrowUpRightGlyph />
           </a>
-          <a href="https://apps.apple.com/app/vibi" className="btn-primary">
-            <AppleGlyph />
-            {dict.nav.appStore}
-          </a>
+          <MobileMenu dict={dict} />
         </div>
       </div>
     </header>
   );
 }
 
+/* CSS-only mobile menu — keeps the page a server component (no client JS). */
+function MobileMenu({ dict }: { dict: Dict }) {
+  return (
+    <details className="group relative md:hidden">
+      <summary
+        aria-label="Menu"
+        className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-full [&::-webkit-details-marker]:hidden"
+        style={{ border: "1px solid var(--color-hairline-strong)" }}
+      >
+        <MenuGlyph />
+      </summary>
+      <div
+        className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl bg-white py-2 shadow-lg"
+        style={{ border: "1px solid var(--color-hairline)" }}
+      >
+        <nav aria-label="Mobile" className="flex flex-col">
+          {NAV_LINKS.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="px-5 py-2.5 text-[15px] font-medium transition-colors hover:bg-[var(--color-canvas-soft)]"
+              style={{ color: "var(--color-ink)" }}
+            >
+              {dict.nav[l.key]}
+            </a>
+          ))}
+          <a
+            href="/docs"
+            className="px-5 py-2.5 text-[15px] font-medium transition-colors hover:bg-[var(--color-canvas-soft)]"
+            style={{ color: "var(--color-ink)" }}
+          >
+            {dict.nav.docs}
+          </a>
+        </nav>
+      </div>
+    </details>
+  );
+}
+
 /* ────────────────────────────────────────────────────────── */
-/* Hero                                                        */
+/* Brand hero — device-agnostic, value-prop first              */
 /* ────────────────────────────────────────────────────────── */
 
-function Hero({ dict }: { dict: Dict }) {
+function BrandHero({ dict }: { dict: Dict }) {
   const { hero } = dict;
   return (
     <section
       id="top"
       className="relative overflow-hidden"
-      style={{ paddingTop: "96px", paddingBottom: "96px" }}
+      style={{ paddingTop: "104px", paddingBottom: "96px" }}
     >
       <div
         aria-hidden
-        className="orb-mint pointer-events-none absolute -left-40 top-10 h-[520px] w-[520px] opacity-70 blur-[8px]"
+        className="orb-mint pointer-events-none absolute -left-40 top-0 h-[520px] w-[520px] opacity-70 blur-[8px]"
       />
       <div
         aria-hidden
-        className="orb-peach pointer-events-none absolute -right-32 top-40 h-[460px] w-[460px] opacity-70 blur-[8px]"
+        className="orb-peach pointer-events-none absolute -right-32 top-24 h-[460px] w-[460px] opacity-70 blur-[8px]"
       />
       <div
         aria-hidden
-        className="orb-lavender pointer-events-none absolute left-[30%] top-[60%] h-[420px] w-[420px] opacity-50 blur-[6px]"
+        className="orb-lavender pointer-events-none absolute left-[38%] top-[55%] h-[420px] w-[420px] opacity-45 blur-[6px]"
       />
 
-      <div className="relative z-10 mx-auto max-w-[1200px] px-6">
-        <BadgePill dot>{hero.badge}</BadgePill>
+      <div className="relative z-10 mx-auto max-w-[1100px] px-6 text-center">
+        <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
+          {hero.eyebrow}
+        </p>
 
         <h1
-          className="display-mega mt-8 max-w-[18ch] text-balance"
-          style={{ color: "var(--color-ink)" }}
+          className="display-mega mx-auto mt-5 max-w-[16ch] text-balance"
+          style={{ color: "var(--color-ink)", letterSpacing: "-0.03em" }}
         >
           {hero.titleLines[0]}
-          <br className="hidden md:block" /> {hero.titleLines[1]}
+          <br />
+          {hero.titleLines[1]}
         </h1>
 
         <p
-          className="body-md mt-6 max-w-[58ch] text-pretty"
+          className="body-md mx-auto mt-6 max-w-[60ch] text-pretty"
           style={{ color: "var(--color-body)" }}
         >
           {hero.body}
         </p>
 
-        <HeroCta hero={hero} />
-
-        <div
-          className="mt-12 flex flex-wrap items-baseline gap-x-8 gap-y-3 caption"
-          style={{ color: "var(--color-muted)" }}
-        >
-          {hero.stats.flatMap((s, i, all) => {
-            const node = <Stat key={`s-${i}`} value={s.value} label={s.label} />;
-            return i < all.length - 1
-              ? [node, <Dot key={`d-${i}`} />]
-              : [node];
-          })}
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+          {hero.chips.map((c) => (
+            <span
+              key={c}
+              className="caption-uppercase rounded-full px-3.5 py-1.5"
+              style={{ background: "var(--color-surface-strong)", color: "var(--color-ink)" }}
+            >
+              {c}
+            </span>
+          ))}
         </div>
 
-        <WaveformCard dict={dict} />
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href={APP_STORE_URL}
+            className="btn-primary"
+            style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+          >
+            <AppleGlyph />
+            {hero.ctaPrimary}
+          </a>
+          <a
+            href={PREMIERE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-primary"
+            style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+          >
+            <PremiereGlyph />
+            {hero.ctaSecondary}
+          </a>
+        </div>
+
+        <p className="caption mt-5" style={{ color: "var(--color-muted)" }}>
+          {hero.caption}
+        </p>
+
+        <div className="mx-auto mt-16 max-w-[920px] text-left">
+          <WaveformCard dict={dict} />
+        </div>
       </div>
     </section>
   );
 }
 
-function HeroCta({ hero }: { hero: Dict["hero"] }) {
+/* ────────────────────────────────────────────────────────── */
+/* Two apps, one engine — co-equal product cards               */
+/* ────────────────────────────────────────────────────────── */
+
+function AppsSection({ dict }: { dict: Dict }) {
+  const { apps } = dict;
+  const ios = apps.items.find((i) => i.kind === "ios")!;
+  const premiere = apps.items.find((i) => i.kind === "premiere")!;
   return (
-    <div className="mt-10 flex flex-wrap items-center gap-3">
-      <a
-        href="https://apps.apple.com/app/vibi"
-        className="btn-primary"
-        style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+    <Section id="apps">
+      <SectionHead eyebrow={apps.eyebrow} title={apps.title} body={apps.body} />
+
+      <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 md:items-stretch">
+        <AppCard id="app-ios" item={ios} accent="orb-mint" media={<PhoneMock />} />
+        <AppCard
+          id="app-premiere"
+          item={premiere}
+          accent="orb-sky"
+          media={
+            <div className="mx-auto w-full" style={{ maxWidth: PLUGIN_PANEL_MAX_WIDTH }}>
+              <WindowFrame title="Premiere Pro">
+                <PluginPanel />
+              </WindowFrame>
+            </div>
+          }
+        />
+      </div>
+    </Section>
+  );
+}
+
+function AppCard({
+  id,
+  item,
+  accent,
+  media,
+}: {
+  id: string;
+  item: Dict["apps"]["items"][number];
+  accent: string;
+  media: ReactNode;
+}) {
+  const isIos = item.kind === "ios";
+  const href = isIos ? APP_STORE_URL : PREMIERE_URL;
+  return (
+    <article
+      id={id}
+      className="relative flex scroll-mt-20 flex-col overflow-hidden rounded-2xl bg-white"
+      style={{ border: "1px solid var(--color-hairline)" }}
+    >
+      <div
+        className="relative grid place-items-center px-8 pb-12 pt-14"
+        style={{
+          minHeight: "380px",
+          background: "var(--color-canvas-soft)",
+          borderBottom: "1px solid var(--color-hairline)",
+        }}
       >
-        <AppleGlyph />
-        {hero.ctaPrimary}
-      </a>
-      <a
-        href="#features"
-        className="btn-outline"
-        style={{ height: "48px", padding: "0 22px" }}
+        <div
+          aria-hidden
+          className={`${accent} pointer-events-none absolute -right-10 -top-12 h-72 w-72 opacity-70`}
+        />
+        <div className="relative w-full max-w-[460px]">{media}</div>
+      </div>
+
+      <div className="flex flex-1 flex-col p-8">
+        <div className="flex items-center justify-between gap-3">
+          <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
+            {item.eyebrow}
+          </p>
+          <BadgePill>{item.badge}</BadgePill>
+        </div>
+
+        <h3 className="display-md mt-4" style={{ color: "var(--color-ink)" }}>
+          {item.tagline}
+        </h3>
+        <p className="body-md mt-3" style={{ color: "var(--color-body)" }}>
+          {item.body}
+        </p>
+
+        <ul className="mt-6 space-y-2.5">
+          {item.points.map((p) => (
+            <li
+              key={p}
+              className="body-sm flex items-center gap-3"
+              style={{ color: "var(--color-body-strong)" }}
+            >
+              <CheckGlyph />
+              {p}
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-auto pt-8">
+          <a
+            href={href}
+            className="btn-primary"
+            style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+            {...(isIos ? {} : { target: "_blank", rel: "noreferrer" })}
+          >
+            {isIos ? <AppleGlyph /> : <PremiereGlyph />}
+            {item.ctaLabel}
+          </a>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* iPhone device frame wrapping a real screenshot of the iOS editor */
+function PhoneMock() {
+  return (
+    <div className="mx-auto" style={{ width: PHONE_FRAME_WIDTH }}>
+      <div
+        className="relative rounded-[44px] p-[10px]"
+        style={{
+          background: "var(--color-ink)",
+          boxShadow: "0 24px 60px rgba(12,10,9,0.28)",
+        }}
       >
-        {hero.ctaSecondary}
-      </a>
-      <span className="caption ml-1" style={{ color: "var(--color-muted)" }}>
-        {hero.ctaCaption}
-      </span>
+        {/* Dynamic Island — overlays the screenshot's empty status-bar center */}
+        <div
+          aria-hidden
+          className="absolute left-1/2 top-[20px] z-10 h-[22px] w-[84px] -translate-x-1/2 rounded-full"
+          style={{ background: "var(--color-ink)" }}
+        />
+        <div className="overflow-hidden rounded-[36px]">
+          <Image
+            src={iosShot}
+            alt="vibi on iPhone — separating a clip into Speaker 1 and Background with per-range volume"
+            sizes="212px"
+            placeholder="blur"
+            className="block h-auto w-full"
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+/* macOS-style application window chrome around a panel */
+function WindowFrame({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <span className="flex items-baseline gap-2">
-      <span className="title-sm" style={{ color: "var(--color-ink)" }}>
-        {value}
-      </span>
-      <span>{label}</span>
-    </span>
+    <div
+      className="overflow-hidden rounded-xl bg-white"
+      style={{
+        border: "1px solid var(--color-hairline)",
+        boxShadow: "0 18px 44px rgba(12,10,9,0.14)",
+      }}
+    >
+      <div
+        className="flex items-center gap-3 px-4"
+        style={{
+          height: "38px",
+          background: "var(--color-canvas-soft)",
+          borderBottom: "1px solid var(--color-hairline)",
+        }}
+      >
+        {/* OS traffic lights — intentionally literal system colors, not brand tokens */}
+        <div className="flex items-center gap-1.5" aria-hidden>
+          <span className="h-3 w-3 rounded-full" style={{ background: "#ec6a5e" }} />
+          <span className="h-3 w-3 rounded-full" style={{ background: "#f4bf4f" }} />
+          <span className="h-3 w-3 rounded-full" style={{ background: "#61c554" }} />
+        </div>
+        <span className="caption" style={{ color: "var(--color-muted)" }}>
+          {title}
+        </span>
+      </div>
+      {children}
+    </div>
   );
 }
 
-function Dot() {
-  return (
-    <span
-      className="inline-block h-1 w-1 rounded-full"
-      style={{ background: "var(--color-hairline-strong)" }}
-    />
-  );
-}
+/* ────────────────────────────────────────────────────────── */
+/* Waveform card (neutral hero visual)                         */
+/* ────────────────────────────────────────────────────────── */
 
 function WaveformCard({ dict }: { dict: Dict }) {
   const { waveform } = dict;
@@ -169,7 +441,7 @@ function WaveformCard({ dict }: { dict: Dict }) {
 
   return (
     <figure
-      className="relative mt-20 overflow-hidden rounded-2xl bg-white"
+      className="relative overflow-hidden rounded-2xl bg-white"
       style={{
         border: "1px solid var(--color-hairline)",
         boxShadow: "0 4px 24px rgba(12,10,9,0.04)",
@@ -185,15 +457,12 @@ function WaveformCard({ dict }: { dict: Dict }) {
           style={{ borderColor: "var(--color-hairline)" }}
         >
           <div className="p-8">
-            <span
-              className="caption-uppercase"
-              style={{ color: "var(--color-muted)" }}
-            >
+            <span className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
               {waveform.filename}
             </span>
-            <h3 className="display-md mt-3" style={{ color: "var(--color-ink)" }}>
+            <p className="display-md mt-3" style={{ color: "var(--color-ink)" }}>
               {waveform.title}
-            </h3>
+            </p>
             <p className="body-sm mt-3" style={{ color: "var(--color-body)" }}>
               {waveform.body}
             </p>
@@ -208,21 +477,16 @@ function WaveformCard({ dict }: { dict: Dict }) {
         <div className="p-8">
           <ul className="divider-y">
             {waveform.tracks.map((t, idx) => {
-              const muted = idx === 1;
+              const muted = idx === 2;
               const bars = barPatterns[idx] ?? barPatterns[0];
               return (
-                <li
-                  key={t.name}
-                  className="flex items-center gap-5 py-4 first:pt-0 last:pb-0"
-                >
+                <li key={t.name} className="flex items-center gap-5 py-4 first:pt-0 last:pb-0">
                   <span
+                    aria-hidden
                     className="grid h-10 w-10 shrink-0 place-items-center rounded-full"
                     style={{ background: "var(--color-surface-strong)" }}
                   >
-                    <span
-                      className="caption-uppercase"
-                      style={{ color: "var(--color-ink)" }}
-                    >
+                    <span className="caption-uppercase" style={{ color: "var(--color-ink)" }}>
                       {t.name[0]}
                     </span>
                   </span>
@@ -230,10 +494,7 @@ function WaveformCard({ dict }: { dict: Dict }) {
                     <p className="title-sm" style={{ color: "var(--color-ink)" }}>
                       {t.name}
                     </p>
-                    <p
-                      className="body-sm"
-                      style={{ color: "var(--color-muted)" }}
-                    >
+                    <p className="body-sm" style={{ color: "var(--color-muted)" }}>
                       {t.subtitle}
                     </p>
                   </div>
@@ -262,18 +523,36 @@ function WaveformCard({ dict }: { dict: Dict }) {
   );
 }
 
+// Decorative play affordance inside the static mockup — not a real control.
 function PlayButton() {
   return (
-    <button
-      type="button"
-      aria-label="play"
-      className="grid h-10 w-10 place-items-center rounded-full transition hover:scale-105"
+    <span
+      aria-hidden
+      className="grid h-10 w-10 place-items-center rounded-full"
       style={{ background: "var(--color-ink)", color: "var(--color-on-primary)" }}
     >
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
         <path d="M8 5v14l11-7z" />
       </svg>
-    </button>
+    </span>
+  );
+}
+
+/* ────────────────────────────────────────────────────────── */
+/* Premiere panel mockup (bare — chrome supplied by WindowFrame) */
+/* ────────────────────────────────────────────────────────── */
+
+function PluginPanel() {
+  return (
+    <figure className="bg-[var(--color-ink)]">
+      <Image
+        src={pluginShot}
+        alt="vibi panel in Premiere Pro — stem separation with per-speaker mix controls"
+        sizes="(max-width: 768px) 100vw, 372px"
+        placeholder="blur"
+        className="block h-auto w-full"
+      />
+    </figure>
   );
 }
 
@@ -290,10 +569,7 @@ function Differentiator({ dict }: { dict: Dict }) {
         title={
           <>
             {why.titleIntro}
-            <em
-              className="not-italic"
-              style={{ color: "var(--color-muted)" }}
-            >
+            <em className="not-italic" style={{ color: "var(--color-muted)" }}>
               {why.titleEm}
             </em>
             {why.titleOutro}
@@ -306,8 +582,9 @@ function Differentiator({ dict }: { dict: Dict }) {
         className="mt-14 overflow-hidden rounded-2xl bg-white"
         style={{ border: "1px solid var(--color-hairline)" }}
       >
+        {/* Column headers — desktop only; on mobile each cell is labeled inline */}
         <div
-          className="caption-uppercase grid grid-cols-[1.2fr_1fr_1fr] gap-6 px-6 py-4"
+          className="caption-uppercase hidden gap-6 px-6 py-4 md:grid md:grid-cols-[1.2fr_1fr_1fr]"
           style={{
             background: "var(--color-canvas-soft)",
             color: "var(--color-muted)",
@@ -322,18 +599,27 @@ function Differentiator({ dict }: { dict: Dict }) {
           {why.rows.map((r) => (
             <div
               key={r.label}
-              className="grid grid-cols-[1.2fr_1fr_1fr] items-center gap-6 px-6 py-5"
+              className="grid grid-cols-1 gap-2 px-6 py-5 md:grid-cols-[1.2fr_1fr_1fr] md:items-center md:gap-6"
             >
               <span className="body-sm" style={{ color: "var(--color-muted)" }}>
                 {r.label}
               </span>
               <span className="body-md" style={{ color: "var(--color-body)" }}>
+                <span
+                  className="caption-uppercase mr-2 md:hidden"
+                  style={{ color: "var(--color-muted-soft)" }}
+                >
+                  {why.legacyHeader}
+                </span>
                 {r.legacy}
               </span>
-              <span
-                className="body-strong"
-                style={{ color: "var(--color-ink)" }}
-              >
+              <span className="body-strong" style={{ color: "var(--color-ink)" }}>
+                <span
+                  className="caption-uppercase mr-2 md:hidden"
+                  style={{ color: "var(--color-muted)" }}
+                >
+                  {why.vibiHeader}
+                </span>
                 {r.vibi}
               </span>
             </div>
@@ -355,11 +641,7 @@ function Features({ dict }: { dict: Dict }) {
 
   return (
     <Section id="features">
-      <SectionHead
-        eyebrow={features.eyebrow}
-        title={features.title}
-        body={features.body}
-      />
+      <SectionHead eyebrow={features.eyebrow} title={features.title} body={features.body} />
 
       <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-3">
         {features.items.map((it, idx) => (
@@ -374,10 +656,7 @@ function Features({ dict }: { dict: Dict }) {
             />
             <div className="relative">
               <div className="flex items-center justify-between">
-                <span
-                  className="caption-uppercase"
-                  style={{ color: "var(--color-muted)" }}
-                >
+                <span className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
                   {it.eyebrow}
                 </span>
                 <div
@@ -387,16 +666,10 @@ function Features({ dict }: { dict: Dict }) {
                   {icons[idx] ?? icons[0]}
                 </div>
               </div>
-              <h3
-                className="display-md mt-8"
-                style={{ color: "var(--color-ink)" }}
-              >
+              <h3 className="display-md mt-8" style={{ color: "var(--color-ink)" }}>
                 {it.title}
               </h3>
-              <p
-                className="body-md mt-3 max-w-[44ch]"
-                style={{ color: "var(--color-body)" }}
-              >
+              <p className="body-md mt-3 max-w-[44ch]" style={{ color: "var(--color-body)" }}>
                 {it.body}
               </p>
             </div>
@@ -415,23 +688,11 @@ function UseCase({ dict }: { dict: Dict }) {
   const { scenario } = dict;
   return (
     <Section id="scenario">
-      <SectionHead
-        eyebrow={scenario.eyebrow}
-        title={scenario.title}
-        body={scenario.body}
-      />
+      <SectionHead eyebrow={scenario.eyebrow} title={scenario.title} body={scenario.body} />
 
       <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2">
-        <ScenarioCard
-          tone="muted"
-          title={scenario.beforeTitle}
-          steps={scenario.before}
-        />
-        <ScenarioCard
-          tone="bright"
-          title={scenario.afterTitle}
-          steps={scenario.after}
-        />
+        <ScenarioCard tone="muted" title={scenario.beforeTitle} steps={scenario.before} />
+        <ScenarioCard tone="bright" title={scenario.afterTitle} steps={scenario.after} />
       </div>
     </Section>
   );
@@ -451,9 +712,7 @@ function ScenarioCard({
     <div
       className="relative overflow-hidden rounded-2xl p-8"
       style={{
-        background: isBright
-          ? "var(--color-surface-card)"
-          : "var(--color-canvas-soft)",
+        background: isBright ? "var(--color-surface-card)" : "var(--color-canvas-soft)",
         border: "1px solid var(--color-hairline)",
       }}
     >
@@ -473,23 +732,15 @@ function ScenarioCard({
               <span
                 className="caption-uppercase mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full"
                 style={{
-                  background: isBright
-                    ? "var(--color-ink)"
-                    : "var(--color-surface-strong)",
-                  color: isBright
-                    ? "var(--color-on-primary)"
-                    : "var(--color-ink)",
+                  background: isBright ? "var(--color-ink)" : "var(--color-surface-strong)",
+                  color: isBright ? "var(--color-on-primary)" : "var(--color-ink)",
                 }}
               >
                 {i + 1}
               </span>
               <span
                 className="body-md"
-                style={{
-                  color: isBright
-                    ? "var(--color-ink)"
-                    : "var(--color-body)",
-                }}
+                style={{ color: isBright ? "var(--color-ink)" : "var(--color-body)" }}
               >
                 {s}
               </span>
@@ -509,37 +760,24 @@ function Workflow({ dict }: { dict: Dict }) {
   const { workflow } = dict;
   return (
     <Section id="workflow">
-      <SectionHead
-        eyebrow={workflow.eyebrow}
-        title={workflow.title}
-        body={workflow.body}
-      />
+      <SectionHead eyebrow={workflow.eyebrow} title={workflow.title} body={workflow.body} />
 
-      <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
         {workflow.rows.map((r, i) => (
           <article
             key={r.step}
             className="rounded-2xl bg-white p-7"
             style={{ border: "1px solid var(--color-hairline)" }}
           >
-            <span
-              className="caption-uppercase"
-              style={{ color: "var(--color-muted)" }}
-            >
+            <span className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
               0{i + 1}
             </span>
-            <h4
-              className="title-md mt-3"
-              style={{ color: "var(--color-ink)" }}
-            >
+            <h3 className="title-md mt-3" style={{ color: "var(--color-ink)" }}>
               {r.step}
-            </h4>
+            </h3>
             <div className="mt-5 space-y-4 body-sm">
               <div>
-                <p
-                  className="caption-uppercase"
-                  style={{ color: "var(--color-muted-soft)" }}
-                >
+                <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
                   {workflow.pcLabel}
                 </p>
                 <p className="mt-1" style={{ color: "var(--color-body)" }}>
@@ -550,16 +788,10 @@ function Workflow({ dict }: { dict: Dict }) {
                 className="border-t pt-4"
                 style={{ borderColor: "var(--color-hairline-soft)" }}
               >
-                <p
-                  className="caption-uppercase"
-                  style={{ color: "var(--color-ink)" }}
-                >
+                <p className="caption-uppercase" style={{ color: "var(--color-ink)" }}>
                   {workflow.vibiLabel}
                 </p>
-                <p
-                  className="mt-1 body-strong"
-                  style={{ color: "var(--color-ink)" }}
-                >
+                <p className="mt-1 body-strong" style={{ color: "var(--color-ink)" }}>
                   {r.vibi}
                 </p>
               </div>
@@ -580,32 +812,22 @@ function ClosingCta({ dict }: { dict: Dict }) {
   return (
     <section
       className="relative overflow-hidden"
-      style={{
-        paddingTop: "96px",
-        paddingBottom: "96px",
-        background: "var(--color-canvas)",
-      }}
+      style={{ paddingTop: "96px", paddingBottom: "96px", background: "var(--color-canvas)" }}
     >
       <div
         aria-hidden
         className="orb-lavender pointer-events-none absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 opacity-50"
       />
       <div className="relative mx-auto max-w-[1200px] px-6 text-center">
-        <h2
-          className="display-xl mx-auto max-w-[24ch] text-balance"
-          style={{ color: "var(--color-ink)" }}
-        >
+        <h2 className="display-xl mx-auto max-w-[24ch] text-balance" style={{ color: "var(--color-ink)" }}>
           {cta.title}
         </h2>
-        <p
-          className="body-md mx-auto mt-5 max-w-[48ch]"
-          style={{ color: "var(--color-body)" }}
-        >
+        <p className="body-md mx-auto mt-5 max-w-[52ch]" style={{ color: "var(--color-body)" }}>
           {cta.body}
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <a
-            href="https://apps.apple.com/app/vibi"
+            href={APP_STORE_URL}
             className="btn-primary"
             style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
           >
@@ -613,10 +835,13 @@ function ClosingCta({ dict }: { dict: Dict }) {
             {cta.primary}
           </a>
           <a
-            href="#features"
-            className="btn-outline"
-            style={{ height: "48px", padding: "0 22px" }}
+            href={PREMIERE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-primary"
+            style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
           >
+            <PremiereGlyph />
             {cta.secondary}
           </a>
         </div>
@@ -662,19 +887,13 @@ function Footer({ dict }: { dict: Dict }) {
         <div className="flex flex-col gap-12 md:flex-row md:items-end md:justify-between">
           <div className="max-w-[36ch]">
             <Wordmark />
-            <p
-              className="body-md mt-4"
-              style={{ color: "var(--color-body)" }}
-            >
+            <p className="body-md mt-4" style={{ color: "var(--color-body)" }}>
               {footer.tagline}
             </p>
           </div>
 
           <nav aria-label={footer.productHeading} className="md:text-right">
-            <p
-              className="caption-uppercase"
-              style={{ color: "var(--color-muted)" }}
-            >
+            <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
               {footer.productHeading}
             </p>
             <ul className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 md:justify-end">
@@ -694,10 +913,7 @@ function Footer({ dict }: { dict: Dict }) {
         </div>
       </div>
 
-      <div
-        className="relative border-t"
-        style={{ borderColor: "var(--color-hairline-soft)" }}
-      >
+      <div className="relative border-t" style={{ borderColor: "var(--color-hairline-soft)" }}>
         <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-3 px-6 py-6 md:flex-row md:items-center">
           <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-5">
             <p className="caption" style={{ color: "var(--color-muted)" }}>
@@ -765,17 +981,11 @@ function SectionHead({
       <p className="caption-uppercase" style={{ color: "var(--color-muted)" }}>
         {eyebrow}
       </p>
-      <h2
-        className="display-lg mt-3 text-balance"
-        style={{ color: "var(--color-ink)" }}
-      >
+      <h2 className="display-lg mt-3 text-balance" style={{ color: "var(--color-ink)" }}>
         {title}
       </h2>
       {body ? (
-        <p
-          className="body-md mt-5 text-pretty"
-          style={{ color: "var(--color-body)" }}
-        >
+        <p className="body-md mt-5 text-pretty" style={{ color: "var(--color-body)" }}>
           {body}
         </p>
       ) : null}
@@ -805,6 +1015,42 @@ function ArrowUpRightGlyph() {
   );
 }
 
+function MenuGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  );
+}
+
+function CheckGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className="h-[16px] w-[16px] shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ color: "var(--color-ink)" }}
+    >
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
 function AppleGlyph() {
   return (
     <svg
@@ -815,6 +1061,27 @@ function AppleGlyph() {
       fill="currentColor"
     >
       <path d="M13.94 10.62c-.02-2.16 1.77-3.2 1.85-3.25-1-1.47-2.58-1.67-3.13-1.69-1.34-.13-2.6.78-3.27.78-.68 0-1.72-.76-2.83-.74-1.46.02-2.81.84-3.55 2.13-1.51 2.62-.39 6.5 1.09 8.62.72 1.04 1.58 2.21 2.69 2.17 1.08-.04 1.49-.7 2.79-.7 1.31 0 1.68.7 2.83.68 1.17-.02 1.91-1.06 2.62-2.1.83-1.21 1.17-2.39 1.19-2.45-.03-.01-2.27-.87-2.28-3.45zM11.79 4.27c.59-.72.99-1.71.88-2.7-.85.04-1.89.57-2.5 1.28-.55.63-1.04 1.65-.91 2.62.95.07 1.93-.48 2.53-1.2z" />
+    </svg>
+  );
+}
+
+function PremiereGlyph({ small }: { small?: boolean }) {
+  const size = small ? 14 : 16;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      width={size}
+      height={size}
+      style={{ marginRight: small ? 0 : "2px" }}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="16" rx="3" />
+      <path d="M8 16V9.5h2.4a2 2 0 0 1 0 4H8" />
     </svg>
   );
 }

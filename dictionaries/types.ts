@@ -4,8 +4,9 @@ export type Dict = {
   meta: { title: string; description: string };
 
   nav: {
-    browse: string;
     appStore: string;
+    ios: string;
+    premiere: string;
     why: string;
     features: string;
     scenario: string;
@@ -14,13 +15,28 @@ export type Dict = {
   };
 
   hero: {
-    badge: string;
+    eyebrow: string;
     titleLines: [string, string];
     body: string;
+    chips: string[];
     ctaPrimary: string;
     ctaSecondary: string;
-    ctaCaption: string;
-    stats: { value: string; label: string }[];
+    caption: string;
+  };
+
+  apps: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    items: {
+      kind: "ios" | "premiere";
+      eyebrow: string;
+      badge: string;
+      tagline: string;
+      body: string;
+      points: string[];
+      ctaLabel: string;
+    }[];
   };
 
   waveform: {
@@ -66,6 +82,12 @@ export type Dict = {
     pcLabel: string;
     vibiLabel: string;
     rows: { step: string; pc: string; vibi: string }[];
+  };
+
+  plugin: {
+    panelName: string;
+    panelHost: string;
+    sources: string[];
   };
 
   cta: {

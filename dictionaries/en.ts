@@ -4,11 +4,12 @@ export const en: Dict = {
   meta: {
     title: "vibi — Keep the video. Erase just the noise.",
     description:
-      "Mobile AI that removes only the sounds you don't want. Pick a region, split the audio into voice, background, and per-speaker stems, then mute the wind, the passerby, the wrong voice — the footage you can't reshoot stays.",
+      "AI that removes only the sounds you don't want — on iOS, and inside Adobe Premiere Pro. Split the audio into voice, background, and per-speaker stems, then mute the wind, the passerby, the wrong voice — the footage you can't reshoot stays.",
   },
   nav: {
-    browse: "Browse",
     appStore: "App Store",
+    ios: "iPhone",
+    premiere: "Premiere Pro",
     why: "Why vibi",
     features: "Features",
     scenario: "How it works",
@@ -17,28 +18,50 @@ export const en: Dict = {
   },
 
   hero: {
-    badge: "Now on the App Store · iOS",
+    eyebrow: "AI audio separation",
     titleLines: ["Keep the video.", "Erase just the noise."],
-    body: "Wind, crowd, a passerby's voice, a curse word — vibi splits any region of your clip into voice, background, and per-speaker stems. Mute only what's bothering you. The footage you can't reshoot stays intact.",
+    body: "Pick any clip and vibi separates the audio into voice, background, and per-speaker stems — so you can mute the wind, the passerby, or the wrong voice without ever touching the footage you can't reshoot.",
+    chips: ["Voice", "Background", "Per-speaker"],
     ctaPrimary: "Download on the App Store",
-    ctaSecondary: "See how it works",
-    ctaCaption: "iOS 17+ · Free download",
-    stats: [
-      { value: "By region", label: "Mute just the part that bothers you" },
-      { value: "Per speaker", label: "Isolate one voice from two" },
-      { value: "On mobile", label: "Right where you shoot" },
+    ctaSecondary: "Get the Premiere Pro panel",
+    caption: "On iPhone (iOS 17+) and inside Adobe Premiere Pro 26+",
+  },
+
+  apps: {
+    eyebrow: "Two apps, one engine",
+    title: "Pick where you work.",
+    body: "The same separation, the same account, the same credits. Start on your phone where you shoot, finish in Premiere where you edit — your credits follow you across both.",
+    items: [
+      {
+        kind: "ios",
+        eyebrow: "vibi for iPhone",
+        badge: "iOS 17+",
+        tagline: "The quick fix, where you shoot.",
+        body: "Pick a clip and the whole track separates. Split it into regions and mute, dim, or slow just the part that bothers you — done in under five minutes.",
+        points: ["Whole-clip stem separation", "Mute / dim / slow by region", "Add BGM, or edit by chat"],
+        ctaLabel: "Download on the App Store",
+      },
+      {
+        kind: "premiere",
+        eyebrow: "vibi for Premiere Pro",
+        badge: "Premiere Pro 26+",
+        tagline: "The detailed cut, in your editor.",
+        body: "Read the timecoded, per-speaker transcript, reassign speakers, and regenerate the audio. Ride each stem with a dB fader, then mix a clean .wav back onto your timeline.",
+        points: ["Per-speaker transcript editing", "Reassign speakers, regenerate", "Mix a .wav to your sequence"],
+        ctaLabel: "Get the Premiere Pro panel",
+      },
     ],
   },
 
   waveform: {
     filename: "interview_03.mov",
     title: "One clip. Mute just what bothers you.",
-    body: "Pick a region, separate voice and background, mute the noise. The voice is never compressed — the footage you can't reshoot is preserved.",
+    body: "Separate the whole clip into each speaker and the background, then pick a region and mute just the noise. The voices are never compressed — the footage you can't reshoot is preserved.",
     preview: "Preview · 0:42",
     tracks: [
-      { name: "Voice", subtitle: "Voice — kept" },
+      { name: "Voice 1", subtitle: "Voice 1 — kept" },
+      { name: "Voice 2", subtitle: "Voice 2 — kept" },
       { name: "Background", subtitle: "Background — muted" },
-      { name: "BGM", subtitle: "BGM — newly added" },
     ],
   },
 
@@ -47,37 +70,37 @@ export const en: Dict = {
     titleIntro: "Stop crushing the whole track. Erase ",
     titleEm: "just what bothers you",
     titleOutro: ".",
-    body: "Other mobile editors treat sound as one block — kill the noise, kill the voice with it. vibi splits each clip into voice, background, and per-speaker stems so you can mute only the parts you don't want.",
-    legacyHeader: "Other mobile apps",
+    body: "Most editors treat sound as one block — kill the noise, kill the voice with it. vibi splits each clip into voice, background, and per-speaker stems so you can mute only the parts you don't want. Same engine on iPhone and in Premiere Pro.",
+    legacyHeader: "Other tools",
     vibiHeader: "vibi",
     rows: [
       { label: "Sound unit", legacy: "1 clip = 1 mixed track", vibi: "1 clip = voice / background / per-speaker" },
       { label: "Noise removal", legacy: "Crushes everything (voice too)", vibi: "Mute background only — voice intact" },
       { label: "Cut one speaker", legacy: "Not possible", vibi: "Pick one of two in an interview" },
       { label: "If audio is ruined", legacy: "Re-shoot or trash the clip", vibi: "Keep the footage, erase just the audio" },
-      { label: "Where you work", legacy: "PC pro tools", vibi: "Mobile — right where you shoot" },
+      { label: "Where you work", legacy: "Locked to one workflow", vibi: "iPhone on location · Premiere Pro at the desk" },
     ],
   },
 
   features: {
     eyebrow: "Features",
-    title: "The footage you can't reshoot, finally salvageable.",
-    body: "Region selection plus stem separation is the spine. BGM tools, captions, dubbing, and AI chat sit on top — the same separation engine all the way through.",
+    title: "What you can do once it's split.",
+    body: "Region edits, BGM, captions, transcript-level control — every tool stands on the same voice / background / per-speaker separation.",
     items: [
       {
-        eyebrow: "Main",
-        title: "Region + per-stem separation",
-        body: "Drag a region on the timeline. AI splits that part into voice, background, and per-speaker stems — then mute the wind, dim the passerby's volume, or slow the wrong voice down. Not the whole clip, only what you picked.",
+        eyebrow: "Both apps",
+        title: "Whole-clip, per-speaker separation",
+        body: "Pick a clip and AI splits the entire track into voice, background, and per-speaker stems — the foundation everything else is built on, identical on iPhone and in Premiere Pro.",
       },
       {
-        eyebrow: "Main",
-        title: "Drop in BGM, or record on the spot",
-        body: "Layer a BGM file or record straight from the phone mic. Adjust each BGM clip's volume, speed, duplicate, delete. The BGM itself can run through the same separation — keep only its clean part, fill the gap the noise left behind.",
+        eyebrow: "On iPhone",
+        title: "Adjust by region, on the go",
+        body: "Split the separated clip into regions and mute, dim, or slow just the part that bothers you. Layer in BGM or record from the mic, then export and share — done in under five minutes.",
       },
       {
-        eyebrow: "AI",
-        title: "Edit by chat",
-        body: "“Mute the background between 0:30 and 0:42” — natural-language commands trigger the editing tools directly. No menu digging when the moment is already past.",
+        eyebrow: "In Premiere Pro",
+        title: "Edit from the transcript",
+        body: "Work from a timecoded, per-speaker script: reassign speakers, fix who said what, regenerate the audio, ride each stem with a dB fader, then mix a clean .wav back onto your timeline.",
       },
     ],
   },
@@ -86,7 +109,7 @@ export const en: Dict = {
     eyebrow: "How it works",
     title: "Interview clip — one voice clean, the other gone.",
     body: "The moment was too good to reshoot but a passerby ruined the audio. With vibi, salvaging it takes under five minutes.",
-    beforeTitle: "Before — PC workflow",
+    beforeTitle: "Before — the old way",
     afterTitle: "After — vibi",
     before: [
       "Get back to the desk, open the laptop",
@@ -97,8 +120,8 @@ export const en: Dict = {
     ],
     after: [
       "Pick the clip from your camera roll",
+      "Separate the whole track — voice, background, per-speaker",
       "Drag the region where the passerby cut in",
-      "Separate stems — voice, background, per-speaker",
       "Mute the speaker you don't want — yours stays",
       "Drop a BGM if needed → export → share",
     ],
@@ -106,38 +129,46 @@ export const en: Dict = {
 
   workflow: {
     eyebrow: "Workflow",
-    title: "Five-minute PC work becomes five seconds on vibi.",
-    body: "Time and place don't matter. Cafe, road, subway — the moment doesn't get away.",
-    pcLabel: "PC",
+    title: "What used to need a studio, now in two apps.",
+    body: "Whether you're on your phone on location or deep in Premiere at the desk — the moment doesn't get away.",
+    pcLabel: "The old way",
     vibiLabel: "vibi",
     rows: [
-      { step: "Bring in the clip", pc: "Cable / iCloud / AirDrop · 5–15 min", vibi: "Pick from gallery directly · 5 sec" },
-      { step: "Erase a noise", pc: "EQ + multiband + manual cuts — and voice often dies with it", vibi: "Drag the region, then tap mute on the stem you don't want" },
-      { step: "Preview", pc: "Render, then play", vibi: "Play directly on the timeline" },
-      { step: "Publish", pc: "Export → send to phone → upload", vibi: "System share sheet to channel — one tap" },
+      { step: "Bring in the clip", pc: "Cable / iCloud / AirDrop · 5–15 min", vibi: "From your gallery on iPhone, or the Project panel in Premiere" },
+      { step: "Erase a noise", pc: "EQ + multiband + manual cuts — and voice often dies with it", vibi: "Separate, then mute the stem or region you don't want" },
+      { step: "Preview", pc: "Render, then play", vibi: "Play instantly — on the timeline or in the panel" },
+      { step: "Publish", pc: "Export → send → upload", vibi: "Share sheet on mobile, or a clean .wav back to your sequence" },
     ],
   },
 
+  plugin: {
+    panelName: "Vibi: AI Sound Eraser",
+    panelHost: "Premiere Pro 26+ · UXP panel",
+    sources: ["File", "Project", "Timeline"],
+  },
+
   cta: {
-    title: "The clip you almost trashed today — salvage it.",
-    body: "Download on the App Store. Your first save is on us — done in five.",
+    title: "Two ways in. One clean cut.",
+    body: "Start on your phone where you shoot, finish in Premiere where you edit — your account and credits follow you across both.",
     primary: "Download on the App Store",
-    secondary: "See features again",
-    caption: "iOS 17+ · Free download · Android coming later",
+    secondary: "Get the Premiere Pro panel",
+    caption: "iOS 17+ · Premiere Pro 26+ · credits shared across both",
   },
 
   footer: {
-    tagline: "Keep the video. Erase just the noise — on mobile.",
+    tagline: "Keep the video. Erase just the noise — on iPhone and in Premiere Pro.",
     productHeading: "Product",
     productLinks: [
+      { label: "vibi for iPhone", href: "#app-ios" },
+      { label: "vibi for Premiere Pro", href: "#app-premiere" },
       { label: "Features", href: "#features" },
       { label: "How it works", href: "#scenario" },
-      { label: "Workflow", href: "#workflow" },
       { label: "Docs", href: "/docs" },
     ],
     copyright: "© {year} vibi · Built by je0ng3",
     githubLinks: [
       { label: "vibi", href: "https://github.com/perso-devrel/vibi" },
+      { label: "vibi-adobe-plugin", href: "https://github.com/perso-devrel/vibi-adobe-plugin" },
       { label: "vibi-bff", href: "https://github.com/perso-devrel/vibi-bff" },
     ],
     legalLinks: [

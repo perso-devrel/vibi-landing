@@ -21,15 +21,20 @@ export const metadata: Metadata = {
   title: dict.meta.title,
   description: dict.meta.description,
   metadataBase: new URL("https://www.vibi.fm"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: dict.meta.title,
     description: dict.meta.description,
+    url: "/",
+    siteName: "vibi",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "vibi",
+    title: dict.meta.title,
     description: dict.meta.description,
   },
 };
