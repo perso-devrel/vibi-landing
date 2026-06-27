@@ -1,7 +1,7 @@
 # Terms of Service
 
 **Effective date:** June 8, 2026
-**Last updated:** June 22, 2026
+**Last updated:** June 27, 2026
 
 These Terms of Service ("**Terms**") are a binding agreement between you and **vibi** ("**vibi**", "**we**", "**us**", "**our**") governing your use of the **vibi** mobile application (iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`), the **vibi panel for Adobe Premiere Pro**, and our related backend services (the "**Service**").
 
@@ -32,7 +32,7 @@ vibi lets you edit audio and video — including AI-assisted **voice/music separ
 
 ## 4. Credits and purchases
 
-- Some features (e.g., audio separation, rendering) consume **credits**. New accounts receive a small number of **free credits**.
+- Some features (e.g., audio separation, rendering) consume **credits**. New accounts receive a small number of **free credits**, and you may earn additional **free credits by watching optional rewarded ads** (see **§4.2**).
 - Where paid credits are offered, they are purchased through **Apple In-App Purchase** or **Google Play Billing** (in the mobile App), or **Paddle** (for web/desktop, including the Premiere Pro panel). Those providers process payment and their terms apply.
 - **Prices** are shown in the App before purchase and may change prospectively.
 - Credits are a **limited license to use Service features**, have **no cash value**, are **non-transferable**, and are **not redeemable for money** except where the law requires.
@@ -42,6 +42,9 @@ vibi lets you edit audio and video — including AI-assisted **voice/music separ
 - Purchases are generally **final**, except as required by law or the rules of the relevant app store. **Refund requests for store purchases are handled by Apple or Google** under their policies.
 - **EU/EEA & UK:** You normally have a 14-day right of withdrawal for digital purchases; by starting to use a credit/feature immediately you may consent to begin performance and acknowledge the loss of that right for the consumed portion.
 - **Korea:** Consumer rights under the Act on Consumer Protection in Electronic Commerce (전자상거래법) apply; statutory withdrawal/refund rights are not waived by these Terms.
+
+### 4.2 Rewarded ads
+The App may offer **rewarded ads** served by **Google AdMob**: you can choose to watch a short video ad to earn a free credit, up to a daily limit. This is **optional and user-initiated**. Credits earned this way are subject to **§4** (no cash value, non-transferable, not redeemable for money). We are **not responsible for the content of third-party ads**, and any dealings with advertisers are solely between you and them. How ad data is used is described in our [Privacy Policy](/privacy). We may change, limit, or withdraw the rewarded-ad feature — including the daily limit and reward amount — at any time.
 
 ---
 
@@ -76,7 +79,7 @@ The Service, including the App, software, branding, and "vibi" name and logo, is
 
 ## 8. Third-party services
 
-The Service relies on third parties (Apple, Google, Adobe, our AI processor **Perso**, the **Paddle** payment platform, and our hosting/storage providers such as Cloudflare). Their terms and policies apply to their portions, and we are not responsible for third-party services. If you obtained the Premiere Pro panel through the **Adobe Marketplace / Exchange**, your use is also subject to Adobe's applicable terms.
+The Service relies on third parties (Apple, Google — including **AdMob** advertising, Adobe, our AI processor **Perso**, the **Paddle** payment platform, and our hosting/storage providers such as Cloudflare). Their terms and policies apply to their portions, and we are not responsible for third-party services. If you obtained the Premiere Pro panel through the **Adobe Marketplace / Exchange**, your use is also subject to Adobe's applicable terms.
 
 ---
 

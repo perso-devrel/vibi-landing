@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **Effective date:** June 8, 2026
-**Last updated:** June 23, 2026
+**Last updated:** June 27, 2026
 
 This Privacy Policy explains how **vibi** ("**vibi**", "**we**", "**us**", or "**our**") collects, uses, shares, and protects information when you use the **vibi** mobile application (the "**App**"; iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`), the **vibi panel for Adobe Premiere Pro** (the "**Plugin**"), and our related backend services (together, the "**Service**"). The App and the Plugin share the same vibi account and backend.
 
@@ -24,7 +24,7 @@ If you are in the EU/EEA or UK and have questions about how we handle your data,
 
 ## 2. The data we collect
 
-We only collect what the App needs to function. **We do not use any advertising, analytics, or third-party tracking SDKs**, and we do not track you across other apps or websites.
+We only collect what the App needs to function. The App shows **optional, user-initiated rewarded ads** through Google AdMob (see **§2.6**); apart from AdMob we use **no analytics or other third-party tracking SDKs**, and we do not use your uploaded media or account content to target ads.
 
 ### 2.1 Information you provide
 - **Account information** — when you sign in with Google or Apple, we receive your **email address**, **display name**, and a provider **user identifier**. With Sign in with Apple you may choose to hide your email (Apple relay address).
@@ -39,6 +39,7 @@ We only collect what the App needs to function. **We do not use any advertising,
 ### 2.3 Information collected automatically
 - **Crash data** — if the App crashes, the operating system (Apple / Google) may provide us diagnostic crash logs. We do **not** embed a third-party crash-reporting SDK.
 - **Technical data needed to deliver content** — e.g., IP address and request metadata that our backend necessarily processes to route and secure network requests.
+- **Advertising data** — only if you choose to watch a rewarded ad, Google AdMob collects advertising identifiers and related device / ad-interaction data; see **§2.6**.
 
 ### 2.4 Device permissions
 The App requests these permissions only for the stated purpose, and only when needed:
@@ -56,6 +57,20 @@ We do **not** collect location, contacts, or health data.
 ### 2.5 Children
 The Service is **not directed to children under 14**. We do not knowingly collect data from children below that age (or below the higher minimum required in your country — e.g., consent ages of up to 16 in parts of the EU). If you believe a child has provided us data, contact us at jepark2934@gmail.com and we will delete it.
 
+### 2.6 Advertising (Google AdMob)
+The App offers **optional rewarded ads**: you may choose to watch a short video ad to receive a free credit. This feature is **user-initiated** — we do not show ads unless you tap to watch one, and the Premiere Pro Plugin shows no ads. Rewarded ads are served by **Google AdMob**.
+
+To serve these ads, Google AdMob collects and processes:
+- **Advertising identifiers** — Apple's Identifier for Advertisers (IDFA) where available, and the Android Advertising ID (AAID);
+- **Device and connection data** — device model, OS version, IP address, and coarse location inferred from IP;
+- **Ad-interaction data** — that an ad was requested, shown, or completed.
+
+We do **not** use the audio or video you upload for advertising. Credits you earn from ads are granted through Google's **server-side verification**, from which we receive only your vibi user ID and the reward confirmation — not your payment details.
+
+Depending on your region and settings, ads may be **personalized** or **non-personalized**. In the **EEA, UK, and Switzerland** we ask for your consent, where required, before showing personalized ads. You can opt out of ad personalization and reset your advertising identifier at any time in your device settings (iOS: *Settings → Privacy & Security → Apple Advertising*, and *Tracking*; Android: *Settings → Google → Ads*). On iOS, if an ad would track you across other companies' apps and sites, the system **App Tracking Transparency** prompt lets you allow or deny it.
+
+Google's processing of this data is governed by Google's own policies (see **§12**).
+
 ---
 
 ## 3. How we use your data
@@ -67,8 +82,9 @@ The Service is **not directed to children under 14**. We do not knowingly collec
 | Keep the Service secure and working | Prevent abuse, debug crashes | Legitimate interests (Art. 6(1)(f)) |
 | Comply with law | Tax, accounting, responding to lawful requests | Legal obligation (Art. 6(1)(c)) |
 | Communicate with you | Service or account notices | Contract / legitimate interests |
+| Show optional rewarded ads | Serve a rewarded video ad when you choose to watch one, and grant the earned credit | Consent (Art. 6(1)(a)) for personalized ads; legitimate interests (Art. 6(1)(f)) for non-personalized ads |
 
-We do **not** sell your personal data, and we do **not** use it for advertising or to train third-party models.
+We do **not** sell your personal data, and we do **not** use your uploaded media or account content for advertising or to train third-party models. The App does show **optional, user-initiated rewarded ads** via Google AdMob, which uses the advertising data described in **§2.6**.
 
 ---
 
@@ -90,10 +106,11 @@ We share data only with the service providers ("processors") needed to run the S
 | **Perso** (perso.ai) | AI audio separation & speech transcription | Uploaded audio; derived stems and transcript |
 | **Cloudflare** (R2 object storage) | Store and transfer your media | Uploaded media, rendered output |
 | **Paddle** | Process web/desktop credit purchases, where offered (e.g. via the Plugin) | Purchase / transaction details (no card data) |
+| **Google** (AdMob) | Serve optional rewarded ads (App only) | Advertising identifier, device / connection data, ad-interaction data (see §2.6) |
 
 We may also disclose data when **required by law**, to **enforce our Terms**, or in connection with a **merger, acquisition, or sale of assets** (you will be notified of any such change).
 
-We do **not** share data with advertisers or data brokers.
+Apart from the advertising identifiers shared with **Google AdMob** to serve the optional rewarded ads described in **§2.6**, we do **not** share your data with advertisers or data brokers, and we do not sell your data.
 
 ---
 
@@ -113,6 +130,7 @@ We are based in the **Republic of Korea**, and our service providers (including 
 | Rendered output | Until you delete it, or up to **30 days** |
 | Purchase records | As required by tax/accounting law (typically **5 years**) |
 | Crash logs | **90 days** |
+| Advertising identifiers & ad-interaction data | Collected and retained by **Google AdMob** under Google's policies; we do not store them ourselves |
 
 ---
 
@@ -124,7 +142,7 @@ Depending on where you live, you have some or all of the following rights. To ex
 Access, rectification, erasure, restriction, portability, objection, and the right to withdraw consent. You may also lodge a complaint with your local supervisory authority.
 
 ### 8.2 California (CCPA/CPRA)
-The right to know, delete, correct, and to opt out of "sale" or "sharing" of personal information. **We do not sell or share personal information** as those terms are defined under the CCPA. We will not discriminate against you for exercising your rights.
+The right to know, delete, correct, and to opt out of the "sale" or "sharing" of personal information. We do **not sell** your personal information. If we show **personalized** ads, the sharing of advertising identifiers with Google for cross-context behavioral advertising may count as **"sharing"** under the CPRA — you can opt out at any time using your device's ad settings (see **§2.6**), and we honor opt-out preference signals where required. We do not "sell" or "share" any other personal information, and we will not discriminate against you for exercising your rights.
 
 ### 8.3 Korea (PIPA / 개인정보 보호법)
 The right to access, correct, delete, suspend processing of, and withdraw consent for your personal information. You may contact us using the details in §1 and may also file a report with the Personal Information Protection Commission (개인정보분쟁조정위원회 / privacy.go.kr).
@@ -148,14 +166,15 @@ You can delete your account at any time from within the mobile App (Settings →
 
 ## 11. Do Not Track
 
-The App contains no third-party tracking, so there is nothing to track across other apps or sites. We do not respond to browser "Do Not Track" signals because the App is not a website.
+Apart from the optional rewarded-ad advertising described in **§2.6**, the App contains no third-party tracking. To control ad tracking, use your device's ad settings (and, on iOS, the App Tracking Transparency prompt) as described in **§2.6**. We do not respond to browser "Do Not Track" signals because the App is not a website.
 
 ---
 
 ## 12. Third-party services
 
-Signing in with Google or Apple, and purchasing through the App Store or Google Play, is governed by **their** privacy policies in addition to ours:
-- Google: https://policies.google.com/privacy
+Signing in with Google or Apple, purchasing through the App Store or Google Play, and the ads served by Google AdMob are governed by **their** privacy policies in addition to ours:
+- Google (Sign-In and AdMob ads): https://policies.google.com/privacy
+- How Google uses data from apps that use its services: https://policies.google.com/technologies/partner-sites
 - Apple: https://www.apple.com/legal/privacy/
 
 ---
