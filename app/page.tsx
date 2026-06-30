@@ -6,12 +6,11 @@ import pluginShot from "./_media/plugin-panel.png";
 import { Wordmark } from "@/app/_components/wordmark";
 import { BadgePill } from "@/app/_components/badge-pill";
 import { GithubGlyph } from "@/app/_components/github-glyph";
+import { AnnouncementBar } from "@/app/_components/announcement-bar";
 
-// TODO(launch): PLACEHOLDER conversion URLs — DO NOT ship as-is.
-// APP_STORE_URL needs the real numeric App Store id; PREMIERE_URL must point at the
-// published Adobe Exchange listing (currently a search query that does not resolve to the app).
+// TODO(launch): APP_STORE_URL is still a PLACEHOLDER — needs the real numeric App Store id.
 const APP_STORE_URL = "https://apps.apple.com/app/vibi";
-const PREMIERE_URL = "https://exchange.adobe.com/apps/search?q=vibi";
+const PREMIERE_URL = "https://exchange.adobe.com/apps/cc/b3d5d5b5/vibi-ai-sound-eraser";
 const PLUGIN_REPO_URL = "https://github.com/perso-devrel/vibi-adobe-plugin";
 
 // App-screenshot sizing — single knobs for the device/window mockups (px).
@@ -29,6 +28,7 @@ export default function Home() {
   return (
     <main className="relative">
       <JsonLd dict={dict} />
+      <AnnouncementBar dict={dict} />
       <Nav dict={dict} />
       <BrandHero dict={dict} />
       <AppsSection dict={dict} />

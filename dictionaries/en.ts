@@ -6,6 +6,15 @@ export const en: Dict = {
     description:
       "AI that removes only the sounds you don't want — on iOS, and inside Adobe Premiere Pro. Split the audio into voice, background, and per-speaker stems, then mute the wind, the passerby, the wrong voice — the footage you can't reshoot stays.",
   },
+
+  announcement: {
+    badge: "Beta",
+    message: "Payments aren't live yet — vibi is free to try right now.",
+    feedbackText: "Send us a review or feedback and we'll add 5 bonus credits.",
+    feedbackLabel: "Send feedback",
+    feedbackEmail: "jepark2934@gmail.com",
+    feedbackSubject: "vibi feedback (for 5 bonus credits)",
+  },
   nav: {
     appStore: "App Store",
     ios: "iPhone",

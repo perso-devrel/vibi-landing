@@ -3,6 +3,15 @@ export type LinkItem = { label: string; href: string };
 export type Dict = {
   meta: { title: string; description: string };
 
+  announcement: {
+    badge: string;
+    message: string; // payments not live yet + free to try
+    feedbackText: string; // feedback → bonus credits
+    feedbackLabel: string;
+    feedbackEmail: string;
+    feedbackSubject: string;
+  };
+
   nav: {
     appStore: string;
     ios: string;
