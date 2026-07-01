@@ -467,12 +467,6 @@ function WaveformCard({ dict }: { dict: Dict }) {
             <p className="body-sm mt-3" style={{ color: "var(--color-body)" }}>
               {waveform.body}
             </p>
-            <div className="mt-6 flex items-center gap-3">
-              <PlayButton />
-              <span className="body-sm" style={{ color: "var(--color-muted)" }}>
-                {waveform.preview}
-              </span>
-            </div>
           </div>
         </div>
         <div className="p-8">
@@ -521,21 +515,6 @@ function WaveformCard({ dict }: { dict: Dict }) {
         </div>
       </div>
     </figure>
-  );
-}
-
-// Decorative play affordance inside the static mockup — not a real control.
-function PlayButton() {
-  return (
-    <span
-      aria-hidden
-      className="grid h-10 w-10 place-items-center rounded-full"
-      style={{ background: "var(--color-ink)", color: "var(--color-on-primary)" }}
-    >
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-        <path d="M8 5v14l11-7z" />
-      </svg>
-    </span>
   );
 }
 
