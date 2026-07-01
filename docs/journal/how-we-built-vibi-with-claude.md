@@ -17,7 +17,7 @@ The original incarnation of vibi was an Android-only app. Stack:
 
 Three decisions landed almost simultaneously:
 
-1. **We ship iOS too** — the mobile video + speech + stem separation category is mobile-first ([`../../PITCH.md`](../../PITCH.md)), and skipping iOS isn't an option.
+1. **We ship iOS too** — the mobile video + speech + stem separation category is mobile-first ([`../../PITCH.md`](https://github.com/perso-devrel/vibi/blob/main/PITCH.md)), and skipping iOS isn't an option.
 2. **But we don't keep a separate Android codebase** — KMP makes that condition feasible. The comparison against RN/Flutter is in [`../explanation/why-kmp.md`](../explanation/why-kmp.md).
 3. **No external API keys on mobile** — the Perso key lives in a single BFF layer. Vendor abstraction happens at the same time [`../explanation/why-bff.md`](../explanation/why-bff.md).
 

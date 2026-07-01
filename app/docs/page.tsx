@@ -29,6 +29,7 @@ export default function DocsIndex() {
               key={category.slug}
               category={category}
               docs={docsByCategory[category.slug]}
+              wide={category.slug === "journal"}
             />
           ))}
         </ul>
@@ -83,13 +84,17 @@ function DocsHero() {
 function CategoryCard({
   category,
   docs,
+  wide = false,
 }: {
   category: Category;
   docs: DocSummary[];
+  wide?: boolean;
 }) {
   return (
     <li
-      className="group relative overflow-hidden rounded-2xl bg-white p-8 transition hover:-translate-y-0.5"
+      className={`group relative overflow-hidden rounded-2xl bg-white p-8 transition hover:-translate-y-0.5${
+        wide ? " md:col-span-2" : ""
+      }`}
       style={{ border: "1px solid var(--color-hairline)" }}
     >
       <div
@@ -113,12 +118,18 @@ function CategoryCard({
           {category.label}
         </h2>
         <p
-          className="body-md mt-3 max-w-[44ch]"
+          className={`body-md mt-3${wide ? "" : " max-w-[44ch]"}`}
           style={{ color: "var(--color-body)" }}
         >
           {category.description}
         </p>
-        <ul className="mt-6 space-y-2">
+        <ul
+          className={
+            wide
+              ? "mt-6 grid gap-x-10 gap-y-2 sm:grid-cols-2"
+              : "mt-6 space-y-2"
+          }
+        >
           {docs.length === 0 ? (
             <li className="body-sm" style={{ color: "var(--color-muted)" }}>
               Coming soon.

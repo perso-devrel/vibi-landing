@@ -27,10 +27,10 @@ The app then auto-navigates to TimelineScreen.
 
 ## 2. Pick a range in the EditAudio step
 
-The timeline opens at the **편집·음원** step (`TimelineStep.EditAudio`) by default. There is no separate "Separate" sheet anymore — separation is a primary action of this step.
+The timeline opens at the **편집·음원** (Edit · Audio) step (`TimelineStep.EditAudio`) by default. There is no separate "Separate" sheet anymore — separation is a primary action of this step.
 
-1. Drag on the timeline bar to select a range (`isRangeSelecting=true`). The selection band shows on the bar; the panel below reads `구간 5s ~ 12s · 재생 3s`.
-2. Tap **"이 구간 음원분리"**.
+1. Drag on the timeline bar to select a range (`isRangeSelecting=true`). The selection band shows on the bar; the panel below reads `구간 5s ~ 12s · 재생 3s` (range 5s–12s · playback 3s).
+2. Tap **"이 구간 음원분리"** (Separate this range).
 
 That tap calls `TimelineViewModel.onStartSeparation(...)`, which dispatches `StartAudioSeparationUseCase` directly with the segment's source URI and the chosen range. The mobile side does **trim + audio extract on-device** (iOS `AVAssetExportPresetAppleM4A`) and ships an already-trimmed m4a:
 
@@ -48,7 +48,7 @@ Two earlier ceremony layers are gone: the pre-render m4a step (`3d94e95 refactor
 
 > A second separation in the same project: vibi rejects ranges that overlap an existing `separationDirectives[]` entry. The manual UI blocks the start with a toast — pick a non-overlapping window, or delete the existing directive first.
 
-> Want to separate **just a BGM clip** instead of the video's own audio? Tap a BGM clip → "음원분리" — the call routes through the same use-case with `bgmSeparationTargetId` set, and on confirm the original BGM is swapped for the resulting `SeparationDirective` instead of a new clip being inserted.
+> Want to separate **just a BGM clip** instead of the video's own audio? Tap a BGM clip → "음원분리" (Separate) — the call routes through the same use-case with `bgmSeparationTargetId` set, and on confirm the original BGM is swapped for the resulting `SeparationDirective` instead of a new clip being inserted.
 
 ## 3. The request the BFF receives
 

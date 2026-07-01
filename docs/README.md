@@ -21,7 +21,7 @@ Step-by-step guides you follow end to end.
 
 - [`getting-started.md`](./learning/getting-started.md) — Environment setup → spin up BFF → mobile build → sign in → first app screen
 - [`tutorial-stem-separation.md`](./learning/tutorial-stem-separation.md) — Separate per-speaker stems, remix the selection, and insert into the timeline
-- [`tutorial-export-variants.md`](./learning/tutorial-export-variants.md) — End-to-end export pipeline from the timeline 저장 tap through the v3 asset-by-reference render flow (single mp4 — multi-language variants were retired with the auto-dub / subtitle surface)
+- [`tutorial-export-variants.md`](./learning/tutorial-export-variants.md) — End-to-end export pipeline from the timeline 저장 (Save) tap through the v3 asset-by-reference render flow (single mp4 — multi-language variants were retired with the auto-dub / subtitle surface)
 
 ### [`reference/`](./reference/) — Look up
 Specs to search and consume when you need them.
@@ -58,8 +58,8 @@ The vibi workspace already has a few markdown files. Roles are split cleanly.
 
 | Doc | Audience | Tone |
 |---|---|---|
-| Workspace root [`README.md`](../README.md) | Developer who wants the 5-second pitch | 5-second hook |
-| Workspace root [`ARCHITECTURE.md`](../ARCHITECTURE.md) | Contributor going deep into the codebase | Code-grounded facts (single source of truth) |
+| Workspace root [`README.md`](https://github.com/perso-devrel/vibi/blob/main/README.md) | Developer who wants the 5-second pitch | 5-second hook |
+| Workspace root [`ARCHITECTURE.md`](https://github.com/perso-devrel/vibi/blob/main/ARCHITECTURE.md) | Contributor going deep into the codebase | Code-grounded facts (single source of truth) |
 | `vibi-bff/README.md` · `vibi-mobile/README.md` | Developer touching only that module | Per-module build and run |
 | **This `docs/`** | **Both external entrants and contributors** | **Purpose-based classification (4 types)** |
 | `CLAUDE.md` files | Claude Code routing | Not externally exposed |

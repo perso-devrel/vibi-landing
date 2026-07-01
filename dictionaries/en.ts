@@ -177,7 +177,6 @@ export const en: Dict = {
     copyright: "© {year} vibi · Built by je0ng3",
     githubLinks: [
       { label: "vibi", href: "https://github.com/perso-devrel/vibi" },
-      { label: "vibi-adobe-plugin", href: "https://github.com/perso-devrel/vibi-adobe-plugin" },
       { label: "vibi-bff", href: "https://github.com/perso-devrel/vibi-bff" },
     ],
     legalLinks: [

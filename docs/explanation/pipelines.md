@@ -195,4 +195,4 @@ CRF is the dominant lever — one CRF point is roughly one perceptual step, whil
 - Walk through the client-side of the export pipeline: [`../learning/tutorial-export-variants.md`](../learning/tutorial-export-variants.md)
 - Exact per-route spec: [`../reference/bff-api.md`](../reference/bff-api.md)
 - The larger picture of the BFF layer: [`why-bff.md`](./why-bff.md)
-- Code-grounded facts: [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md) § 3
+- Code-grounded facts: [`../../ARCHITECTURE.md`](https://github.com/perso-devrel/vibi/blob/main/ARCHITECTURE.md) § 3

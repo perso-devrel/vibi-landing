@@ -28,7 +28,7 @@ The first-pass plan is the **smallest unit**. Large design spaces are not handle
 
 **Application**:
 - Pull all environment dependencies into a single place: BFF `.env` / mobile `local.properties` / iOS `.xcconfig`.
-- Even temporary changes for demos or debugging (e.g. auth bypass) get a separate restore-before-commit policy note ([memory: project_demo_temp_changes](../../README.md) and similar transient notes).
+- Even temporary changes for demos or debugging (e.g. auth bypass) get a separate restore-before-commit policy note ([memory: project_demo_temp_changes](https://github.com/perso-devrel/vibi/blob/main/README.md) and similar transient notes).
 
 ## Rule 3 — External API routing: Perso only, all calls only from BFF
 

@@ -26,7 +26,7 @@ If one agent had to cover both, it would have to throw away half of its context 
 
 So each agent holds its own information:
 
-### `bff-dev` ([`.claude/agents/bff-dev.md`](../../../.claude/agents/bff-dev.md))
+### `bff-dev` ([`.claude/agents/bff-dev.md`](https://github.com/perso-devrel/vibi/blob/main/.claude/agents/bff-dev.md))
 
 - Locations of 6 route files + 3 DTOs + 10 service classes
 - Policies like "artifacts are not statically mounted" (HMAC-signed URLs)
@@ -34,7 +34,7 @@ So each agent holds its own information:
 - ffmpeg/ffprobe must be on PATH, JDK 21
 - Working directory is `./vibi-bff` (its own git repo, so git commands run there)
 
-### `kmp-dev` ([`.claude/agents/kmp-dev.md`](../../../.claude/agents/kmp-dev.md))
+### `kmp-dev` ([`.claude/agents/kmp-dev.md`](https://github.com/perso-devrel/vibi/blob/main/.claude/agents/kmp-dev.md))
 
 - The three module boundaries — `:shared` domain+logic, `:cmp` UI only, `iosApp` Xcode entry
 - Multiplatform rules like "no Android/JVM-only API in `commonMain`"
@@ -66,6 +66,8 @@ kmp-dev:  vibi-mobile (KMP `:shared` 비즈니스 로직 + Compose Multiplatform
           + iosApp Xcode 엔트리) 전용 서브에이전트. 모바일 클라이언트의 모든 작업.
 ```
 
+(These are the real Korean `description` fields, verbatim. In English: **bff-dev** owns `vibi-bff` — the Kotlin/Ktor backend, scoped to the Ktor 3 + kotlinx.serialization + ffmpeg/ffprobe service layer, invoked for render / audio-separation routes and Perso proxy work. **kmp-dev** owns `vibi-mobile` — the KMP `:shared` business logic + Compose Multiplatform `:cmp` UI + iosApp Xcode entry point, invoked for all mobile-client work.)
+
 Also specify *which tools only* (`tools: Bash, Read, Edit, Write, Grep, Glob`) — Web tools and other MCPs are intentionally excluded to prevent context blowup.
 
 ## Where do cross-cutting tasks go
@@ -76,4 +78,4 @@ There are tasks that fit neither agent — adding a BFF route *together with* a 
 
 - [`commands.md`](./commands.md) — dispatch for cross-cutting tasks
 - [`skills.md`](./skills.md) — finer-grained splits within the same directory
-- [Workspace `CLAUDE.md`](../../../CLAUDE.md) § "Task routing" — the same table for humans routing manually
+- [Workspace `CLAUDE.md`](https://github.com/perso-devrel/vibi/blob/main/CLAUDE.md) § "Task routing" — the same table for humans routing manually

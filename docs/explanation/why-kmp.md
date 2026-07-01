@@ -111,6 +111,6 @@ This justifies the KMP choice — iOS-first, but without maintaining a separate 
 
 ## See also
 
-- KMP module structure details: [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md) § 2
+- KMP module structure details: [`../../ARCHITECTURE.md`](https://github.com/perso-devrel/vibi/blob/main/ARCHITECTURE.md) § 2
 - Known iOS pitfalls: see "Known iOS bug patterns" in `vibi-mobile/shared/CLAUDE.md` — narrative retrospective in [`../journal/ios-pitfalls-with-kmp.md`](../journal/ios-pitfalls-with-kmp.md)
 - Build commands: [`../learning/getting-started.md`](../learning/getting-started.md)

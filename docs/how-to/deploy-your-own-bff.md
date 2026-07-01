@@ -143,7 +143,13 @@ What goes where (Settings → Secrets and variables → Actions):
 After that, `git push origin main` ships a new revision. Two things worth flagging on first read of `deploy.yml`:
 
 - **`^@^` delimiter** — `--set-env-vars` uses `^@^` as the entry separator instead of the default `,`, because `GOOGLE_OAUTH_CLIENT_IDS` itself contains commas. Switching the delimiter to `@` lets the comma-bearing value stay inline.
-- **Scale-to-zero runtime spec** — the deploy step pins `--cpu 1 --memory 2Gi --cpu-boost --concurrency 4 --timeout 600 --min-instances 0 --max-instances 2 --no-cpu-throttling --session-affinity` in `us-central1`. `--min-instances 0` means the service costs nothing while idle (it cold-starts on the next request); `--no-cpu-throttling` keeps CPU allocated for the instance's whole lifetime so background ffmpeg renders and Perso polling keep advancing between requests; `--session-affinity` pins a polling client to the instance holding its job. This pairs with **Neon's idle compute suspend** (the BFF drains its DB connection pool when idle), so a quiet deployment scales the app *and* the database toward zero cost. Behind Cloud Run's proxy, set the `RATE_LIMIT_TRUSTED_PROXY_HOPS` Variable to `1` so the rate-limiter reads the real client IP.
+- **Scale-to-zero runtime spec** — the deploy step pins `--cpu 1 --memory 2Gi --cpu-boost --concurrency 4 --timeout 600 --min-instances 0 --max-instances 2 --no-cpu-throttling --session-affinity` in `us-central1`. The flags that matter:
+  - `--min-instances 0` — the service costs nothing while idle (it cold-starts on the next request).
+  - `--no-cpu-throttling` — keeps CPU allocated for the instance's whole lifetime, so background ffmpeg renders and Perso polling keep advancing between requests.
+  - `--session-affinity` — pins a polling client to the instance holding its job.
+
+  This pairs with **Neon's idle compute suspend** (the BFF drains its DB connection pool when idle), so a quiet deployment scales the app *and* the database toward zero cost.
+- **Real client IP behind the proxy** — set the `RATE_LIMIT_TRUSTED_PROXY_HOPS` Variable to `1` so the rate-limiter reads the real client IP through Cloud Run's proxy.
 
 The runtime credential is the Cloud Run **attached service account** (`GCP_RUNTIME_SA_EMAIL`). Memory-tier vs upload-size: scale `MAX_UPLOAD_FILE_SIZE_MB` down when running on `--memory 1Gi`, up on `4Gi+`.
 
@@ -170,7 +176,7 @@ For iOS, Clean Build Folder in Xcode and then Run.
 
 ## 6. Verify
 
-Launch the app → upload a video → drag a range and tap **"이 구간 음원분리"**.
+Launch the app → upload a video → drag a range and tap **"이 구간 음원분리"** (Separate this range).
 
 You should see lines like this in the BFF console:
 

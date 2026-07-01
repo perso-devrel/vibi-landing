@@ -1,6 +1,6 @@
 # Tutorial — Export a project to mp4
 
-This tutorial walks the export flow — **from the timeline 저장 tap all the way down to the ffmpeg pipeline the BFF runs**. The interesting twist is the *asset-by-reference* path: vibi avoids re-uploading the source video on every export by pushing bytes directly to Cloudflare R2 once, then referencing them by SHA-256 key. By the end:
+This tutorial walks the export flow — **from the timeline 저장 (Save) tap all the way down to the ffmpeg pipeline the BFF runs**. The interesting twist is the *asset-by-reference* path: vibi avoids re-uploading the source video on every export by pushing bytes directly to Cloudflare R2 once, then referencing them by SHA-256 key. By the end:
 
 - You'll have intuition for the job-then-poll skeleton that all vibi BFF flows share.
 - You'll know when `POST /assets/upload-url` saves you a 50 MB re-upload and when it doesn't.
@@ -24,13 +24,13 @@ Launch the app → InputScreen → pick a video. The app does the local prep wit
 
 The app navigates to TimelineScreen. Do a couple of things so the export has something to render:
 
-- Drag a range and tap **"이 구간 음원분리"** to add a `SeparationDirective` (this also triggers a BFF separation job — covered in detail in [`tutorial-stem-separation.md`](./tutorial-stem-separation.md)).
+- Drag a range and tap **"이 구간 음원분리"** (Separate this range) to add a `SeparationDirective` (this also triggers a BFF separation job — covered in detail in [`tutorial-stem-separation.md`](./tutorial-stem-separation.md)).
 - Add a BGM clip from "BGM" → pick a file from device or record on the spot.
 - Optionally use **BgmTrimSheet** on the BGM clip to drag a sub-range.
 
-## 2. Tap 저장
+## 2. Tap 저장 (Save)
 
-Tap the **저장** action in the timeline header. The default export is a single mp4 — the multi-language variant picker that lived here previously was retired alongside the subtitle / auto-dub features.
+Tap the **저장 (Save)** action in the timeline header. The default export is a single mp4 — the multi-language variant picker that lived here previously was retired alongside the subtitle / auto-dub features.
 
 ## 3. Push the bytes to R2 — `POST /assets/upload-url`
 
@@ -162,7 +162,7 @@ The downloaded mp4 is handed to `GallerySaver.saveVideo(path, displayName)` — 
 A request-to-effect map:
 
 ```
-TimelineScreen 저장 tap
+TimelineScreen 저장 (Save) tap
   → ExportUseCase.invoke(projectId)
      → V3RenderExecutor
         → AssetUploadManager.ensureUploaded(asset)

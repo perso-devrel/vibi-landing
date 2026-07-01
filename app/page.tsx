@@ -15,7 +15,8 @@ const PLUGIN_REPO_URL = "https://github.com/perso-devrel/vibi-adobe-plugin";
 
 // App-screenshot sizing — single knobs for the device/window mockups (px).
 const PHONE_FRAME_WIDTH = 212;
-const PLUGIN_PANEL_MAX_WIDTH = 372;
+// Tuned so the Premiere window renders at the same height as the iOS phone mock.
+const PLUGIN_PANEL_MAX_WIDTH = 360;
 
 const NAV_LINKS = [
   { href: "#why", key: "why" as const },
@@ -548,7 +549,7 @@ function PluginPanel() {
       <Image
         src={pluginShot}
         alt="vibi panel in Premiere Pro — stem separation with per-speaker mix controls"
-        sizes="(max-width: 768px) 100vw, 372px"
+        sizes="(max-width: 768px) 100vw, 360px"
         placeholder="blur"
         className="block h-auto w-full"
       />

@@ -73,7 +73,7 @@ Current authenticated user's balance. Returns 0 when no row exists yet.
 
 ### `GET /api/v2/credits/cost?durationMs={ms}`
 
-Quote endpoint — called before showing the "이 구간 X 크레딧 사용, 진행할까요?" confirmation. Returns the cost, current balance, and whether the user has enough.
+Quote endpoint — called before showing the "이 구간 X 크레딧 사용, 진행할까요?" ("Use X credits for this range — proceed?") confirmation. Returns the cost, current balance, and whether the user has enough.
 
 **Response** — `CreditCostResponse { "durationMs", "credits", "balance", "sufficient" }`.
 

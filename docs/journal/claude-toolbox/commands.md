@@ -19,7 +19,7 @@ design       → implement       → contract check → review    → ship
 
 ## `/plan <feature>` — design from the BFF first
 
-[`.claude/commands/plan.md`](../../../.claude/commands/plan.md)
+[`.claude/commands/plan.md`](https://github.com/perso-devrel/vibi/blob/main/.claude/commands/plan.md)
 
 When cross-directory work comes in — e.g. "add an admin grant button that surfaces the new credit balance in the mobile user menu" — designing BFF, shared, and cmp simultaneously in a single agent's head always leaves one side underbaked. So the command forces six explicit phases:
 
@@ -34,7 +34,7 @@ When cross-directory work comes in — e.g. "add an admin grant button that surf
 
 ## `/sync-api` — BFF ↔ mobile contract consistency
 
-[`.claude/commands/sync-api.md`](../../../.claude/commands/sync-api.md)
+[`.claude/commands/sync-api.md`](https://github.com/perso-devrel/vibi/blob/main/.claude/commands/sync-api.md)
 
 The BFF's routes/DTOs and mobile shared's `BffApi`/DTOs *aren't linked at compile time* — the two directories have separate gradle builds, so when a BFF DTO changes, mobile only finds out *at runtime*.
 
@@ -55,7 +55,7 @@ The BFF's routes/DTOs and mobile shared's `BffApi`/DTOs *aren't linked at compil
 
 ## `/review` — per-directory dispatch
 
-[`.claude/commands/review.md`](../../../.claude/commands/review.md)
+[`.claude/commands/review.md`](https://github.com/perso-devrel/vibi/blob/main/.claude/commands/review.md)
 
 Review itself has different angles per directory — BFF prioritizes security/efficiency/error mapping, KMP/CMP prioritizes commonMain pollution, expect/actual consistency, and JVM-only library leakage.
 
@@ -69,7 +69,7 @@ So `/review` doesn't inspect *directly* — it looks at the change scope and dis
 
 ## `/ship` — release gate
 
-[`.claude/commands/ship.md`](../../../.claude/commands/ship.md)
+[`.claude/commands/ship.md`](https://github.com/perso-devrel/vibi/blob/main/.claude/commands/ship.md)
 
 Bundles the build command + tests + `/sync-api` consistency into one pass. Five phases:
 
@@ -91,4 +91,4 @@ Bundles the build command + tests + `/sync-api` consistency into one pass. Five 
 
 - [`agents.md`](./agents.md) — the two subagents the commands dispatch to
 - [`skills.md`](./skills.md) — the smaller unit invoked from inside commands (e.g. per-directory review skill)
-- [Workspace `CLAUDE.md`](../../../CLAUDE.md) § "Root slash commands" — the one-line catalog of the same four commands
+- [Workspace `CLAUDE.md`](https://github.com/perso-devrel/vibi/blob/main/CLAUDE.md) § "Root slash commands" — the one-line catalog of the same four commands
