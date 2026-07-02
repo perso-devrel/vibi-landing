@@ -12,7 +12,9 @@ export type LegalDoc = {
 
 const LEGAL_ROOT = path.resolve(process.cwd(), "legal");
 
-export function getLegalDoc(slug: "privacy-policy" | "terms-of-service"): LegalDoc {
+export function getLegalDoc(
+  slug: "privacy-policy" | "terms-of-service" | "account-deletion",
+): LegalDoc {
   const raw = fs.readFileSync(path.join(LEGAL_ROOT, `${slug}.md`), "utf8");
   const titleMatch = raw.match(/^#\s+(.+)$/m);
   const title = titleMatch ? titleMatch[1].trim() : slug;

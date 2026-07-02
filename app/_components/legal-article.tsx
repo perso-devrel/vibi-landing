@@ -13,7 +13,7 @@ const NAV_LINKS = [{ label: "Home", href: "/" }];
 export function LegalArticle({
   slug,
 }: {
-  slug: "privacy-policy" | "terms-of-service";
+  slug: "privacy-policy" | "terms-of-service" | "account-deletion";
 }) {
   const doc: LegalDoc = getLegalDoc(slug);
   return (
