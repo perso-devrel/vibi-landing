@@ -1,0 +1,4 @@
+# app-ads.txt — authorizes Google AdMob to sell vibi's mobile ad inventory.
+# Must stay reachable (HTTP 200) at the developer/marketing URL registered in
+# the App Store Connect and Google Play listings. Publisher: pub-4825847811436125.
+google.com, pub-4825847811436125, DIRECT, f08c47fec0942fa0
