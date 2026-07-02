@@ -3,7 +3,7 @@
 **Effective date:** June 8, 2026
 **Last updated:** June 27, 2026
 
-This Privacy Policy explains how **vibi** ("**vibi**", "**we**", "**us**", or "**our**") collects, uses, shares, and protects information when you use the **vibi** mobile application (the "**App**"; iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`), the **vibi panel for Adobe Premiere Pro** (the "**Plugin**"), and our related backend services (together, the "**Service**"). The App and the Plugin share the same vibi account and backend.
+This Privacy Policy explains how **vibi** ("**vibi**", "**we**", "**us**", or "**our**") collects, uses, shares, and protects information when you use the **vibi** mobile application (the "**App**"; iOS bundle `com.vibi.ios`, Android package `com.vibi.app`), the **vibi panel for Adobe Premiere Pro** (the "**Plugin**"), and our related backend services (together, the "**Service**"). The App and the Plugin share the same vibi account and backend.
 
 By using the Service, you agree to the practices described here. If you do not agree, please do not use the Service.
 

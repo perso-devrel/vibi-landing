@@ -3,7 +3,7 @@
 **Effective date:** June 8, 2026
 **Last updated:** June 27, 2026
 
-These Terms of Service ("**Terms**") are a binding agreement between you and **vibi** ("**vibi**", "**we**", "**us**", "**our**") governing your use of the **vibi** mobile application (iOS bundle `com.vibi.ios`, Android package `com.vibi.cmp`), the **vibi panel for Adobe Premiere Pro**, and our related backend services (the "**Service**").
+These Terms of Service ("**Terms**") are a binding agreement between you and **vibi** ("**vibi**", "**we**", "**us**", "**our**") governing your use of the **vibi** mobile application (iOS bundle `com.vibi.ios`, Android package `com.vibi.app`), the **vibi panel for Adobe Premiere Pro**, and our related backend services (the "**Service**").
 
 **By creating an account or using the Service, you agree to these Terms and to our [Privacy Policy](/privacy).** If you do not agree, do not use the Service.
 

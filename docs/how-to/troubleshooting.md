@@ -93,7 +93,7 @@ cd vibi-mobile
 **Cause**: While vibi is in showcase mode, `:shared` runs Room **v5 with `fallbackToDestructiveMigration(dropAllTables=true)`** — every schema change drops the local DB on next open. Crashes during dev usually mean the install survived an aborted schema change, or you're running an old binary against a fresh schema.
 
 **Fix** (during development):
-- Android emulator: `adb uninstall com.vibi.cmp`, or clear app data
+- Android emulator: `adb uninstall com.vibi.app`, or clear app data
 - iOS simulator: long-press the vibi app on the simulator → Delete App
 - After reinstall, it starts from a fresh schema
 
