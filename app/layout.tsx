@@ -18,12 +18,45 @@ const bodyLatin = Inter({
 });
 
 export const metadata: Metadata = {
-  title: dict.meta.title,
+  // Child pages set a short `title` and the template appends the brand.
+  // NOTE: canonical is intentionally NOT set here — Next.js cascades
+  // layout `alternates` to every page, which would mark all subpages as
+  // duplicates of "/". Each page declares its own canonical instead.
+  title: {
+    default: dict.meta.title,
+    template: "%s — vibi",
+  },
   description: dict.meta.description,
   metadataBase: new URL("https://www.vibi.fm"),
-  alternates: {
-    canonical: "/",
+  applicationName: "vibi",
+  category: "multimedia",
+  keywords: [
+    "AI audio separation",
+    "remove background noise from video",
+    "remove voice from video",
+    "stem separation",
+    "voice isolation",
+    "noise removal app",
+    "audio cleanup",
+    "per-speaker separation",
+    "Premiere Pro plugin",
+    "iOS video editor",
+    "Android video editor",
+  ],
+  authors: [{ name: "vibi" }],
+  creator: "vibi",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
+  formatDetection: { telephone: false },
   openGraph: {
     title: dict.meta.title,
     description: dict.meta.description,

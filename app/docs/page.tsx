@@ -4,10 +4,25 @@ import { CATEGORIES, listAllDocs, type Category, type DocSummary } from "@/lib/d
 import { BadgePill } from "@/app/_components/badge-pill";
 import { DocsNav } from "./_components/docs-nav";
 
+const DOCS_DESCRIPTION =
+  "Tutorials, how-tos, reference, and design notes for vibi — AI audio separation on iPhone, Android, and in Adobe Premiere Pro.";
+
 export const metadata: Metadata = {
-  title: "Docs — vibi",
-  description:
-    "Tutorials, how-tos, reference, and design notes for the vibi codebase.",
+  title: "Docs",
+  description: DOCS_DESCRIPTION,
+  alternates: { canonical: "/docs" },
+  openGraph: {
+    title: "Docs — vibi",
+    description: DOCS_DESCRIPTION,
+    url: "/docs",
+    siteName: "vibi",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Docs — vibi",
+    description: DOCS_DESCRIPTION,
+  },
 };
 
 const NAV_LINKS = [

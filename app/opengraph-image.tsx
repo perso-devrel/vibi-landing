@@ -25,7 +25,7 @@ export default function OpengraphImage() {
           Keep the video. Erase just the noise.
         </div>
         <div style={{ fontSize: 30, marginTop: 28, color: "#6b655d" }}>
-          AI audio separation · iPhone &amp; Adobe Premiere Pro
+          AI audio separation · iPhone · Android · Adobe Premiere Pro
         </div>
       </div>
     ),

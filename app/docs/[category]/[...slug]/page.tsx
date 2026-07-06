@@ -33,12 +33,28 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { category, slug } = await params;
-  if (!isCategorySlug(category)) return { title: "Docs — vibi" };
+  if (!isCategorySlug(category)) return { title: "Docs" };
   const doc = getDoc(category, slug);
-  if (!doc) return { title: "Docs — vibi" };
+  if (!doc) return { title: "Docs" };
+  const canonical = `/docs/${category}/${slug.join("/")}`;
+  const title = `${doc.title} — vibi docs`;
   return {
-    title: `${doc.title} — vibi docs`,
+    // Absolute title: the layout template would double-append the brand.
+    title: { absolute: title },
     description: doc.excerpt,
+    alternates: { canonical },
+    openGraph: {
+      title,
+      description: doc.excerpt,
+      url: canonical,
+      siteName: "vibi",
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: doc.excerpt,
+    },
   };
 }
 
@@ -56,8 +72,37 @@ export default async function DocPage({
   const breadcrumb =
     slug.length > 1 ? slug.slice(0, -1).join(" / ") : categoryMeta.eyebrow;
 
+  const site = "https://www.vibi.fm";
+  const docUrl = `${site}/docs/${category}/${slug.join("/")}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TechArticle",
+        headline: doc.title,
+        description: doc.excerpt,
+        url: docUrl,
+        inLanguage: "en",
+        articleSection: categoryMeta.label,
+        publisher: { "@id": `${site}/#org` },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Docs", item: `${site}/docs` },
+          { "@type": "ListItem", position: 2, name: categoryMeta.label },
+          { "@type": "ListItem", position: 3, name: doc.title, item: docUrl },
+        ],
+      },
+    ],
+  };
+
   return (
     <main className="relative">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <DocsNav links={NAV_LINKS} />
 
       <article

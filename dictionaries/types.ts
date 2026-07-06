@@ -29,6 +29,7 @@ export type Dict = {
     body: string;
     chips: string[];
     ctaPrimary: string;
+    ctaAndroid: string;
     ctaSecondary: string;
     caption: string;
   };
@@ -45,6 +46,7 @@ export type Dict = {
       body: string;
       points: string[];
       ctaLabel: string;
+      ctaLabelAndroid?: string; // second store button on the mobile card
     }[];
   };
 
@@ -103,6 +105,7 @@ export type Dict = {
     title: string;
     body: string;
     primary: string;
+    android: string;
     secondary: string;
     caption: string;
   };

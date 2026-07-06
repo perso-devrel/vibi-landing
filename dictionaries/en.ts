@@ -4,7 +4,7 @@ export const en: Dict = {
   meta: {
     title: "vibi — Keep the video. Erase just the noise.",
     description:
-      "AI that removes only the sounds you don't want — on iOS, and inside Adobe Premiere Pro. Split the audio into voice, background, and per-speaker stems, then mute the wind, the passerby, the wrong voice — the footage you can't reshoot stays.",
+      "AI that removes only the sounds you don't want — on iOS & Android, and inside Adobe Premiere Pro. Split the audio into voice, background, and per-speaker stems, then mute the wind, the passerby, the wrong voice — the footage you can't reshoot stays.",
   },
 
   announcement: {
@@ -31,9 +31,10 @@ export const en: Dict = {
     titleLines: ["Keep the video.", "Erase just the noise."],
     body: "Pick any clip and vibi separates the audio into voice, background, and per-speaker stems — so you can mute the wind, the passerby, or the wrong voice without ever touching the footage you can't reshoot.",
     chips: ["Voice", "Background", "Per-speaker"],
-    ctaPrimary: "Download on the App Store",
+    ctaPrimary: "Notify me at iOS launch",
+    ctaAndroid: "Notify me at Android launch",
     ctaSecondary: "Get the Premiere Pro panel",
-    caption: "On iPhone (iOS 17+) and inside Adobe Premiere Pro 26+",
+    caption: "iOS & Android apps in store review — live now in Adobe Premiere Pro 26+",
   },
 
   apps: {
@@ -43,12 +44,13 @@ export const en: Dict = {
     items: [
       {
         kind: "ios",
-        eyebrow: "vibi for iPhone",
-        badge: "iOS 17+",
+        eyebrow: "vibi for iPhone & Android",
+        badge: "In store review",
         tagline: "The quick fix, where you shoot.",
         body: "Pick a clip and the whole track separates. Split it into regions and mute, dim, or slow just the part that bothers you — done in under five minutes.",
         points: ["Whole-clip stem separation", "Mute / dim / slow by region", "Add BGM, or edit by chat"],
-        ctaLabel: "Download on the App Store",
+        ctaLabel: "Notify me at iOS launch",
+        ctaLabelAndroid: "Notify me at Android launch",
       },
       {
         kind: "premiere",
@@ -159,16 +161,17 @@ export const en: Dict = {
   cta: {
     title: "Two ways in. One clean cut.",
     body: "Start on your phone where you shoot, finish in Premiere where you edit — your account and credits follow you across both.",
-    primary: "Download on the App Store",
+    primary: "Notify me at iOS launch",
+    android: "Notify me at Android launch",
     secondary: "Get the Premiere Pro panel",
-    caption: "iOS 17+ · Premiere Pro 26+ · credits shared across both",
+    caption: "iOS & Android in store review · Premiere Pro 26+ · credits shared across both",
   },
 
   footer: {
     tagline: "Keep the video. Erase just the noise — on iPhone and in Premiere Pro.",
     productHeading: "Product",
     productLinks: [
-      { label: "vibi for iPhone", href: "#app-ios" },
+      { label: "vibi for iPhone & Android", href: "#app-ios" },
       { label: "vibi for Premiere Pro", href: "#app-premiere" },
       { label: "Features", href: "#features" },
       { label: "How it works", href: "#scenario" },

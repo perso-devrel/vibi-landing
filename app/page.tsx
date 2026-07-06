@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import { dict, type Dict } from "@/dictionaries";
 import iosShot from "./_media/ios-editor.png";
@@ -8,8 +9,12 @@ import { BadgePill } from "@/app/_components/badge-pill";
 import { GithubGlyph } from "@/app/_components/github-glyph";
 import { AnnouncementBar } from "@/app/_components/announcement-bar";
 
-// TODO(launch): APP_STORE_URL is still a PLACEHOLDER — needs the real numeric App Store id.
-const APP_STORE_URL = "https://apps.apple.com/app/vibi";
+// Both mobile apps are in store review — until the listings go live, the store CTAs
+// collect launch-notify requests over email instead of linking to a store page.
+// TODO(launch): swap these for the real App Store / Play Store URLs once review clears.
+const NOTIFY_EMAIL = "jepark2934@gmail.com";
+const NOTIFY_IOS_URL = `mailto:${NOTIFY_EMAIL}?subject=${encodeURIComponent("Notify me when vibi for iOS launches")}`;
+const NOTIFY_ANDROID_URL = `mailto:${NOTIFY_EMAIL}?subject=${encodeURIComponent("Notify me when vibi for Android launches")}`;
 const PREMIERE_URL = "https://exchange.adobe.com/apps/cc/b3d5d5b5/vibi-ai-sound-eraser";
 const PLUGIN_REPO_URL = "https://github.com/perso-devrel/vibi-adobe-plugin";
 
@@ -17,6 +22,10 @@ const PLUGIN_REPO_URL = "https://github.com/perso-devrel/vibi-adobe-plugin";
 const PHONE_FRAME_WIDTH = 212;
 // Tuned so the Premiere window renders at the same height as the iOS phone mock.
 const PLUGIN_PANEL_MAX_WIDTH = 360;
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const NAV_LINKS = [
   { href: "#why", key: "why" as const },
@@ -69,8 +78,7 @@ function JsonLd({ dict }: { dict: Dict }) {
       "@type": "MobileApplication",
       name: "vibi",
       applicationCategory: "MultimediaApplication",
-      operatingSystem: "iOS 17+",
-      url: APP_STORE_URL,
+      operatingSystem: "iOS 17+, Android",
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       publisher: { "@id": `${site}/#org` },
     },
@@ -224,12 +232,20 @@ function BrandHero({ dict }: { dict: Dict }) {
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
           <a
-            href={APP_STORE_URL}
+            href={NOTIFY_IOS_URL}
             className="btn-primary"
             style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
           >
             <AppleGlyph />
             {hero.ctaPrimary}
+          </a>
+          <a
+            href={NOTIFY_ANDROID_URL}
+            className="btn-primary"
+            style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+          >
+            <AndroidGlyph />
+            {hero.ctaAndroid}
           </a>
           <a
             href={PREMIERE_URL}
@@ -298,7 +314,6 @@ function AppCard({
   media: ReactNode;
 }) {
   const isIos = item.kind === "ios";
-  const href = isIos ? APP_STORE_URL : PREMIERE_URL;
   return (
     <article
       id={id}
@@ -348,16 +363,40 @@ function AppCard({
           ))}
         </ul>
 
-        <div className="mt-auto pt-8">
-          <a
-            href={href}
-            className="btn-primary"
-            style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
-            {...(isIos ? {} : { target: "_blank", rel: "noreferrer" })}
-          >
-            {isIos ? <AppleGlyph /> : <PremiereGlyph />}
-            {item.ctaLabel}
-          </a>
+        <div className="mt-auto flex flex-wrap gap-3 pt-8">
+          {isIos ? (
+            <>
+              <a
+                href={NOTIFY_IOS_URL}
+                className="btn-primary"
+                style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+              >
+                <AppleGlyph />
+                {item.ctaLabel}
+              </a>
+              {item.ctaLabelAndroid ? (
+                <a
+                  href={NOTIFY_ANDROID_URL}
+                  className="btn-primary"
+                  style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+                >
+                  <AndroidGlyph />
+                  {item.ctaLabelAndroid}
+                </a>
+              ) : null}
+            </>
+          ) : (
+            <a
+              href={PREMIERE_URL}
+              className="btn-primary"
+              style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <PremiereGlyph />
+              {item.ctaLabel}
+            </a>
+          )}
         </div>
       </div>
     </article>
@@ -807,12 +846,20 @@ function ClosingCta({ dict }: { dict: Dict }) {
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <a
-            href={APP_STORE_URL}
+            href={NOTIFY_IOS_URL}
             className="btn-primary"
             style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
           >
             <AppleGlyph />
             {cta.primary}
+          </a>
+          <a
+            href={NOTIFY_ANDROID_URL}
+            className="btn-primary"
+            style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
+          >
+            <AndroidGlyph />
+            {cta.android}
           </a>
           <a
             href={PREMIERE_URL}
@@ -1041,6 +1088,20 @@ function AppleGlyph() {
       fill="currentColor"
     >
       <path d="M13.94 10.62c-.02-2.16 1.77-3.2 1.85-3.25-1-1.47-2.58-1.67-3.13-1.69-1.34-.13-2.6.78-3.27.78-.68 0-1.72-.76-2.83-.74-1.46.02-2.81.84-3.55 2.13-1.51 2.62-.39 6.5 1.09 8.62.72 1.04 1.58 2.21 2.69 2.17 1.08-.04 1.49-.7 2.79-.7 1.31 0 1.68.7 2.83.68 1.17-.02 1.91-1.06 2.62-2.1.83-1.21 1.17-2.39 1.19-2.45-.03-.01-2.27-.87-2.28-3.45zM11.79 4.27c.59-.72.99-1.71.88-2.7-.85.04-1.89.57-2.5 1.28-.55.63-1.04 1.65-.91 2.62.95.07 1.93-.48 2.53-1.2z" />
+    </svg>
+  );
+}
+
+function AndroidGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className="h-[16px] w-[16px]"
+      style={{ marginRight: "2px" }}
+      fill="currentColor"
+    >
+      <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.7-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.46 11.46 0 0 0-8.94 0L5.65 5.67c-.19-.28-.54-.37-.83-.22-.3.15-.42.54-.26.85L6.4 9.48A10.81 10.81 0 0 0 1 18h22a10.81 10.81 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z" />
     </svg>
   );
 }
