@@ -13,7 +13,7 @@ import { AnnouncementBar } from "@/app/_components/announcement-bar";
 // collecting launch-notify requests over email until the listing goes live.
 // TODO(launch): swap NOTIFY_ANDROID_URL for the real Play Store URL once review clears.
 const NOTIFY_EMAIL = "jepark2934@gmail.com";
-const IOS_APP_STORE_URL = "https://apps.apple.com/kr/app/vibi-ai-sound-eraser/id6770426755";
+const IOS_APP_STORE_URL = "https://apps.apple.com/us/app/vibi-ai-sound-eraser/id6770426755";
 const NOTIFY_ANDROID_URL = `mailto:${NOTIFY_EMAIL}?subject=${encodeURIComponent("Notify me when vibi for Android launches")}`;
 const PREMIERE_URL = "https://exchange.adobe.com/apps/cc/b3d5d5b5/vibi-ai-sound-eraser";
 const PLUGIN_REPO_URL = "https://github.com/perso-devrel/vibi-adobe-plugin";
