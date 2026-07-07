@@ -9,11 +9,11 @@ import { BadgePill } from "@/app/_components/badge-pill";
 import { GithubGlyph } from "@/app/_components/github-glyph";
 import { AnnouncementBar } from "@/app/_components/announcement-bar";
 
-// Both mobile apps are in store review — until the listings go live, the store CTAs
-// collect launch-notify requests over email instead of linking to a store page.
-// TODO(launch): swap these for the real App Store / Play Store URLs once review clears.
+// iOS is live on the App Store; Android is still in store review, so its CTA keeps
+// collecting launch-notify requests over email until the listing goes live.
+// TODO(launch): swap NOTIFY_ANDROID_URL for the real Play Store URL once review clears.
 const NOTIFY_EMAIL = "jepark2934@gmail.com";
-const NOTIFY_IOS_URL = `mailto:${NOTIFY_EMAIL}?subject=${encodeURIComponent("Notify me when vibi for iOS launches")}`;
+const IOS_APP_STORE_URL = "https://apps.apple.com/kr/app/vibi-ai-sound-eraser/id6770426755";
 const NOTIFY_ANDROID_URL = `mailto:${NOTIFY_EMAIL}?subject=${encodeURIComponent("Notify me when vibi for Android launches")}`;
 const PREMIERE_URL = "https://exchange.adobe.com/apps/cc/b3d5d5b5/vibi-ai-sound-eraser";
 const PLUGIN_REPO_URL = "https://github.com/perso-devrel/vibi-adobe-plugin";
@@ -232,7 +232,9 @@ function BrandHero({ dict }: { dict: Dict }) {
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
           <a
-            href={NOTIFY_IOS_URL}
+            href={IOS_APP_STORE_URL}
+            target="_blank"
+            rel="noreferrer"
             className="btn-primary"
             style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
           >
@@ -367,7 +369,9 @@ function AppCard({
           {isIos ? (
             <>
               <a
-                href={NOTIFY_IOS_URL}
+                href={IOS_APP_STORE_URL}
+                target="_blank"
+                rel="noreferrer"
                 className="btn-primary"
                 style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
               >
@@ -846,7 +850,9 @@ function ClosingCta({ dict }: { dict: Dict }) {
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <a
-            href={NOTIFY_IOS_URL}
+            href={IOS_APP_STORE_URL}
+            target="_blank"
+            rel="noreferrer"
             className="btn-primary"
             style={{ height: "48px", padding: "0 22px", fontSize: "15px" }}
           >

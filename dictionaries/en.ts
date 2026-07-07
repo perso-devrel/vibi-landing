@@ -31,7 +31,7 @@ export const en: Dict = {
     titleLines: ["Keep the video.", "Erase just the noise."],
     body: "Pick any clip and vibi separates the audio into voice, background, and per-speaker stems — so you can mute the wind, the passerby, or the wrong voice without ever touching the footage you can't reshoot.",
     chips: ["Voice", "Background", "Per-speaker"],
-    ctaPrimary: "Notify me at iOS launch",
+    ctaPrimary: "Get it on iOS",
     ctaAndroid: "Notify me at Android launch",
     ctaSecondary: "Get the Premiere Pro panel",
     caption: "iOS & Android apps in store review — live now in Adobe Premiere Pro 26+",
@@ -49,7 +49,7 @@ export const en: Dict = {
         tagline: "The quick fix, where you shoot.",
         body: "Pick a clip and the whole track separates. Split it into regions and mute, dim, or slow just the part that bothers you — done in under five minutes.",
         points: ["Whole-clip stem separation", "Mute / dim / slow by region", "Add BGM, or edit by chat"],
-        ctaLabel: "Notify me at iOS launch",
+        ctaLabel: "Get it on iOS",
         ctaLabelAndroid: "Notify me at Android launch",
       },
       {
@@ -161,7 +161,7 @@ export const en: Dict = {
   cta: {
     title: "Two ways in. One clean cut.",
     body: "Start on your phone where you shoot, finish in Premiere where you edit — your account and credits follow you across both.",
-    primary: "Notify me at iOS launch",
+    primary: "Get it on iOS",
     android: "Notify me at Android launch",
     secondary: "Get the Premiere Pro panel",
     caption: "iOS & Android in store review · Premiere Pro 26+ · credits shared across both",
