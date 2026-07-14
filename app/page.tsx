@@ -7,6 +7,7 @@ import pluginShot from "./_media/plugin-panel.png";
 import { Wordmark } from "@/app/_components/wordmark";
 import { BadgePill } from "@/app/_components/badge-pill";
 import { GithubGlyph } from "@/app/_components/github-glyph";
+import { PersoGlyph } from "@/app/_components/perso-glyph";
 import { AnnouncementBar } from "@/app/_components/announcement-bar";
 
 // iOS is live on the App Store; Android is still in store review, so its CTA keeps
@@ -986,6 +987,22 @@ function Footer({ dict }: { dict: Dict }) {
                 </li>
               ))}
             </ul>
+            <a
+              href={footer.poweredBy.href}
+              target="_blank"
+              rel="noreferrer"
+              className="caption inline-flex items-center gap-1.5 transition-opacity hover:opacity-70"
+              style={{ color: "var(--color-muted)" }}
+            >
+              <span>{footer.poweredBy.prefix}</span>
+              <span
+                className="inline-flex items-center gap-1.5 font-semibold"
+                style={{ color: "var(--color-body-strong)" }}
+              >
+                <PersoGlyph />
+                {footer.poweredBy.name}
+              </span>
+            </a>
           </div>
           <ul className="flex items-center gap-4">
             {footer.githubLinks.map((g) => (

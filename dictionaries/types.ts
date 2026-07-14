@@ -115,6 +115,11 @@ export type Dict = {
     productHeading: string;
     productLinks: LinkItem[];
     copyright: string; // template with {year}
+    poweredBy: {
+      prefix: string; // e.g. "Powered by"
+      name: string; // e.g. "Perso AI"
+      href: string;
+    };
     githubLinks: LinkItem[];
     legalLinks: LinkItem[];
   };

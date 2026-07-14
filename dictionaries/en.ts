@@ -178,6 +178,11 @@ export const en: Dict = {
       { label: "Docs", href: "/docs" },
     ],
     copyright: "© {year} vibi · Built by je0ng3",
+    poweredBy: {
+      prefix: "Powered by",
+      name: "Perso AI",
+      href: "https://perso.ai",
+    },
     githubLinks: [
       { label: "vibi", href: "https://github.com/perso-devrel/vibi" },
       { label: "vibi-bff", href: "https://github.com/perso-devrel/vibi-bff" },
