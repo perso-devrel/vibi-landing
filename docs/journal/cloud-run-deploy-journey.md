@@ -18,7 +18,7 @@ The route I went is: bake `Dockerfile` + a bootstrap script first (`9468245`), w
 
 **Visible symptom**: WIF pool and provider both created cleanly. The deploy step then failed with `unauthorized_client — repository not allowed`.
 
-**Cause**: the OIDC provider was created with `--attribute-condition="assertion.repository_owner=='perso-devrel'"`, but my initial guide had a placeholder example that read `dubcast-ai` (the project's previous codename). I'd copy-pasted from the example. The condition gates *which GitHub org's token can be exchanged at all* — a wrong owner string blocks every deploy regardless of the SA bindings.
+**Cause**: the OIDC provider was created with `--attribute-condition="assertion.repository_owner=='je0ng3'"`, but my initial guide had a placeholder example that read `dubcast-ai` (the project's previous codename). I'd copy-pasted from the example. The condition gates *which GitHub org's token can be exchanged at all* — a wrong owner string blocks every deploy regardless of the SA bindings.
 
 **Fix**: replace the placeholder with the actual org (`4d7e13f`). One commit, one string. The trigger for catching it was `9319003 — trigger deploy after WIF attribute condition fix` — i.e. a no-op commit whose only purpose was to fire the workflow once the underlying GCP config had been corrected.
 

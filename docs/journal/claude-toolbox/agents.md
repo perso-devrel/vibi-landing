@@ -26,7 +26,7 @@ If one agent had to cover both, it would have to throw away half of its context 
 
 So each agent holds its own information:
 
-### `bff-dev` ([`.claude/agents/bff-dev.md`](https://github.com/perso-devrel/vibi/blob/main/.claude/agents/bff-dev.md))
+### `bff-dev` ([`.claude/agents/bff-dev.md`](https://github.com/je0ng3/vibi/blob/main/.claude/agents/bff-dev.md))
 
 - Locations of 6 route files + 3 DTOs + 10 service classes
 - Policies like "artifacts are not statically mounted" (HMAC-signed URLs)
@@ -34,7 +34,7 @@ So each agent holds its own information:
 - ffmpeg/ffprobe must be on PATH, JDK 21
 - Working directory is `./vibi-bff` (its own git repo, so git commands run there)
 
-### `kmp-dev` ([`.claude/agents/kmp-dev.md`](https://github.com/perso-devrel/vibi/blob/main/.claude/agents/kmp-dev.md))
+### `kmp-dev` ([`.claude/agents/kmp-dev.md`](https://github.com/je0ng3/vibi/blob/main/.claude/agents/kmp-dev.md))
 
 - The three module boundaries — `:shared` domain+logic, `:cmp` UI only, `iosApp` Xcode entry
 - Multiplatform rules like "no Android/JVM-only API in `commonMain`"
@@ -78,4 +78,4 @@ There are tasks that fit neither agent — adding a BFF route *together with* a 
 
 - [`commands.md`](./commands.md) — dispatch for cross-cutting tasks
 - [`skills.md`](./skills.md) — finer-grained splits within the same directory
-- [Workspace `CLAUDE.md`](https://github.com/perso-devrel/vibi/blob/main/CLAUDE.md) § "Task routing" — the same table for humans routing manually
+- [Workspace `CLAUDE.md`](https://github.com/je0ng3/vibi/blob/main/CLAUDE.md) § "Task routing" — the same table for humans routing manually
