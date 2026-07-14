@@ -2,24 +2,24 @@ import type { Dict } from "./types";
 
 export const en: Dict = {
   meta: {
-    title: "vibi — Keep the video. Erase just the noise.",
+    title: "VIBI — Keep the video. Erase just the noise.",
     description:
       "AI that removes only the sounds you don't want — on iOS & Android, and inside Adobe Premiere Pro. Split the audio into voice, background, and per-speaker stems, then mute the wind, the passerby, the wrong voice — the footage you can't reshoot stays.",
   },
 
   announcement: {
     badge: "Beta",
-    message: "Payments aren't live yet — vibi is free to try right now.",
+    message: "Payments aren't live yet — VIBI is free to try right now.",
     feedbackText: "Send us a review or feedback and we'll add 5 bonus credits.",
     feedbackLabel: "Send feedback",
     feedbackEmail: "jepark2934@gmail.com",
-    feedbackSubject: "vibi feedback (for 5 bonus credits)",
+    feedbackSubject: "VIBI feedback (for 5 bonus credits)",
   },
   nav: {
     appStore: "App Store",
     ios: "iPhone",
     premiere: "Premiere Pro",
-    why: "Why vibi",
+    why: "Why VIBI",
     features: "Features",
     scenario: "How it works",
     workflow: "Workflow",
@@ -29,7 +29,7 @@ export const en: Dict = {
   hero: {
     eyebrow: "AI audio separation",
     titleLines: ["Keep the video.", "Erase just the noise."],
-    body: "Pick any clip and vibi separates the audio into voice, background, and per-speaker stems — so you can mute the wind, the passerby, or the wrong voice without ever touching the footage you can't reshoot.",
+    body: "Pick any clip and VIBI separates the audio into voice, background, and per-speaker stems — so you can mute the wind, the passerby, or the wrong voice without ever touching the footage you can't reshoot.",
     chips: ["Voice", "Background", "Per-speaker"],
     ctaPrimary: "Get it on iOS",
     ctaAndroid: "Notify me at Android launch",
@@ -44,7 +44,7 @@ export const en: Dict = {
     items: [
       {
         kind: "ios",
-        eyebrow: "vibi for iPhone & Android",
+        eyebrow: "VIBI for iPhone & Android",
         badge: "In store review",
         tagline: "The quick fix, where you shoot.",
         body: "Pick a clip and the whole track separates. Split it into regions and mute, dim, or slow just the part that bothers you — done in under five minutes.",
@@ -54,7 +54,7 @@ export const en: Dict = {
       },
       {
         kind: "premiere",
-        eyebrow: "vibi for Premiere Pro",
+        eyebrow: "VIBI for Premiere Pro",
         badge: "Premiere Pro 26+",
         tagline: "The detailed cut, in your editor.",
         body: "Read the timecoded, per-speaker transcript, reassign speakers, and regenerate the audio. Ride each stem with a dB fader, then mix a clean .wav back onto your timeline.",
@@ -77,13 +77,13 @@ export const en: Dict = {
   },
 
   why: {
-    eyebrow: "Why vibi",
+    eyebrow: "Why VIBI",
     titleIntro: "Stop crushing the whole track. Erase ",
     titleEm: "just what bothers you",
     titleOutro: ".",
-    body: "Most editors treat sound as one block — kill the noise, kill the voice with it. vibi splits each clip into voice, background, and per-speaker stems so you can mute only the parts you don't want. Same engine on iPhone and in Premiere Pro.",
+    body: "Most editors treat sound as one block — kill the noise, kill the voice with it. VIBI splits each clip into voice, background, and per-speaker stems so you can mute only the parts you don't want. Same engine on iPhone and in Premiere Pro.",
     legacyHeader: "Other tools",
-    vibiHeader: "vibi",
+    vibiHeader: "VIBI",
     rows: [
       { label: "Sound unit", legacy: "1 clip = 1 mixed track", vibi: "1 clip = voice / background / per-speaker" },
       { label: "Noise removal", legacy: "Crushes everything (voice too)", vibi: "Mute background only — voice intact" },
@@ -119,9 +119,9 @@ export const en: Dict = {
   scenario: {
     eyebrow: "How it works",
     title: "Interview clip — one voice clean, the other gone.",
-    body: "The moment was too good to reshoot but a passerby ruined the audio. With vibi, salvaging it takes under five minutes.",
+    body: "The moment was too good to reshoot but a passerby ruined the audio. With VIBI, salvaging it takes under five minutes.",
     beforeTitle: "Before — the old way",
-    afterTitle: "After — vibi",
+    afterTitle: "After — VIBI",
     before: [
       "Get back to the desk, open the laptop",
       "Move the clip to PC (5–15 min)",
@@ -143,7 +143,7 @@ export const en: Dict = {
     title: "What used to need a studio, now in two apps.",
     body: "Whether you're on your phone on location or deep in Premiere at the desk — the moment doesn't get away.",
     pcLabel: "The old way",
-    vibiLabel: "vibi",
+    vibiLabel: "VIBI",
     rows: [
       { step: "Bring in the clip", pc: "Cable / iCloud / AirDrop · 5–15 min", vibi: "From your gallery on iPhone, or the Project panel in Premiere" },
       { step: "Erase a noise", pc: "EQ + multiband + manual cuts — and voice often dies with it", vibi: "Separate, then mute the stem or region you don't want" },
@@ -153,7 +153,7 @@ export const en: Dict = {
   },
 
   plugin: {
-    panelName: "Vibi: AI Sound Eraser",
+    panelName: "VIBI: AI Sound Eraser",
     panelHost: "Premiere Pro 26+ · UXP panel",
     sources: ["File", "Project", "Timeline"],
   },
@@ -167,25 +167,35 @@ export const en: Dict = {
     caption: "iOS & Android in store review · Premiere Pro 26+ · credits shared across both",
   },
 
+  jsonLd: {
+    featureList: [
+      "Separate voice, instrumental, and background sound from any video with one tap",
+      "Toggle and adjust the volume of each separated track",
+      "Add background music over a custom range",
+      "Edit specific sections of the video timeline",
+      "Preview edits before exporting the video",
+    ],
+  },
+
   footer: {
     tagline: "Keep the video. Erase just the noise — on iPhone and in Premiere Pro.",
     productHeading: "Product",
     productLinks: [
-      { label: "vibi for iPhone & Android", href: "#app-ios" },
-      { label: "vibi for Premiere Pro", href: "#app-premiere" },
+      { label: "VIBI for iPhone & Android", href: "#app-ios" },
+      { label: "VIBI for Premiere Pro", href: "#app-premiere" },
       { label: "Features", href: "#features" },
       { label: "How it works", href: "#scenario" },
       { label: "Docs", href: "/docs" },
     ],
-    copyright: "© {year} vibi · Built by je0ng3",
+    copyright: "© {year} VIBI · Built by je0ng3",
     poweredBy: {
       prefix: "Powered by",
       name: "Perso AI",
       href: "https://perso.ai",
     },
     githubLinks: [
-      { label: "vibi", href: "https://github.com/perso-devrel/vibi" },
-      { label: "vibi-bff", href: "https://github.com/perso-devrel/vibi-bff" },
+      { label: "VIBI", href: "https://github.com/je0ng3/vibi" },
+      { label: "VIBI-BFF", href: "https://github.com/je0ng3/vibi-bff" },
     ],
     legalLinks: [
       { label: "Privacy", href: "/privacy" },

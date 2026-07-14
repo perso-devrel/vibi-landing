@@ -20,7 +20,7 @@ export default function OpengraphImage() {
           padding: "80px 96px",
         }}
       >
-        <div style={{ fontSize: 120, fontWeight: 700, letterSpacing: "-4px" }}>vibi</div>
+        <div style={{ fontSize: 120, fontWeight: 700, letterSpacing: "-4px" }}>VIBI</div>
         <div style={{ fontSize: 52, marginTop: 8, color: "#0c0a09" }}>
           Keep the video. Erase just the noise.
         </div>

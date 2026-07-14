@@ -110,6 +110,10 @@ export type Dict = {
     caption: string;
   };
 
+  jsonLd: {
+    featureList: string[]; // schema.org SoftwareApplication.featureList
+  };
+
   footer: {
     tagline: string;
     productHeading: string;

@@ -24,11 +24,11 @@ export const metadata: Metadata = {
   // duplicates of "/". Each page declares its own canonical instead.
   title: {
     default: dict.meta.title,
-    template: "%s — vibi",
+    template: "%s — VIBI",
   },
   description: dict.meta.description,
   metadataBase: new URL("https://www.vibi.fm"),
-  applicationName: "vibi",
+  applicationName: "VIBI",
   category: "multimedia",
   keywords: [
     "AI sound eraser",
@@ -48,8 +48,8 @@ export const metadata: Metadata = {
     "iOS video editor",
     "Android video editor",
   ],
-  authors: [{ name: "vibi" }],
-  creator: "vibi",
+  authors: [{ name: "VIBI" }],
+  creator: "VIBI",
   robots: {
     index: true,
     follow: true,
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     title: dict.meta.title,
     description: dict.meta.description,
     url: "/",
-    siteName: "vibi",
+    siteName: "VIBI",
     type: "website",
     locale: "en_US",
   },
