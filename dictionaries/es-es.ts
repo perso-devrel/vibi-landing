@@ -190,8 +190,8 @@ export const esES: Dict = {
     copyright: "© {year} VIBI · Creado por je0ng3",
     poweredBy: {
       prefix: "Con la tecnología de",
-      name: "Perso AI",
-      href: "https://perso.ai",
+      name: "Perso Dubbing",
+      href: "https://perso.ai/dubbing",
     },
     githubLinks: [
       { label: "VIBI", href: "https://github.com/je0ng3/vibi" },

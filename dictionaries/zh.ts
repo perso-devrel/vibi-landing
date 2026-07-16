@@ -190,8 +190,8 @@ export const zh: Dict = {
     copyright: "© {year} VIBI · 由 je0ng3 打造",
     poweredBy: {
       prefix: "技术支持",
-      name: "Perso AI",
-      href: "https://perso.ai",
+      name: "Perso Dubbing",
+      href: "https://perso.ai/dubbing",
     },
     githubLinks: [
       { label: "VIBI", href: "https://github.com/je0ng3/vibi" },
