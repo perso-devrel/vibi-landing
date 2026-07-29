@@ -1,4 +1,6 @@
 import {
+  Inter,
+  Fraunces,
   Noto_Sans_KR,
   Noto_Serif_KR,
   Noto_Sans_JP,
@@ -7,6 +9,24 @@ import {
   Noto_Serif_SC,
 } from "next/font/google";
 import type { Locale } from "@/dictionaries";
+
+// Latin brand fonts, exposed as CSS variables on <html> by every root layout
+// (the default-locale group and the /{lang} group share one definition).
+const displayLatin = Fraunces({
+  subsets: ["latin"],
+  weight: ["300"],
+  display: "swap",
+  variable: "--font-display-latin",
+});
+
+const bodyLatin = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  variable: "--font-body-latin",
+});
+
+export const latinFontClass = `${displayLatin.variable} ${bodyLatin.variable}`;
 
 // Per-language CJK fonts. Body = Noto Sans (pairs with Inter), display = Noto
 // Serif (echoes the Fraunces serif used for latin headings). Latin subset is

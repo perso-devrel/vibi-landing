@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import { getLegalDoc, type LegalDoc } from "@/lib/legal";
 import { BadgePill } from "@/app/_components/badge-pill";
-import { DocsNav } from "@/app/docs/_components/docs-nav";
+import { DocsNav } from "@/app/_components/docs-nav";
 
 const NAV_LINKS = [{ label: "Home", href: "/" }];
 

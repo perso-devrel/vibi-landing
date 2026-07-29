@@ -15,7 +15,7 @@ import {
 } from "@/lib/docs";
 import { resolveDocLink } from "@/lib/docs-links";
 import { BadgePill } from "@/app/_components/badge-pill";
-import { DocsNav } from "../../_components/docs-nav";
+import { DocsNav } from "@/app/_components/docs-nav";
 
 type Params = { category: string; slug: string[] };
 

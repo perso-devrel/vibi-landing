@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { CATEGORIES, listAllDocs, type Category, type DocSummary } from "@/lib/docs";
 import { BadgePill } from "@/app/_components/badge-pill";
-import { DocsNav } from "./_components/docs-nav";
+import { DocsNav } from "@/app/_components/docs-nav";
 
 const DOCS_DESCRIPTION =
   "Tutorials, how-tos, reference, and design notes for vibi — AI audio separation on iPhone, Android, and in Adobe Premiere Pro.";

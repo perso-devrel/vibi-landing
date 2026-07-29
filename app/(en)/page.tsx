@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { dict } from "@/dictionaries";
-import { LandingPage } from "./_landing";
-import { buildLandingMetadata } from "./_meta";
+import { LandingPage } from "../_landing";
+import { buildLandingMetadata } from "../_meta";
 
 export const metadata: Metadata = buildLandingMetadata("en");
 
